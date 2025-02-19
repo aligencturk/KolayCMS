@@ -153,31 +153,26 @@
         }
     </style>
     
-    <!-- Koşullu Sınıflar için Script -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const navbar = document.querySelector('.navbar');
-        {% if settings.navbar_is_fixed %}
-        navbar.classList.add('fixed-top');
-        {% endif %}
-        
-        {% if settings.navbar_is_transparent %}
-        navbar.classList.add('transparent');
-        {% endif %}
-    });
-    </script>
-    
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     
     {% block styles %}{% endblock %}
 </head>
 <body>
+    <!-- Navbar Ayarları -->
+    {% set navbar_classes = ['navbar'] %}
+    {% if settings and settings.navbar_is_fixed %}
+        {% set _ = navbar_classes.append('fixed-top') %}
+    {% endif %}
+    {% if settings and settings.navbar_is_transparent %}
+        {% set _ = navbar_classes.append('transparent') %}
+    {% endif %}
+    
     <!--header section start -->
     <div class="header_section">
         <div class="header_bg">
             <div class="container">
-                <nav class="navbar navbar-expand-lg navbar-light">
+                <nav class="{{ navbar_classes|join(' ') }} navbar-expand-lg navbar-light">
                     <a class="navbar-brand" href="{{ url_for('main.index') }}">
                         {% if settings and settings.logo_path %}
                         <img src="{{ url_for('static', filename=settings.logo_path) }}" alt="{{ settings.site_name }}" height="30">
