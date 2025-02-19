@@ -1,0 +1,160 @@
+{% extends "admin/master.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">İletişim Bilgilerini Düzenle</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-edit me-1"></i>
+            İletişim Bilgileri
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Temel Bilgiler -->
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Adres</label>
+                            <textarea class="form-control" id="address" name="address" rows="3" required>{{ contact.address }}</textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Telefon</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" value="{{ contact.phone }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">E-posta</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ contact.email }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="working_hours" class="form-label">Çalışma Saatleri</label>
+                            <input type="text" class="form-control" id="working_hours" name="working_hours" value="{{ contact.working_hours }}" placeholder="Örnek: Pazartesi - Cuma: 09:00 - 18:00">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="google_maps_embed" class="form-label">Google Maps Embed Kodu</label>
+                            <textarea class="form-control" id="google_maps_embed" name="google_maps_embed" rows="3" placeholder="<iframe src='...'></iframe>">{{ contact.google_maps_embed }}</textarea>
+                            <div class="form-text">
+                                Google Maps'ten harita yerleştirme kodunu buraya yapıştırın.
+                            </div>
+                        </div>
+                        
+                        <!-- Sosyal Medya -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <i class="fas fa-share-alt me-1"></i>
+                                Sosyal Medya Bağlantıları
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="social_facebook" class="form-label">Facebook</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fab fa-facebook"></i></span>
+                                                <input type="url" class="form-control" id="social_facebook" name="social_facebook" value="{{ contact.social_media.facebook if contact.social_media }}" placeholder="https://facebook.com/...">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="social_twitter" class="form-label">Twitter</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fab fa-twitter"></i></span>
+                                                <input type="url" class="form-control" id="social_twitter" name="social_twitter" value="{{ contact.social_media.twitter if contact.social_media }}" placeholder="https://twitter.com/...">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="social_instagram" class="form-label">Instagram</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fab fa-instagram"></i></span>
+                                                <input type="url" class="form-control" id="social_instagram" name="social_instagram" value="{{ contact.social_media.instagram if contact.social_media }}" placeholder="https://instagram.com/...">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="social_linkedin" class="form-label">LinkedIn</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fab fa-linkedin"></i></span>
+                                                <input type="url" class="form-control" id="social_linkedin" name="social_linkedin" value="{{ contact.social_media.linkedin if contact.social_media }}" placeholder="https://linkedin.com/...">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <!-- Harita Önizleme -->
+                        {% if contact.google_maps_embed %}
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    Harita Önizleme
+                                </div>
+                                <div class="card-body">
+                                    {{ contact.google_maps_embed|safe }}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="text-end mt-3">
+                    <a href="{{ url_for('admin.contents_list') }}" class="btn btn-secondary">İptal</a>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Google Maps önizleme
+    const mapsInput = document.getElementById('google_maps_embed');
+    const previewContainer = document.querySelector('.col-md-4');
+    
+    mapsInput.addEventListener('input', function() {
+        const embedCode = this.value;
+        if (embedCode) {
+            // Mevcut önizleme kartını kaldır
+            const existingPreview = previewContainer.querySelector('.card');
+            if (existingPreview) {
+                existingPreview.remove();
+            }
+            
+            // Yeni önizleme kartı oluştur
+            const previewCard = document.createElement('div');
+            previewCard.className = 'card mb-3';
+            previewCard.innerHTML = `
+                <div class="card-header">
+                    Harita Önizleme
+                </div>
+                <div class="card-body">
+                    ${embedCode}
+                </div>
+            `;
+            previewContainer.appendChild(previewCard);
+        }
+    });
+});
+</script>
+{% endblock %}
+
+{% endblock %}

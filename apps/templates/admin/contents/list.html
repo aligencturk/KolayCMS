@@ -1,0 +1,303 @@
+{% extends "admin/master.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">İçerik Yönetimi</h1>
+    
+    <!-- Hakkımızda Bölümü -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-info-circle me-1"></i>
+            Hakkımızda
+        </div>
+        <div class="card-body">
+            {% if about_sections %}
+                {% for about in about_sections %}
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5>{{ about.title }}</h5>
+                        <p class="text-muted mb-0">{{ about.subtitle }}</p>
+                    </div>
+                    <a href="{{ url_for('admin.about_edit') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-edit"></i> Düzenle
+                    </a>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted mb-0">Henüz hakkımızda bilgisi eklenmemiş.</p>
+                <a href="{{ url_for('admin.about_edit') }}" class="btn btn-primary btn-sm mt-2">
+                    <i class="fas fa-plus"></i> Ekle
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Hizmetler -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-cogs me-1"></i>
+            Hizmetler
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-end mb-3">
+                <a href="{{ url_for('admin.services_create') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Yeni Hizmet Ekle
+                </a>
+            </div>
+            {% if services %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Sıra</th>
+                                <th>Başlık</th>
+                                <th>Durum</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in services %}
+                            <tr>
+                                <td>{{ service.order }}</td>
+                                <td>{{ service.title }}</td>
+                                <td>
+                                    {% if service.is_active %}
+                                        <span class="badge bg-success">Aktif</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Pasif</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin.services_edit', id=service.id) }}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="{{ url_for('admin.services_delete', id=service.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bu hizmeti silmek istediğinizden emin misiniz?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">Henüz hizmet eklenmemiş.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Projeler -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-project-diagram me-1"></i>
+            Projeler
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-end mb-3">
+                <a href="{{ url_for('admin.projects_create') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Yeni Proje Ekle
+                </a>
+            </div>
+            {% if projects %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Sıra</th>
+                                <th>Başlık</th>
+                                <th>Kategori</th>
+                                <th>Müşteri</th>
+                                <th>Durum</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for project in projects %}
+                            <tr>
+                                <td>{{ project.order }}</td>
+                                <td>{{ project.title }}</td>
+                                <td>{{ project.category }}</td>
+                                <td>{{ project.client }}</td>
+                                <td>
+                                    {% if project.is_active %}
+                                        <span class="badge bg-success">Aktif</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Pasif</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin.projects_edit', id=project.id) }}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="{{ url_for('admin.projects_delete', id=project.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bu projeyi silmek istediğinizden emin misiniz?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">Henüz proje eklenmemiş.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Ekip Üyeleri -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-users me-1"></i>
+            Ekip Üyeleri
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-end mb-3">
+                <a href="{{ url_for('admin.team_create') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Yeni Ekip Üyesi Ekle
+                </a>
+            </div>
+            {% if team_members %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Sıra</th>
+                                <th>Ad Soyad</th>
+                                <th>Pozisyon</th>
+                                <th>E-posta</th>
+                                <th>Durum</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for member in team_members %}
+                            <tr>
+                                <td>{{ member.order }}</td>
+                                <td>{{ member.name }}</td>
+                                <td>{{ member.title }}</td>
+                                <td>{{ member.email }}</td>
+                                <td>
+                                    {% if member.is_active %}
+                                        <span class="badge bg-success">Aktif</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Pasif</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin.team_edit', id=member.id) }}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="{{ url_for('admin.team_delete', id=member.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bu ekip üyesini silmek istediğinizden emin misiniz?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">Henüz ekip üyesi eklenmemiş.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Müşteri Yorumları -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-comments me-1"></i>
+            Müşteri Yorumları
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-end mb-3">
+                <a href="{{ url_for('admin.testimonials_create') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Yeni Yorum Ekle
+                </a>
+            </div>
+            {% if testimonials %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Sıra</th>
+                                <th>Müşteri</th>
+                                <th>Şirket</th>
+                                <th>Puan</th>
+                                <th>Durum</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for testimonial in testimonials %}
+                            <tr>
+                                <td>{{ testimonial.order }}</td>
+                                <td>{{ testimonial.client_name }}</td>
+                                <td>{{ testimonial.client_company }}</td>
+                                <td>
+                                    {% for i in range(testimonial.rating) %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% if testimonial.is_active %}
+                                        <span class="badge bg-success">Aktif</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Pasif</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin.testimonials_edit', id=testimonial.id) }}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="{{ url_for('admin.testimonials_delete', id=testimonial.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bu yorumu silmek istediğinizden emin misiniz?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">Henüz müşteri yorumu eklenmemiş.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- İletişim Bilgileri -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-address-card me-1"></i>
+            İletişim Bilgileri
+        </div>
+        <div class="card-body">
+            {% if contact_info %}
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="mb-1"><strong>Adres:</strong> {{ contact_info.address }}</p>
+                        <p class="mb-1"><strong>Telefon:</strong> {{ contact_info.phone }}</p>
+                        <p class="mb-1"><strong>E-posta:</strong> {{ contact_info.email }}</p>
+                        <p class="mb-0"><strong>Çalışma Saatleri:</strong> {{ contact_info.working_hours }}</p>
+                    </div>
+                    <a href="{{ url_for('admin.contact_edit') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-edit"></i> Düzenle
+                    </a>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">Henüz iletişim bilgisi eklenmemiş.</p>
+                <a href="{{ url_for('admin.contact_edit') }}" class="btn btn-primary btn-sm mt-2">
+                    <i class="fas fa-plus"></i> Ekle
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

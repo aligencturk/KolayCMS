@@ -1,0 +1,174 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+<div class="container-fluid">
+    <h2 class="mb-4">Template Yönetimi</h2>
+
+    <div class="row">
+        <!-- Sol Panel: Tema Seçimi ve Genel Ayarlar -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Tema Seçimi</h5>
+                </div>
+                <div class="card-body">
+                    <select class="form-select mb-3" id="themeSelector">
+                        {% for theme in themes %}
+                        <option value="{{ theme.id }}" {% if theme.is_active %}selected{% endif %}>
+                            {{ theme.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <h6 class="mt-4">Renk Ayarları</h6>
+                    <div class="mb-3">
+                        <label>Ana Renk</label>
+                        <input type="color" class="form-control" id="primaryColor" 
+                               value="{{ settings.primary_color if settings else '#007bff' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label>İkincil Renk</label>
+                        <input type="color" class="form-control" id="secondaryColor"
+                               value="{{ settings.secondary_color if settings else '#6c757d' }}">
+                    </div>
+
+                    <h6 class="mt-4">Yazı Tipi Ayarları</h6>
+                    <div class="mb-3">
+                        <label>Yazı Tipi</label>
+                        <select class="form-select" id="fontFamily">
+                            <option value="Roboto" {% if settings and settings.font_family == 'Roboto' %}selected{% endif %}>Roboto</option>
+                            <option value="Open Sans" {% if settings and settings.font_family == 'Open Sans' %}selected{% endif %}>Open Sans</option>
+                            <option value="Montserrat" {% if settings and settings.font_family == 'Montserrat' %}selected{% endif %}>Montserrat</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Yazı Boyutu</label>
+                        <select class="form-select" id="fontSize">
+                            <option value="14px" {% if settings and settings.font_size == '14px' %}selected{% endif %}>Küçük</option>
+                            <option value="16px" {% if settings and settings.font_size == '16px' %}selected{% endif %}>Orta</option>
+                            <option value="18px" {% if settings and settings.font_size == '18px' %}selected{% endif %}>Büyük</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ Panel: Kod Editörü -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#cssEditor">CSS</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#jsEditor">JavaScript</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#preview">Önizleme</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="cssEditor">
+                            <div id="css-editor" style="height: 500px;"></div>
+                        </div>
+                        <div class="tab-pane fade" id="jsEditor">
+                            <div id="js-editor" style="height: 500px;"></div>
+                        </div>
+                        <div class="tab-pane fade" id="preview">
+                            <div id="preview-frame" style="height: 500px; border: 1px solid #ddd;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-primary" id="saveTemplate">Değişiklikleri Kaydet</button>
+                    <button class="btn btn-secondary" id="previewChanges">Önizle</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ace Editor -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // CSS Editörü
+    const cssEditor = ace.edit("css-editor");
+    cssEditor.setTheme("ace/theme/monokai");
+    cssEditor.session.setMode("ace/mode/css");
+    cssEditor.setValue("{{ theme.css if theme else '' }}");
+
+    // JavaScript Editörü
+    const jsEditor = ace.edit("js-editor");
+    jsEditor.setTheme("ace/theme/monokai");
+    jsEditor.session.setMode("ace/mode/javascript");
+    jsEditor.setValue("{{ theme.template if theme else '' }}");
+
+    // Tema değişikliğini dinle
+    document.getElementById('themeSelector').addEventListener('change', function(e) {
+        const themeId = e.target.value;
+        fetch('/admin/template-manager/theme/' + themeId)
+            .then(response => response.json())
+            .then(data => {
+                cssEditor.setValue(data.css || '');
+                jsEditor.setValue(data.template || '');
+            });
+    });
+
+    // Kaydetme işlemi
+    document.getElementById('saveTemplate').addEventListener('click', function() {
+        const data = {
+            theme_id: document.getElementById('themeSelector').value,
+            custom_css: cssEditor.getValue(),
+            custom_js: jsEditor.getValue(),
+            primary_color: document.getElementById('primaryColor').value,
+            secondary_color: document.getElementById('secondaryColor').value,
+            font_family: document.getElementById('fontFamily').value,
+            font_size: document.getElementById('fontSize').value
+        };
+
+        fetch('/admin/template-manager/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Değişiklikler başarıyla kaydedildi.');
+            } else {
+                alert('Bir hata oluştu: ' + data.error);
+            }
+        });
+    });
+
+    // Önizleme
+    document.getElementById('previewChanges').addEventListener('click', function() {
+        const previewFrame = document.getElementById('preview-frame');
+        const css = cssEditor.getValue();
+        const js = jsEditor.getValue();
+        
+        const html = '<!DOCTYPE html>' +
+            '<html>' +
+            '<head>' +
+            '<style>' + css + '</style>' +
+            '</head>' +
+            '<body>' +
+            '<div id="preview-content">' +
+            '<!-- Önizleme içeriği buraya gelecek -->' +
+            '</div>' +
+            '<script>' + js + '<\/script>' +
+            '</body>' +
+            '</html>';
+        
+        const blob = new Blob([html], { type: 'text/html' });
+        previewFrame.src = URL.createObjectURL(blob);
+    });
+});
+</script>
+{% endblock %} 

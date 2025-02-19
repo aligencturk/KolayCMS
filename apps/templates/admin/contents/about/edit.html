@@ -1,0 +1,173 @@
+{% extends "admin/master.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Edit About Section</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-edit me-1"></i>
+            About Information
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Basic Information -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ about.title }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="subtitle" class="form-label">Subtitle</label>
+                            <input type="text" class="form-control" id="subtitle" name="subtitle" value="{{ about.subtitle }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Content</label>
+                            <textarea class="form-control editor" id="content" name="content" rows="6">{{ about.content }}</textarea>
+                        </div>
+
+                        <!-- Button Settings -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                Button Settings
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="button_text" class="form-label">Button Text</label>
+                                            <input type="text" class="form-control" id="button_text" name="button_text" value="{{ about.button_text }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="button_url" class="form-label">Button URL</label>
+                                            <input type="text" class="form-control" id="button_url" name="button_url" value="{{ about.button_url }}" placeholder="https://">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Statistics -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                Statistics Section
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="stats_title" class="form-label">Statistics Title</label>
+                                    <input type="text" class="form-control" id="stats_title" name="stats_title" value="{{ about.stats_title }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="stats_content" class="form-label">Statistics Description</label>
+                                    <textarea class="form-control" id="stats_content" name="stats_content" rows="3">{{ about.stats_content }}</textarea>
+                                </div>
+                                
+                                <div id="stats-container">
+                                    {% if about.stats_items %}
+                                        {% for stat in about.stats_items %}
+                                        <div class="row stat-item mb-3">
+                                            <div class="col-md-5">
+                                                <input type="text" class="form-control" name="stat_numbers[]" value="{{ stat.number }}" placeholder="e.g. 100+">
+                                            </div>
+                                            <div class="col-md-5">
+                                                <input type="text" class="form-control" name="stat_texts[]" value="{{ stat.text }}" placeholder="e.g. Happy Clients">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="button" class="btn btn-danger remove-stat"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                
+                                <button type="button" class="btn btn-success" id="add-stat">
+                                    <i class="fas fa-plus"></i> Add Statistic
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <!-- Side Panel -->
+                        <div class="card">
+                            <div class="card-header">
+                                Image Settings
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="image" class="form-label">About Image</label>
+                                    {% if about.image_path %}
+                                        <div class="mb-2">
+                                            <img src="{{ about.image_path }}" alt="About Image" class="img-thumbnail" style="max-width: 100%;">
+                                        </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                                    <div class="form-text">
+                                        Recommended size: 800x600px
+                                        {% if about.image_path %}
+                                            <br>Current image will be kept if no new image is uploaded.
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-end mt-3">
+                    <a href="{{ url_for('admin.contents_list') }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script src="https://cdn.ckeditor.com/ckeditor5/27.1.0/classic/ckeditor.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize CKEditor
+    ClassicEditor
+        .create(document.querySelector('.editor'))
+        .catch(error => {
+            console.error(error);
+        });
+    
+    // Statistics Management
+    const statsContainer = document.getElementById('stats-container');
+    const addStatBtn = document.getElementById('add-stat');
+    
+    addStatBtn.addEventListener('click', function() {
+        const statItem = document.createElement('div');
+        statItem.className = 'row stat-item mb-3';
+        statItem.innerHTML = `
+            <div class="col-md-5">
+                <input type="text" class="form-control" name="stat_numbers[]" placeholder="e.g. 100+">
+            </div>
+            <div class="col-md-5">
+                <input type="text" class="form-control" name="stat_texts[]" placeholder="e.g. Happy Clients">
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-danger remove-stat"><i class="fas fa-trash"></i></button>
+            </div>
+        `;
+        statsContainer.appendChild(statItem);
+    });
+    
+    statsContainer.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-stat')) {
+            e.target.closest('.stat-item').remove();
+        }
+    });
+});
+</script>
+{% endblock %}
+
+{% endblock %} 

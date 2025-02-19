@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} - KolayCMS Yönetim Paneli</title>
+    {% block head_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='main/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.css">
+    <style>
+        :root {
+            --primary-color: #13a25d;
+            --secondary-color: #333;
+            --bg-light: #f8f9fa;
+            --text-dark: #333;
+            --sidebar-bg: #2c3e50;
+            --sidebar-text: #ecf0f1;
+            --sidebar-hover: #34495e;
+            --navbar-bg: #2c3e50;
+            --navbar-text: #ecf0f1;
+            --navbar-hover: #34495e;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-light);
+        }
+        
+        .navbar {
+            background-color: var(--navbar-bg) !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            padding: 0.8rem 1rem;
+        }
+        
+        .navbar-brand {
+            color: var(--navbar-text) !important;
+            font-weight: 600;
+            font-size: 1.2rem;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-brand:hover {
+            background-color: var(--navbar-hover);
+            color: white !important;
+        }
+        
+        .navbar .nav-link {
+            color: var(--navbar-text) !important;
+            padding: 0.5rem 1rem;
+            margin: 0 0.2rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar .nav-link:hover {
+            background-color: var(--navbar-hover);
+            color: white !important;
+        }
+        
+        .navbar .nav-link i {
+            margin-right: 8px;
+        }
+        
+        .navbar-toggler {
+            border-color: var(--navbar-text);
+        }
+        
+        .navbar-toggler:focus {
+            box-shadow: none;
+            outline: none;
+        }
+        
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background-color: var(--sidebar-bg);
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            padding-top: 20px;
+        }
+        
+        .sidebar .nav-link {
+            color: var(--sidebar-text);
+            padding: 12px 20px;
+            margin: 2px 10px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav-link:hover {
+            background-color: var(--sidebar-hover);
+            color: white !important;
+            transform: translateX(5px);
+        }
+        
+        .sidebar .nav-link.active {
+            background-color: var(--primary-color);
+            color: white !important;
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link i {
+            width: 25px;
+            text-align: center;
+            margin-right: 10px;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 2px solid var(--primary-color);
+            font-weight: bold;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #0f8a4c;
+            border-color: #0f8a4c;
+        }
+        
+        .alert {
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Türkçe metin stilleri */
+        .table th {
+            font-weight: 600;
+        }
+        
+        .form-label {
+            font-weight: 500;
+        }
+        
+        .btn {
+            font-weight: 500;
+        }
+        
+        .alert {
+            font-weight: 500;
+        }
+        
+        /* Yeni eklenen stiller */
+        .help-tooltip {
+            color: var(--primary-color);
+            margin-left: 5px;
+            cursor: help;
+        }
+        
+        .nav-link .badge {
+            margin-left: 5px;
+            background-color: var(--primary-color);
+        }
+        
+        .quick-actions {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .quick-actions .btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin: 1rem 0;
+        }
+        
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: "›";
+        }
+        
+        .sidebar .nav-link:hover .nav-tooltip {
+            display: block;
+        }
+        
+        .nav-tooltip {
+            display: none;
+            position: absolute;
+            background: var(--primary-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 1000;
+            left: 100%;
+            margin-left: 10px;
+        }
+    </style>
+    {% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('admin.index') }}">
+                <i class="fas fa-cogs"></i> KolayCMS Yönetici Paneli
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.index') }}" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> Siteyi Görüntüle
+                        </a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> {{ current_user.username }}
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <a class="dropdown-item" href="{{ url_for('admin.profile') }}">
+                                <i class="fas fa-user-edit"></i> Profilim
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> Güvenli Çıkış
+                            </a>
+                        </div>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-3 col-lg-2 d-none d-md-block sidebar">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.index' %}active{% endif %}" 
+                           href="{{ url_for('admin.index') }}" data-toggle="tooltip" title="Genel site istatistiklerini ve özeti görüntüleyin">
+                            <i class="fas fa-tachometer-alt"></i> Gösterge Paneli
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'users' in request.endpoint %}active{% endif %}" 
+                           href="{{ url_for('admin.users_list') }}" data-toggle="tooltip" title="Kullanıcıları yönetin ve yetkilendirin">
+                            <i class="fas fa-users"></i> Kullanıcılar
+                            {% if stats and stats.pending_users %}<span class="badge badge-pill badge-warning">{{ stats.pending_users }}</span>{% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'pages' in request.endpoint %}active{% endif %}" 
+                           href="{{ url_for('admin.pages_list') }}" data-toggle="tooltip" title="Sayfa içeriklerini düzenleyin">
+                            <i class="fas fa-file-alt"></i> Sayfalar
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'contents' in request.endpoint %}active{% endif %}" 
+                           href="{{ url_for('admin.contents_list') }}" data-toggle="tooltip" title="Blog yazıları ve içerikleri yönetin">
+                            <i class="fas fa-newspaper"></i> İçerikler
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'products' in request.endpoint %}active{% endif %}" 
+                           href="{{ url_for('admin.products_list') }}" data-toggle="tooltip" title="Ürün kataloğunu yönetin">
+                            <i class="fas fa-box"></i> Ürünler
+                            {% if stats.low_stock %}<span class="badge badge-pill badge-danger">{{ stats.low_stock }}</span>{% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'orders' in request.endpoint %}active{% endif %}" 
+                           href="{{ url_for('admin.orders_list') }}" data-toggle="tooltip" title="Siparişleri takip edin">
+                            <i class="fas fa-shopping-cart"></i> Siparişler
+                            {% if stats.new_orders %}<span class="badge badge-pill badge-success">{{ stats.new_orders }}</span>{% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'settings' in request.endpoint %}active{% endif %}" 
+                           href="{{ url_for('admin.settings') }}" data-toggle="tooltip" title="Sistem ayarlarını yapılandırın">
+                            <i class="fas fa-cog"></i> Ayarlar
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <main class="col-md-9 ml-sm-auto col-lg-10 px-md-4 content">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                {% if request.endpoint != 'admin.index' %}
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Ana Sayfa</a></li>
+                        {% block breadcrumb %}{% endblock %}
+                    </ol>
+                </nav>
+                {% endif %}
+                
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    
+    <div class="quick-actions">
+        <button class="btn btn-primary" data-toggle="tooltip" title="Hızlı Yardım" onclick="showHelp()">
+            <i class="fas fa-question"></i>
+        </button>
+        <a href="#top" class="btn btn-secondary" data-toggle="tooltip" title="Yukarı Çık">
+            <i class="fas fa-arrow-up"></i>
+        </a>
+    </div>
+
+    <script src="{{ url_for('static', filename='main/js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='main/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+    <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+            
+            $('.dropdown-toggle').dropdown();
+            
+            $('.alert').alert();
+            
+            setTimeout(function() {
+                $('.alert').alert('close');
+            }, 5000);
+            
+            // Silme işlemleri için onay
+            $('.delete-confirm').on('click', function(e) {
+                e.preventDefault();
+                let url = $(this).attr('href');
+                
+                Swal.fire({
+                    title: 'Emin misiniz?',
+                    text: "Bu işlem geri alınamaz!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Evet, sil!',
+                    cancelButtonText: 'İptal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = url;
+                    }
+                });
+            });
+        });
+        
+        function showHelp() {
+            Swal.fire({
+                title: 'Yardım & İpuçları',
+                html: `
+                    <div class="text-left">
+                        <h5>Hızlı İpuçları:</h5>
+                        <ul>
+                            <li>Menü öğelerinin üzerine gelerek detaylı açıklamaları görebilirsiniz</li>
+                            <li>Sağ üst köşedeki profil menüsünden ayarlarınıza ulaşabilirsiniz</li>
+                            <li>Her sayfada ekmek kırıntısı (breadcrumb) ile nerede olduğunuzu görebilirsiniz</li>
+                            <li>Bildirimler için sayı rozetlerine dikkat edin</li>
+                        </ul>
+                        <p>Daha detaylı bilgi için <a href="/admin/docs" target="_blank">dokümantasyonu</a> inceleyebilirsiniz.</p>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonText: 'Anladım'
+            });
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

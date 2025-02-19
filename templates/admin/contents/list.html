@@ -1,0 +1,243 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>İçerik Yönetimi</h2>
+        </div>
+        <div class="col text-end">
+            <div class="btn-group">
+                <a href="{{ url_for('admin.blog_create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Yeni Blog Yazısı
+                </a>
+                <a href="{{ url_for('admin.slide_create') }}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Yeni Slayt
+                </a>
+            </div>
+            <a href="{{ url_for('admin.theme_settings') }}" class="btn btn-info">
+                <i class="fas fa-paint-brush"></i> Tema Ayarları
+            </a>
+        </div>
+    </div>
+
+    <!-- Blog Yazıları -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Blog Yazıları</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Başlık</th>
+                            <th>Yazar</th>
+                            <th>Durum</th>
+                            <th>Yayın Tarihi</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for post in blog_posts %}
+                        <tr>
+                            <td>{{ post.id }}</td>
+                            <td>{{ post.title }}</td>
+                            <td>{{ post.author.username }}</td>
+                            <td>
+                                {% if post.is_published %}
+                                <span class="badge bg-success">Yayında</span>
+                                {% else %}
+                                <span class="badge bg-warning">Taslak</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if post.published_at %}
+                                {{ post.published_at.strftime('%d.%m.%Y %H:%M') }}
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('admin.blog_edit', id=post.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="{{ url_for('admin.blog_delete', id=post.id) }}" method="POST" class="d-inline delete-form">
+                                        <button type="submit" class="btn btn-sm btn-danger delete-btn">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">Henüz blog yazısı eklenmemiş.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slaytlar -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Slaytlar</h5>
+            <div>
+                <a href="{{ url_for('admin.slider_settings') }}" class="btn btn-info">
+                    <i class="fas fa-cog"></i> Slider Ayarları
+                </a>
+                <a href="{{ url_for('admin.slide_create') }}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Yeni Slayt
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Başlık</th>
+                            <th>Sıra</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for slide in slides %}
+                        <tr>
+                            <td>{{ slide.id }}</td>
+                            <td>{{ slide.title }}</td>
+                            <td>{{ slide.order }}</td>
+                            <td>
+                                {% if slide.is_active %}
+                                <span class="badge bg-success">Aktif</span>
+                                {% else %}
+                                <span class="badge bg-warning">Pasif</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('admin.slide_edit', id=slide.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-danger" 
+                                            data-slide-id="{{ slide.id }}"
+                                            data-slide-title="{{ slide.title }}"
+                                            onclick="deleteSlide(this.dataset.slideId, this.dataset.slideTitle)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center">Henüz slayt eklenmemiş.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Blog Yazısı Silme Modalı -->
+<div class="modal fade" id="deleteBlogModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Blog Yazısını Sil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bu blog yazısını silmek istediğinizden emin misiniz?</p>
+                <p class="text-danger" id="deleteBlogTitle"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form id="deleteBlogForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Sil</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slayt Silme Modalı -->
+<div class="modal fade" id="deleteSlideModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Slaytı Sil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bu slaytı silmek istediğinizden emin misiniz?</p>
+                <p class="text-danger" id="deleteSlideTitle"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form id="deleteSlideForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Sil</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function deleteBlogPost(id, title) {
+    const modal = new bootstrap.Modal(document.getElementById('deleteBlogModal'));
+    document.getElementById('deleteBlogTitle').textContent = title;
+    document.getElementById('deleteBlogForm').action = "{{ url_for('admin.blog_delete', id=0) }}".replace('0', id);
+    modal.show();
+}
+
+function deleteSlide(id, title) {
+    const modal = new bootstrap.Modal(document.getElementById('deleteSlideModal'));
+    document.getElementById('deleteSlideTitle').textContent = title;
+    document.getElementById('deleteSlideForm').action = "{{ url_for('admin.slide_delete', id=0) }}".replace('0', id);
+    modal.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteForms = document.querySelectorAll('.delete-form');
+    
+    deleteForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (confirm('Bu blog yazısını silmek istediğinizden emin misiniz?')) {
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        form.closest('tr').remove();
+                        toastr.success('Blog yazısı başarıyla silindi.');
+                    } else {
+                        toastr.error('Blog yazısı silinirken bir hata oluştu.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toastr.error('Bir hata oluştu.');
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

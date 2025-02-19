@@ -1,0 +1,137 @@
+{% extends "admin/master.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Ekip Üyesi Düzenle</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-edit me-1"></i>
+            Ekip Üyesi Bilgileri
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Temel Bilgiler -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Ad Soyad</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ member.name }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Pozisyon</label>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ member.title }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Biyografi</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="4">{{ member.bio }}</textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">E-posta</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ member.email }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Telefon</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" value="{{ member.phone }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sosyal Medya -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <i class="fas fa-share-alt me-1"></i>
+                                Sosyal Medya
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="linkedin_url" class="form-label">LinkedIn</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fab fa-linkedin"></i></span>
+                                                <input type="url" class="form-control" id="linkedin_url" name="linkedin_url" value="{{ member.linkedin_url }}" placeholder="https://linkedin.com/in/...">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="github_url" class="form-label">GitHub</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fab fa-github"></i></span>
+                                                <input type="url" class="form-control" id="github_url" name="github_url" value="{{ member.github_url }}" placeholder="https://github.com/...">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="twitter_url" class="form-label">Twitter</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fab fa-twitter"></i></span>
+                                                <input type="url" class="form-control" id="twitter_url" name="twitter_url" value="{{ member.twitter_url }}" placeholder="https://twitter.com/...">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <!-- Yan Panel -->
+                        <div class="card">
+                            <div class="card-header">
+                                Ayarlar
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="order" class="form-label">Sıralama</label>
+                                    <input type="number" class="form-control" id="order" name="order" value="{{ member.order }}" min="0">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="image" class="form-label">Profil Fotoğrafı</label>
+                                    {% if member.image_path %}
+                                        <div class="mb-2">
+                                            <img src="{{ member.image_path }}" alt="{{ member.name }}" class="img-thumbnail" style="max-width: 100%;">
+                                        </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                                    <div class="form-text">
+                                        Önerilen boyut: 400x400px
+                                        {% if member.image_path %}
+                                            <br>Yeni bir fotoğraf yüklemezseniz mevcut fotoğraf korunacaktır.
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if member.is_active %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_active">Aktif</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-end mt-3">
+                    <a href="{{ url_for('admin.team_list') }}" class="btn btn-secondary">İptal</a>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

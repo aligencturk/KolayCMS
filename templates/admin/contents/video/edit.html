@@ -1,0 +1,58 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Video Bölümünü Düzenle</h2>
+        </div>
+        <div class="col text-end">
+            <a href="{{ url_for('admin.contents_list') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.video_edit') }}" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Başlık</label>
+                    <input type="text" class="form-control" id="title" name="title" value="{{ video.title }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="url" class="form-label">Video URL</label>
+                    <input type="url" class="form-control" id="url" name="url" value="{{ video.url }}" required>
+                    <small class="form-text text-muted">YouTube veya Vimeo video linki</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="thumbnail" class="form-label">Önizleme Görseli</label>
+                    {% if video.thumbnail %}
+                    <div class="mb-2">
+                        <img src="{{ video.thumbnail }}" alt="Mevcut önizleme" class="img-thumbnail" style="max-height: 200px;">
+                    </div>
+                    {% endif %}
+                    <input type="file" class="form-control" id="thumbnail" name="thumbnail" accept="image/*">
+                    <small class="form-text text-muted">Video başlamadan önce gösterilecek görsel (opsiyonel)</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="button_text" class="form-label">Buton Metni</label>
+                    <input type="text" class="form-control" id="button_text" name="button_text" value="{{ video.button_text }}">
+                </div>
+
+                <div class="mb-3">
+                    <label for="button_url" class="form-label">Buton URL</label>
+                    <input type="text" class="form-control" id="button_url" name="button_url" value="{{ video.button_url }}">
+                </div>
+                
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

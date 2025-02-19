@@ -1,0 +1,7 @@
+.banner_section {
+    height: var(--slider-height, 600px);
+}
+
+.carousel-item {
+    transition-duration: var(--animation-speed, 600ms);
+} 

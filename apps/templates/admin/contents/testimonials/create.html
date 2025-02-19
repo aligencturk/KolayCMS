@@ -1,0 +1,167 @@
+{% extends "admin/master.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Yeni Müşteri Yorumu Ekle</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-plus me-1"></i>
+            Müşteri Yorumu Bilgileri
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Temel Bilgiler -->
+                        <div class="mb-3">
+                            <label for="client_name" class="form-label">Müşteri Adı</label>
+                            <input type="text" class="form-control" id="client_name" name="client_name" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="client_title" class="form-label">Pozisyon</label>
+                                    <input type="text" class="form-control" id="client_title" name="client_title" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="client_company" class="form-label">Şirket</label>
+                                    <input type="text" class="form-control" id="client_company" name="client_company" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Yorum</label>
+                            <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Puan</label>
+                            <div class="rating">
+                                {% for i in range(5, 0, -1) %}
+                                <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" {% if i == 5 %}checked{% endif %}>
+                                <label for="star{{ i }}"><i class="fas fa-star"></i></label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <!-- Yan Panel -->
+                        <div class="card">
+                            <div class="card-header">
+                                Ayarlar
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="order" class="form-label">Sıralama</label>
+                                    <input type="number" class="form-control" id="order" name="order" value="0" min="0">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="image" class="form-label">Müşteri Fotoğrafı</label>
+                                    <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                                    <div class="form-text">
+                                        Önerilen boyut: 200x200px
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                        <label class="form-check-label" for="is_active">Aktif</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-end mt-3">
+                    <a href="{{ url_for('admin.testimonials_list') }}" class="btn btn-secondary">İptal</a>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block styles %}
+<style>
+.rating {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    gap: 0.3rem;
+}
+
+.rating input {
+    display: none;
+}
+
+.rating label {
+    cursor: pointer;
+    color: #ddd;
+    font-size: 1.5rem;
+}
+
+.rating input:checked ~ label {
+    color: #ffc107;
+}
+
+.rating label:hover,
+.rating label:hover ~ label {
+    color: #ffc107;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ratingInputs = document.querySelectorAll('.rating input');
+    const ratingLabels = document.querySelectorAll('.rating label');
+    
+    ratingLabels.forEach(label => {
+        label.addEventListener('mouseover', function() {
+            const labelFor = this.getAttribute('for');
+            const currentRating = labelFor.replace('star', '');
+            
+            ratingLabels.forEach(l => {
+                const lFor = l.getAttribute('for');
+                const lRating = lFor.replace('star', '');
+                
+                if (lRating >= currentRating) {
+                    l.style.color = '#ffc107';
+                } else {
+                    l.style.color = '#ddd';
+                }
+            });
+        });
+    });
+    
+    document.querySelector('.rating').addEventListener('mouseout', function() {
+        const checkedInput = document.querySelector('.rating input:checked');
+        if (checkedInput) {
+            const currentRating = checkedInput.value;
+            
+            ratingLabels.forEach(l => {
+                const lFor = l.getAttribute('for');
+                const lRating = lFor.replace('star', '');
+                
+                if (lRating <= currentRating) {
+                    l.style.color = '#ffc107';
+                } else {
+                    l.style.color = '#ddd';
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
+
+{% endblock %} 

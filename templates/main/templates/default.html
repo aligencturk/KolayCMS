@@ -1,0 +1,179 @@
+{% extends "main/base.html" %}
+
+{% block meta %}
+    {% if page %}
+    <title>{{ page.title }} - {{ settings.site_name }}</title>
+    <meta name="description" content="{{ page.meta_description }}">
+    <meta name="keywords" content="{{ page.meta_keywords }}">
+    {% endif %}
+{% endblock %}
+
+{% block banner %}
+{% if slides %}
+<div class="banner_section layout_padding">
+    <div class="container-fluid">
+        <section class="slide-wrapper">
+            <div class="container-fluid">
+                <div id="myCarousel" class="carousel slide" data-ride="carousel">
+                    <!-- Indicators -->
+                    <ol class="carousel-indicators">
+                        {% for slide in slides %}
+                        <li data-target="#myCarousel" data-slide-to="{{ loop.index0 }}" {% if loop.first %}class="active"{% endif %}></li>
+                        {% endfor %}
+                    </ol>
+                    <!-- Wrapper for slides -->
+                    <div class="carousel-inner">
+                        {% for slide in slides %}
+                        <div class="carousel-item {% if loop.first %}active{% endif %}">
+                            <div class="container">
+                                <div class="banner_main">
+                                    <h1 class="banner_taital">{{ slide.title }}</h1>
+                                    <p class="banner_text">{{ slide.description }}</p>
+                                    <div class="btn_main">
+                                        {% if slide.link %}
+                                        <div class="contact_bt active"><a href="{{ slide.link }}">Daha Fazla</a></div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<!-- Sayfa İçeriği -->
+{% if page %}
+<div class="about_section layout_padding">
+    <div class="container">
+        {% if page.featured_image %}
+        <div class="page-featured-image mb-4">
+            <img src="{{ page.featured_image }}" alt="{{ page.title }}" class="img-fluid">
+        </div>
+        {% endif %}
+        
+        <h1 class="about_taital">{{ page.title }}</h1>
+        <div class="page-content">
+            {{ page.content|safe }}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Hakkımızda Bölümü -->
+{% if about %}
+<div class="about_section layout_padding">
+    <div class="container">
+        <h1 class="about_taital">{{ about.title }}</h1>
+        <p class="about_text">{{ about.subtitle }}</p>
+        <div class="about_section_2">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="about_image">
+                        {% if about.image %}
+                        <img src="{{ about.image }}" alt="{{ about.title }}" class="img-fluid">
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="about_taital_main">
+                        <div class="about_content">{{ about.content|safe }}</div>
+                        <div class="read_bt"><a href="{{ url_for('main.about') }}">Devamını Oku</a></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Hizmetler Bölümü -->
+{% if services %}
+<div class="services_section layout_padding">
+    <div class="container">
+        <h1 class="services_taital">Hizmetlerimiz</h1>
+        <div class="services_section_2">
+            <div class="row">
+                {% for service in services %}
+                <div class="col-lg-4">
+                    <div class="icon_box">
+                        <div class="icon_1">
+                            {% if service.icon %}
+                            <i class="{{ service.icon }} fa-3x"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <h4 class="selection_text">{{ service.title }}</h4>
+                    <p class="ipsum_text">{{ service.description }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Blog Bölümü -->
+{% if blog_posts %}
+<div class="blog_section layout_padding">
+    <div class="container">
+        <h1 class="services_taital">Blog</h1>
+        <div class="row">
+            {% for post in blog_posts %}
+            <div class="col-md-4 mb-4">
+                <div class="blog_img">
+                    {% if post.featured_image %}
+                    <img src="{{ post.featured_image }}" alt="{{ post.title }}" class="img-fluid">
+                    {% endif %}
+                </div>
+                <h4 class="blog_text">{{ post.title }}</h4>
+                <p class="lorem_text">{{ post.excerpt }}</p>
+                <div class="read_bt"><a href="{{ url_for('main.blog_detail', slug=post.slug) }}">Devamını Oku</a></div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Video Bölümü -->
+{% if video %}
+<div class="events_section layout_padding">
+    <div class="container">
+        <h1 class="events_taital">{{ video.title }}</h1>
+        <div class="events_section_2">
+            <div class="events_bg">
+                <div class="play_icon">
+                    <a href="{{ video.video_url }}" class="video-popup">
+                        <img src="{{ url_for('static', filename='cobsin_template/images/play-icon.png') }}">
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="seemore_bt"><a href="#">Daha Fazla</a></div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function(){
+    // Video popup için
+    $('.video-popup').fancybox({
+        type: 'iframe'
+    });
+    
+    // Carousel için
+    $('#myCarousel').carousel({
+        interval: 5000
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,111 @@
+{% extends "admin/master.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Sayfa Düzenle</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.pages') }}">Sayfalar</a></li>
+        <li class="breadcrumb-item active">Düzenle</li>
+    </ol>
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Başlık</label>
+                    <input type="text" class="form-control" id="title" name="title" value="{{ page.title }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="slug" class="form-label">SEO URL</label>
+                    <input type="text" class="form-control" id="slug" name="slug" value="{{ page.slug }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="content" class="form-label">İçerik</label>
+                    <textarea class="form-control" id="content" name="content" rows="10" required>{{ page.content }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="meta_description" class="form-label">Meta Açıklama</label>
+                    <input type="text" class="form-control" id="meta_description" name="meta_description" value="{{ page.meta_description }}">
+                </div>
+                <div class="mb-3">
+                    <label for="meta_keywords" class="form-label">Meta Anahtar Kelimeler</label>
+                    <input type="text" class="form-control" id="meta_keywords" name="meta_keywords" value="{{ page.meta_keywords }}">
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_published" name="is_published" {% if page.is_published %}checked{% endif %}>
+                    <label class="form-check-label" for="is_published">Yayınla</label>
+                </div>
+
+                <div id="contact-info-fields" style="display: none;">
+                    <h3 class="mt-4">İletişim Bilgileri</h3>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Adres</label>
+                        <input type="text" class="form-control" id="address" name="contact_info[address]" value="{{ page.contact_info.address if page.contact_info }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Telefon</label>
+                        <input type="text" class="form-control" id="phone" name="contact_info[phone]" value="{{ page.contact_info.phone if page.contact_info }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">E-posta</label>
+                        <input type="email" class="form-control" id="email" name="contact_info[email]" value="{{ page.contact_info.email if page.contact_info }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="working_hours" class="form-label">Çalışma Saatleri</label>
+                        <input type="text" class="form-control" id="working_hours" name="contact_info[working_hours]" value="{{ page.contact_info.working_hours if page.contact_info }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="google_maps" class="form-label">Google Maps Yerleşimi</label>
+                        <textarea class="form-control" id="google_maps" name="contact_info[google_maps]" rows="3">{{ page.contact_info.google_maps if page.contact_info }}</textarea>
+                    </div>
+                    <h4 class="mt-4">Sosyal Medya</h4>
+                    <div class="mb-3">
+                        <label for="facebook" class="form-label">Facebook</label>
+                        <input type="url" class="form-control" id="facebook" name="contact_info[facebook]" value="{{ page.contact_info.facebook if page.contact_info }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="twitter" class="form-label">Twitter</label>
+                        <input type="url" class="form-control" id="twitter" name="contact_info[twitter]" value="{{ page.contact_info.twitter if page.contact_info }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="instagram" class="form-label">Instagram</label>
+                        <input type="url" class="form-control" id="instagram" name="contact_info[instagram]" value="{{ page.contact_info.instagram if page.contact_info }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="linkedin" class="form-label">LinkedIn</label>
+                        <input type="url" class="form-control" id="linkedin" name="contact_info[linkedin]" value="{{ page.contact_info.linkedin if page.contact_info }}">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Kaydet</button>
+                <a href="{{ url_for('admin.pages') }}" class="btn btn-secondary">İptal</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+<script>
+    ClassicEditor
+        .create(document.querySelector('#content'))
+        .catch(error => {
+            console.error(error);
+        });
+
+    // İletişim bilgileri alanlarını göster/gizle
+    const slugInput = document.querySelector('#slug');
+    const contactInfoFields = document.querySelector('#contact-info-fields');
+
+    function toggleContactInfoFields() {
+        if (slugInput.value === 'contact') {
+            contactInfoFields.style.display = 'block';
+        } else {
+            contactInfoFields.style.display = 'none';
+        }
+    }
+
+    slugInput.addEventListener('input', toggleContactInfoFields);
+    toggleContactInfoFields();
+</script>
+{% endblock %} 

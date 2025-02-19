@@ -1,0 +1,64 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Blog Yazısını Düzenle</h2>
+        </div>
+        <div class="col text-end">
+            <a href="{{ url_for('admin.contents_list') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.blog_edit', id=post.id) }}">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Başlık</label>
+                    <input type="text" class="form-control" id="title" name="title" 
+                           value="{{ post.title }}" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="excerpt" class="form-label">Özet</label>
+                    <textarea class="form-control" id="excerpt" name="excerpt" rows="3">{{ post.excerpt }}</textarea>
+                    <small class="form-text text-muted">Blog yazısının kısa bir özeti (opsiyonel)</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="content" class="form-label">İçerik</label>
+                    <textarea class="form-control" id="content" name="content" rows="10" required>{{ post.content }}</textarea>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_published" name="is_published" value="1"
+                           {% if post.is_published %}checked{% endif %}>
+                    <label class="form-check-label" for="is_published">Yayında</label>
+                </div>
+                
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+<script>
+    ClassicEditor
+        .create(document.querySelector('#content'), {
+            height: '400px',
+            removePlugins: ['Markdown'],
+            toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'outdent', 'indent', '|', 'blockQuote', 'insertTable', 'mediaEmbed', 'undo', 'redo']
+        })
+        .catch(error => {
+            console.error(error);
+        });
+</script>
+{% endblock %} 

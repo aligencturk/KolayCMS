@@ -1,0 +1,75 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Yeni Hizmet</h2>
+            <p class="text-muted">Template'den alınan örnek hizmetler:</p>
+            <div class="alert alert-info">
+                <strong>Başlık 1:</strong> Selection of Business<br>
+                <strong>Açıklama 1:</strong> There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised<br>
+                <strong>İkon 1:</strong> icon-1.png<br><br>
+                
+                <strong>Başlık 2:</strong> Research and Analytics<br>
+                <strong>Açıklama 2:</strong> There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised<br>
+                <strong>İkon 2:</strong> icon-2.png<br><br>
+                
+                <strong>Başlık 3:</strong> Business Plans<br>
+                <strong>Açıklama 3:</strong> There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised<br>
+                <strong>İkon 3:</strong> icon-3.png
+            </div>
+        </div>
+        <div class="col text-end">
+            <a href="{{ url_for('admin.contents_list') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.services_create') }}" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Başlık</label>
+                    <input type="text" class="form-control" id="title" name="title" required
+                           placeholder="Örn: Selection of Business">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="form-label">Açıklama</label>
+                    <textarea class="form-control" id="description" name="description" rows="3" required
+                              placeholder="Örn: There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="icon" class="form-label">İkon</label>
+                    <input type="text" class="form-control" id="icon" name="icon" placeholder="Örn: fas fa-laptop-code">
+                    <small class="form-text text-muted">Font Awesome ikon kodu. <a href="https://fontawesome.com/icons" target="_blank">İkonları görüntüle</a></small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="image" class="form-label">Görsel</label>
+                    <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                    <small class="form-text text-muted">İkon yerine görsel kullanmak isterseniz yükleyebilirsiniz (opsiyonel)</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="order" class="form-label">Sıra</label>
+                    <input type="number" class="form-control" id="order" name="order" value="0" min="0">
+                    <small class="form-text text-muted">Hizmetin gösterim sırası (0'dan başlar)</small>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1" checked>
+                    <label class="form-check-label" for="is_active">Aktif</label>
+                </div>
+                
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

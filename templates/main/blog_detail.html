@@ -1,0 +1,100 @@
+{% extends "main/base.html" %}
+
+{% block content %}
+<!-- blog detail section start -->
+<div class="blog_section layout_padding">
+    <div class="container">
+        <div class="blog_detail_box">
+            {% if post.featured_image %}
+            <div class="blog_img mb-4">
+                <img src="{{ post.featured_image }}" alt="{{ post.title }}" class="img-fluid">
+            </div>
+            {% endif %}
+            
+            <div class="blog_detail_info mb-3">
+                <span class="date_text">{{ post.created_at.strftime('%d.%m.%Y') }}</span>
+                {% if post.author %}
+                <span class="author_text ml-3">
+                    <i class="fa fa-user"></i> {{ post.author.username }}
+                </span>
+                {% endif %}
+            </div>
+            
+            <h1 class="blog_taital mb-4">{{ post.title }}</h1>
+            
+            {% if post.excerpt %}
+            <div class="blog_excerpt mb-4">
+                <p><em>{{ post.excerpt }}</em></p>
+            </div>
+            {% endif %}
+            
+            <div class="blog_content">
+                {{ post.content|safe }}
+            </div>
+            
+            {% if post.meta_title or post.meta_description %}
+            <div class="blog_meta mt-5 pt-4 border-top">
+                {% if post.meta_title %}
+                <h4>{{ post.meta_title }}</h4>
+                {% endif %}
+                {% if post.meta_description %}
+                <p>{{ post.meta_description }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <div class="back_link mt-4">
+                <a href="{{ url_for('main.blog') }}" class="btn btn-secondary">
+                    <i class="fa fa-arrow-left"></i> Blog Listesine Dön
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- blog detail section end -->
+{% endblock %}
+
+{% block scripts %}
+<style>
+.blog_detail_box {
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+.blog_detail_box .blog_img img {
+    width: 100%;
+    border-radius: 10px;
+}
+
+.blog_detail_info {
+    color: #666;
+}
+
+.blog_detail_info .author_text {
+    color: #333;
+}
+
+.blog_content {
+    line-height: 1.8;
+    color: #333;
+}
+
+.blog_content img {
+    max-width: 100%;
+    height: auto;
+    margin: 20px 0;
+    border-radius: 5px;
+}
+
+.blog_meta {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.back_link {
+    text-align: center;
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,230 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Tema Ayarları</h2>
+        </div>
+        <div class="col text-end">
+            <a href="{{ url_for('admin.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <!-- Navbar Ayarları -->
+                <h4 class="mb-3">Navbar Ayarları</h4>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label for="navbar_bg_color" class="form-label">Arkaplan Rengi</label>
+                        <input type="color" class="form-control form-control-color" id="navbar_bg_color" name="navbar_bg_color" 
+                               value="{{ settings.navbar_bg_color or '#ffffff' }}" title="Navbar arkaplan rengi">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="navbar_text_color" class="form-label">Yazı Rengi</label>
+                        <input type="color" class="form-control form-control-color" id="navbar_text_color" name="navbar_text_color" 
+                               value="{{ settings.navbar_text_color or '#000000' }}" title="Navbar yazı rengi">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="navbar_active_color" class="form-label">Aktif Link Rengi</label>
+                        <input type="color" class="form-control form-control-color" id="navbar_active_color" name="navbar_active_color" 
+                               value="{{ settings.navbar_active_color or '#007bff' }}" title="Aktif link rengi">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="navbar_hover_color" class="form-label">Hover Rengi</label>
+                        <input type="color" class="form-control form-control-color" id="navbar_hover_color" name="navbar_hover_color" 
+                               value="{{ settings.navbar_hover_color or '#0056b3' }}" title="Link hover rengi">
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="navbar_is_fixed" name="navbar_is_fixed"
+                                   {% if settings.navbar_is_fixed %}checked{% endif %}>
+                            <label class="form-check-label" for="navbar_is_fixed">Navbar'ı Sabit Tut</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="navbar_is_transparent" name="navbar_is_transparent"
+                                   {% if settings.navbar_is_transparent %}checked{% endif %}>
+                            <label class="form-check-label" for="navbar_is_transparent">Şeffaf Navbar</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Body Ayarları -->
+                <h4 class="mb-3">Sayfa Ayarları</h4>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label for="body_bg_color" class="form-label">Arkaplan Rengi</label>
+                        <input type="color" class="form-control form-control-color" id="body_bg_color" name="body_bg_color" 
+                               value="{{ settings.body_bg_color or '#ffffff' }}" title="Sayfa arkaplan rengi">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="body_text_color" class="form-label">Yazı Rengi</label>
+                        <input type="color" class="form-control form-control-color" id="body_text_color" name="body_text_color" 
+                               value="{{ settings.body_text_color or '#212529' }}" title="Sayfa yazı rengi">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="body_link_color" class="form-label">Link Rengi</label>
+                        <input type="color" class="form-control form-control-color" id="body_link_color" name="body_link_color" 
+                               value="{{ settings.body_link_color or '#007bff' }}" title="Link rengi">
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <label for="body_font_family" class="form-label">Yazı Tipi</label>
+                        <select class="form-select" id="body_font_family" name="body_font_family">
+                            <option value="Poppins" {% if settings.body_font_family == 'Poppins' %}selected{% endif %}>Poppins</option>
+                            <option value="Roboto" {% if settings.body_font_family == 'Roboto' %}selected{% endif %}>Roboto</option>
+                            <option value="Open Sans" {% if settings.body_font_family == 'Open Sans' %}selected{% endif %}>Open Sans</option>
+                            <option value="Montserrat" {% if settings.body_font_family == 'Montserrat' %}selected{% endif %}>Montserrat</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="body_font_size" class="form-label">Yazı Boyutu</label>
+                        <select class="form-select" id="body_font_size" name="body_font_size">
+                            <option value="12px" {% if settings.body_font_size == '12px' %}selected{% endif %}>Küçük (12px)</option>
+                            <option value="14px" {% if settings.body_font_size == '14px' %}selected{% endif %}>Normal (14px)</option>
+                            <option value="16px" {% if settings.body_font_size == '16px' %}selected{% endif %}>Orta (16px)</option>
+                            <option value="18px" {% if settings.body_font_size == '18px' %}selected{% endif %}>Büyük (18px)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Footer Ayarları -->
+                <h4 class="mb-3">Footer Ayarları</h4>
+                <div class="row mb-4">
+                    <div class="col-md-4 mb-3">
+                        <label for="footer_bg_color" class="form-label">Arkaplan Rengi</label>
+                        <input type="color" class="form-control form-control-color" id="footer_bg_color" name="footer_bg_color" 
+                               value="{{ settings.footer_bg_color or '#343a40' }}" title="Footer arkaplan rengi">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="footer_text_color" class="form-label">Yazı Rengi</label>
+                        <input type="color" class="form-control form-control-color" id="footer_text_color" name="footer_text_color" 
+                               value="{{ settings.footer_text_color or '#ffffff' }}" title="Footer yazı rengi">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="footer_link_color" class="form-label">Link Rengi</label>
+                        <input type="color" class="form-control form-control-color" id="footer_link_color" name="footer_link_color" 
+                               value="{{ settings.footer_link_color or '#ffffff' }}" title="Footer link rengi">
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Kaydet
+                    </button>
+                    <button type="reset" class="btn btn-secondary">
+                        <i class="fas fa-undo"></i> Sıfırla
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Önizleme -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">Önizleme</h5>
+    </div>
+    <div class="card-body">
+        <div id="preview" class="border p-3">
+            <!-- Navbar Önizleme -->
+            <nav class="navbar navbar-expand-lg mb-3" id="preview_navbar">
+                <div class="container">
+                    <a class="navbar-brand" href="#">Logo</a>
+                    <div class="navbar-nav">
+                        <a class="nav-link active" href="#">Ana Sayfa</a>
+                        <a class="nav-link" href="#">Hakkımızda</a>
+                        <a class="nav-link" href="#">İletişim</a>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Body Önizleme -->
+            <div id="preview_body" class="p-3">
+                <h4>Örnek İçerik</h4>
+                <p>Bu bir örnek paragraftır. <a href="#">Bu bir link örneğidir</a>.</p>
+            </div>
+
+            <!-- Footer Önizleme -->
+            <footer id="preview_footer" class="p-3 mt-3">
+                <div class="container">
+                    <p class="mb-0">© 2024 Tüm hakları saklıdır. <a href="#">Gizlilik Politikası</a></p>
+                </div>
+            </footer>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Renk inputlarını izle ve önizlemeyi güncelle
+    const colorInputs = document.querySelectorAll('input[type="color"]');
+    colorInputs.forEach(input => {
+        input.addEventListener('input', updatePreview);
+    });
+
+    // Font ayarlarını izle
+    document.getElementById('body_font_family').addEventListener('change', updatePreview);
+    document.getElementById('body_font_size').addEventListener('change', updatePreview);
+
+    // Checkbox'ları izle
+    document.getElementById('navbar_is_fixed').addEventListener('change', updatePreview);
+    document.getElementById('navbar_is_transparent').addEventListener('change', updatePreview);
+
+    // İlk yüklemede önizlemeyi güncelle
+    updatePreview();
+
+    function updatePreview() {
+        // Navbar önizleme
+        const previewNavbar = document.getElementById('preview_navbar');
+        previewNavbar.style.backgroundColor = document.getElementById('navbar_bg_color').value;
+        previewNavbar.style.color = document.getElementById('navbar_text_color').value;
+        
+        const navLinks = previewNavbar.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.style.color = document.getElementById('navbar_text_color').value;
+        });
+        
+        const activeLink = previewNavbar.querySelector('.nav-link.active');
+        if (activeLink) {
+            activeLink.style.color = document.getElementById('navbar_active_color').value;
+        }
+
+        // Body önizleme
+        const previewBody = document.getElementById('preview_body');
+        previewBody.style.backgroundColor = document.getElementById('body_bg_color').value;
+        previewBody.style.color = document.getElementById('body_text_color').value;
+        previewBody.style.fontFamily = document.getElementById('body_font_family').value;
+        previewBody.style.fontSize = document.getElementById('body_font_size').value;
+        
+        const bodyLinks = previewBody.querySelectorAll('a');
+        bodyLinks.forEach(link => {
+            link.style.color = document.getElementById('body_link_color').value;
+        });
+
+        // Footer önizleme
+        const previewFooter = document.getElementById('preview_footer');
+        previewFooter.style.backgroundColor = document.getElementById('footer_bg_color').value;
+        previewFooter.style.color = document.getElementById('footer_text_color').value;
+        
+        const footerLinks = previewFooter.querySelectorAll('a');
+        footerLinks.forEach(link => {
+            link.style.color = document.getElementById('footer_link_color').value;
+        });
+    }
+});
+</script>
+{% endblock %} 

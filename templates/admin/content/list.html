@@ -1,0 +1,68 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}İçerikler{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">İçerikler</li>
+{% endblock %}
+
+{% block body %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">İçerikler</h5>
+        <a href="{{ url_for('admin_contents.create_view') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Yeni İçerik Ekle
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Başlık</th>
+                        <th>İçerik Tipi</th>
+                        <th>Oluşturulma Tarihi</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for content in contents %}
+                    <tr>
+                        <td>{{ content.id }}</td>
+                        <td>{{ content.title }}</td>
+                        <td>
+                            {% if content.content_type == 'blog' %}
+                            <span class="badge badge-primary">Blog Yazısı</span>
+                            {% elif content.content_type == 'slide' %}
+                            <span class="badge badge-success">Slayt</span>
+                            {% elif content.content_type == 'service' %}
+                            <span class="badge badge-info">Hizmet</span>
+                            {% elif content.content_type == 'about' %}
+                            <span class="badge badge-warning">Hakkımızda</span>
+                            {% elif content.content_type == 'video' %}
+                            <span class="badge badge-danger">Video</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ content.created_at.strftime('%d.%m.%Y %H:%M') if content.created_at else '-' }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_contents.edit_view', id=content.id) }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{{ url_for('admin_contents.delete_view', id=content.id) }}" class="btn btn-sm btn-danger delete-confirm">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not contents %}
+                    <tr>
+                        <td colspan="5" class="text-center">Henüz içerik bulunmuyor.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 

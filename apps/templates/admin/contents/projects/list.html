@@ -1,0 +1,78 @@
+{% extends "admin/master.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h1 class="mt-4">Projeler</h1>
+        <a href="{{ url_for('admin.projects_create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Yeni Proje Ekle
+        </a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-table me-1"></i>
+            Proje Listesi
+        </div>
+        <div class="card-body">
+            {% if projects %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">Sıra</th>
+                                <th>Görsel</th>
+                                <th>Başlık</th>
+                                <th>Kategori</th>
+                                <th>Müşteri</th>
+                                <th>Tamamlanma Tarihi</th>
+                                <th style="width: 100px;">Durum</th>
+                                <th style="width: 150px;">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for project in projects %}
+                            <tr>
+                                <td class="text-center">{{ project.order }}</td>
+                                <td>
+                                    {% if project.image_path %}
+                                        <img src="{{ project.image_path }}" alt="{{ project.title }}" class="img-thumbnail" style="max-width: 100px;">
+                                    {% else %}
+                                        <span class="text-muted">Görsel yok</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ project.title }}</td>
+                                <td>{{ project.category }}</td>
+                                <td>{{ project.client }}</td>
+                                <td>{{ project.completion_date.strftime('%d.%m.%Y') }}</td>
+                                <td class="text-center">
+                                    {% if project.is_active %}
+                                        <span class="badge bg-success">Aktif</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Pasif</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('admin.projects_edit', id=project.id) }}" class="btn btn-primary btn-sm" title="Düzenle">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="{{ url_for('admin.projects_delete', id=project.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bu projeyi silmek istediğinizden emin misiniz?')" title="Sil">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    Henüz proje eklenmemiş. Yeni bir proje eklemek için yukarıdaki "Yeni Proje Ekle" butonunu kullanabilirsiniz.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

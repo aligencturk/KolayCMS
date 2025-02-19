@@ -1,0 +1,295 @@
+{% extends "main/base.html" %}
+
+{% block content %}
+<!-- about section start -->
+<div class="about_section layout_padding">
+    <div class="container">
+        <h1 class="about_taital">About Us</h1>
+        <p class="about_text">It is a long established fact that a reader will be distracted by the readable content of a page when</p>
+        <div class="about_section_2">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="about_image"><img src="{{ url_for('static', filename='cobsin_template/images/about-img.png') }}"></div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="about_taital_main">
+                        <p class="lorem_text">There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words</p>
+                        <div class="read_bt"><a href="#">Read More</a></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- about section end -->
+
+<!-- testimonial section start -->
+<div class="testimonial_section layout_padding">
+    <div class="container">
+        <h1 class="testimonial_taital">Testimonial</h1>
+        <p class="testimonial_text">It is a long established fact that a reader will be distracted by the readable content of a page when</p>
+        <div class="testimonial_section_2">
+            <div id="my_carousel" class="carousel slide" data-ride="carousel">
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <div class="testimonial_box">
+                            <div class="jonimo_taital_main">
+                                <h4 class="jonimo_text">Jonimo</h4>
+                                <div class="quick_icon"><img src="{{ url_for('static', filename='cobsin_template/images/quick-icon.png') }}"></div>
+                                <div class="quick_icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/quick-icon1.png') }}"></div>
+                            </div>
+                            <p class="dummy_text">There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there</p>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <div class="testimonial_box">
+                            <div class="jonimo_taital_main">
+                                <h4 class="jonimo_text">Mark Duo</h4>
+                                <div class="quick_icon"><img src="{{ url_for('static', filename='cobsin_template/images/quick-icon.png') }}"></div>
+                                <div class="quick_icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/quick-icon1.png') }}"></div>
+                            </div>
+                            <p class="dummy_text">There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there</p>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <div class="testimonial_box">
+                            <div class="jonimo_taital_main">
+                                <h4 class="jonimo_text">John Smith</h4>
+                                <div class="quick_icon"><img src="{{ url_for('static', filename='cobsin_template/images/quick-icon.png') }}"></div>
+                                <div class="quick_icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/quick-icon1.png') }}"></div>
+                            </div>
+                            <p class="dummy_text">There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there</p>
+                        </div>
+                    </div>
+                </div>
+                <ol class="carousel-indicators">
+                    <li data-target="#my_carousel" data-slide-to="0" class="active"></li>
+                    <li data-target="#my_carousel" data-slide-to="1"></li>
+                    <li data-target="#my_carousel" data-slide-to="2"></li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- testimonial section end -->
+{% endblock %}
+
+{% block scripts %}
+<style>
+.about_section {
+    width: 100%;
+    float: left;
+    padding-bottom: 90px;
+}
+
+.about_section_2 {
+    width: 100%;
+    float: left;
+    padding-top: 70px;
+    padding-bottom: 90px;
+}
+
+.about_image {
+    width: 100%;
+    float: left;
+    padding-left: 22px;
+    padding-top: 37px;
+    position: relative;
+}
+
+.about_image::after {
+    content: '';
+    position: absolute;
+    width: 100px;
+    height: 390px;
+    background-color: #13a25d;
+    left: 0px;
+    right: initial;
+    top: 0;
+    z-index: -1;
+}
+
+.about_taital {
+    width: 35%;
+    float: left;
+    font-size: 40px;
+    color: #0f0f0f;
+    font-weight: bold;
+    font-family: 'Roboto', sans-serif;
+    position: relative;
+}
+
+.about_taital::after {
+    content: '';
+    position: absolute;
+    width: 193px;
+    height: 2px;
+    background-color: #252525;
+    left: initial;
+    right: 0px;
+    top: 44%;
+    z-index: -1;
+}
+
+.about_text {
+    width: 100%;
+    float: left;
+    font-size: 16px;
+    color: #0f0f0f;
+    margin: 0px;
+    font-weight: 500;
+    font-family: 'Roboto', sans-serif;
+}
+
+.lorem_text {
+    width: 100%;
+    float: left;
+    font-size: 16px;
+    color: #0f0f0f;
+    margin: 0px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.about_taital_main {
+    width: 100%;
+    float: left;
+    padding-top: 172px;
+}
+
+.read_bt {
+    width: 170px;
+    float: right;
+    padding-top: 64px;
+}
+
+.read_bt a {
+    width: 100%;
+    float: left;
+    font-size: 16px;
+    color: #ffffff;
+    background-color: #181818;
+    text-align: center;
+    padding: 10px 0px;
+    font-family: 'Roboto', sans-serif;
+    text-decoration: none;
+}
+
+.read_bt a:hover {
+    color: #ffffff;
+    background-color: #13a25d;
+}
+
+/* Testimonial Section */
+.testimonial_section {
+    width: 100%;
+    float: left;
+    padding-bottom: 180px;
+}
+
+.testimonial_taital {
+    width: 100%;
+    float: left;
+    font-size: 40px;
+    color: #2c2420;
+    text-align: center;
+    font-weight: bold;
+    font-family: 'Roboto', sans-serif;
+}
+
+.testimonial_text {
+    width: 100%;
+    float: left;
+    font-size: 16px;
+    color: #2c2420;
+    text-align: center;
+    margin: 0px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.testimonial_section_2 {
+    width: 100%;
+    float: left;
+    padding-top: 40px;
+    padding-bottom: 10px;
+}
+
+.testimonial_box {
+    width: 100%;
+    background-color: #ffffff;
+    padding: 55px 30px 100px 30px;
+    box-shadow: 0px 2px 12px 10px #f3f2f2;
+}
+
+.jonimo_text {
+    width: 100%;
+    font-size: 20px;
+    text-transform: uppercase;
+    color: #13a25d;
+    font-weight: bold;
+    font-family: 'Roboto', sans-serif;
+}
+
+.dummy_text {
+    width: 100%;
+    font-size: 16px;
+    color: #000;
+    margin: 0px;
+    padding-top: 20px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.jonimo_taital_main {
+    width: 100%;
+    display: flex;
+    border-bottom: 1px solid #363636;
+}
+
+.quick_icon {
+    float: right;
+}
+
+.quick_icon_1 {
+    display: none;
+}
+
+.testimonial_box:hover {
+    background-color: #13a25d;
+}
+
+.testimonial_box:hover .dummy_text {
+    color: #ffffff;
+}
+
+.testimonial_box:hover .jonimo_text {
+    color: #ffffff;
+}
+
+.testimonial_box:hover .quick_icon_1 {
+    display: block;
+}
+
+.testimonial_box:hover .quick_icon {
+    display: none;
+}
+
+.testimonial_box:hover .jonimo_taital_main {
+    border-bottom: 1px solid #ffffff;
+}
+
+#my_carousel .carousel-indicators {
+    bottom: -100px;
+}
+
+#my_carousel .carousel-indicators li {
+    width: 20px;
+    height: 20px;
+    border-radius: 100px;
+    background-color: #0a0a0a;
+}
+
+#my_carousel .carousel-indicators .active {
+    width: 50px;
+    background-color: #13a25d;
+}
+</style>
+{% endblock %}

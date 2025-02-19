@@ -1,0 +1,140 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Tema Ayarları</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.theme_settings') }}">
+                        {{ form.csrf_token }}
+                        
+                        <div class="row">
+                            <!-- Navbar Ayarları -->
+                            <div class="col-md-4">
+                                <h6 class="mb-3">Navbar Ayarları</h6>
+                                <div class="form-group mb-3">
+                                    {{ form.navbar_bg_color.label }}
+                                    {{ form.navbar_bg_color(class="form-control") }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ form.navbar_text_color.label }}
+                                    {{ form.navbar_text_color(class="form-control") }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ form.navbar_active_color.label }}
+                                    {{ form.navbar_active_color(class="form-control") }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ form.navbar_hover_color.label }}
+                                    {{ form.navbar_hover_color(class="form-control") }}
+                                </div>
+                                <div class="form-check mb-3">
+                                    {{ form.navbar_is_fixed(class="form-check-input") }}
+                                    {{ form.navbar_is_fixed.label(class="form-check-label") }}
+                                </div>
+                                <div class="form-check mb-3">
+                                    {{ form.navbar_is_transparent(class="form-check-input") }}
+                                    {{ form.navbar_is_transparent.label(class="form-check-label") }}
+                                </div>
+                            </div>
+                            
+                            <!-- Body Ayarları -->
+                            <div class="col-md-4">
+                                <h6 class="mb-3">Sayfa Ayarları</h6>
+                                <div class="form-group mb-3">
+                                    {{ form.body_bg_color.label }}
+                                    {{ form.body_bg_color(class="form-control") }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ form.body_text_color.label }}
+                                    {{ form.body_text_color(class="form-control") }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ form.body_link_color.label }}
+                                    {{ form.body_link_color(class="form-control") }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ form.body_font_family.label }}
+                                    {{ form.body_font_family(class="form-control") }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ form.body_font_size.label }}
+                                    {{ form.body_font_size(class="form-control") }}
+                                </div>
+                            </div>
+                            
+                            <!-- Footer Ayarları -->
+                            <div class="col-md-4">
+                                <h6 class="mb-3">Footer Ayarları</h6>
+                                <div class="form-group mb-3">
+                                    {{ form.footer_bg_color.label }}
+                                    {{ form.footer_bg_color(class="form-control") }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ form.footer_text_color.label }}
+                                    {{ form.footer_text_color(class="form-control") }}
+                                </div>
+                                <div class="form-group mb-3">
+                                    {{ form.footer_link_color.label }}
+                                    {{ form.footer_link_color(class="form-control") }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Özel CSS ve JS -->
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <h6 class="mb-3">Özel CSS</h6>
+                                <div class="form-group">
+                                    {{ form.custom_css.label }}
+                                    {{ form.custom_css(class="form-control", rows="10") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="mb-3">Özel JavaScript</h6>
+                                <div class="form-group">
+                                    {{ form.custom_js.label }}
+                                    {{ form.custom_js(class="form-control", rows="10") }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form değişikliklerini izle
+    let form = document.querySelector('form');
+    let formChanged = false;
+    
+    form.addEventListener('change', function() {
+        formChanged = true;
+    });
+    
+    // Sayfa yenileme veya kapatma durumunda uyarı göster
+    window.addEventListener('beforeunload', function(e) {
+        if (formChanged) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+    
+    // Form gönderildiğinde değişiklik bayrağını sıfırla
+    form.addEventListener('submit', function() {
+        formChanged = false;
+    });
+});
+</script>
+{% endblock %} 

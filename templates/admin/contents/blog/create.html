@@ -1,0 +1,147 @@
+{% extends 'admin/master.html' %}
+
+{% block head %}
+<style>
+.editor-container {
+    border: 1px solid #ccc;
+    background: #fff;
+}
+.toolbar-container {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+.editor-content {
+    min-height: 400px;
+    max-height: 600px;
+    padding: 20px;
+    overflow-y: auto;
+}
+.content-hidden {
+    display: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Yeni Blog Yazısı</h2>
+        </div>
+        <div class="col text-end">
+            <a href="{{ url_for('admin.contents_list') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.blog_create') }}" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Başlık</label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="excerpt" class="form-label">Özet</label>
+                    <textarea class="form-control" id="excerpt" name="excerpt" rows="3"></textarea>
+                    <small class="form-text text-muted">Blog yazısının kısa bir özeti</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="content" class="form-label">İçerik</label>
+                    <textarea class="form-control" id="content" name="content" rows="10" required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="featured_image" class="form-label">Öne Çıkan Görsel</label>
+                    <input type="file" class="form-control" id="featured_image" name="featured_image" accept="image/*">
+                    <small class="form-text text-muted">Blog yazısı için kapak görseli (önerilen boyut: 800x400px)</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="slug" class="form-label">Slug</label>
+                    <input type="text" class="form-control" id="slug" name="slug" required>
+                    <small class="form-text text-muted">URL'de kullanılacak benzersiz tanımlayıcı (sadece küçük harfler, sayılar ve tire kullanın)</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="meta_title" class="form-label">Meta Başlık</label>
+                    <input type="text" class="form-control" id="meta_title" name="meta_title">
+                    <small class="form-text text-muted">SEO için sayfa başlığı (boş bırakılırsa normal başlık kullanılır)</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="meta_description" class="form-label">Meta Açıklama</label>
+                    <textarea class="form-control" id="meta_description" name="meta_description" rows="2"></textarea>
+                    <small class="form-text text-muted">SEO için sayfa açıklaması (boş bırakılırsa özet kullanılır)</small>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_published" name="is_published" checked>
+                    <label class="form-check-label" for="is_published">Yayınla</label>
+                </div>
+                
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/decoupled-document/ckeditor.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const contentTextarea = document.querySelector('#content');
+        const editorContainer = document.createElement('div');
+        editorContainer.className = 'editor-container';
+        
+        const toolbarContainer = document.createElement('div');
+        toolbarContainer.className = 'toolbar-container';
+        
+        const editorContent = document.createElement('div');
+        editorContent.className = 'editor-content';
+        
+        editorContainer.appendChild(toolbarContainer);
+        editorContainer.appendChild(editorContent);
+        
+        contentTextarea.parentNode.insertBefore(editorContainer, contentTextarea);
+        
+        DecoupledEditor
+            .create(editorContent, {
+                removePlugins: ['Markdown'],
+                toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 
+                         'outdent', 'indent', '|', 'blockQuote', 'insertTable', 'mediaEmbed', 'undo', 'redo']
+            })
+            .then(editor => {
+                toolbarContainer.appendChild(editor.ui.view.toolbar.element);
+                
+                // Form gönderilmeden önce içeriği textarea'ya aktar
+                const form = contentTextarea.closest('form');
+                form.addEventListener('submit', () => {
+                    contentTextarea.value = editor.getData();
+                });
+                
+                console.log('CKEditor başarıyla yüklendi');
+            })
+            .catch(error => {
+                console.error('CKEditor yüklenirken hata oluştu:', error);
+                contentTextarea.style.display = 'block';
+                editorContainer.remove();
+            });
+
+        // Başlıktan otomatik slug oluştur
+        document.getElementById('title').addEventListener('input', function() {
+            let slug = this.value
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)/g, '');
+            document.getElementById('slug').value = slug;
+        });
+    });
+</script>
+{% endblock %} 

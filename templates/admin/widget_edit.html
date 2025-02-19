@@ -1,0 +1,208 @@
+{% extends 'admin/model/edit.html' %}
+
+{% block tail %}
+    {{ super() }}
+    <link href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.3/src-min-noconflict/ace.js"></script>
+    
+    <style>
+        .widget-preview {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-top: 20px;
+            min-height: 200px;
+        }
+        .settings-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .dimension-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .color-picker {
+            margin-bottom: 15px;
+        }
+        .code-editor {
+            height: 300px;
+            margin-bottom: 20px;
+        }
+    </style>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Widget Ayarları -->
+            <div class="settings-panel">
+                <h4>Bileşen Ayarları</h4>
+                
+                <!-- Boyut Ayarları -->
+                <div class="dimension-control">
+                    <label>Genişlik:</label>
+                    <input type="number" class="form-control" id="widgetWidth" min="0" step="1">
+                    <select class="form-control" id="widthUnit">
+                        <option value="px">px</option>
+                        <option value="%">%</option>
+                        <option value="rem">rem</option>
+                    </select>
+                </div>
+                
+                <div class="dimension-control">
+                    <label>Yükseklik:</label>
+                    <input type="number" class="form-control" id="widgetHeight" min="0" step="1">
+                    <select class="form-control" id="heightUnit">
+                        <option value="px">px</option>
+                        <option value="%">%</option>
+                        <option value="rem">rem</option>
+                    </select>
+                </div>
+
+                <!-- Kenar Boşlukları -->
+                <div class="form-group">
+                    <label>Kenar Boşlukları (px)</label>
+                    <div class="row">
+                        <div class="col">
+                            <input type="number" class="form-control" id="marginTop" placeholder="Üst">
+                        </div>
+                        <div class="col">
+                            <input type="number" class="form-control" id="marginRight" placeholder="Sağ">
+                        </div>
+                        <div class="col">
+                            <input type="number" class="form-control" id="marginBottom" placeholder="Alt">
+                        </div>
+                        <div class="col">
+                            <input type="number" class="form-control" id="marginLeft" placeholder="Sol">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Renk Seçici -->
+                <div class="color-picker">
+                    <label>Arka Plan Rengi:</label>
+                    <div id="color-picker"></div>
+                </div>
+
+                <!-- Animasyon Ayarları -->
+                <div class="form-group">
+                    <label>Animasyon</label>
+                    <select class="form-control" id="animation">
+                        <option value="none">Yok</option>
+                        <option value="fade">Solma</option>
+                        <option value="slide">Kayma</option>
+                        <option value="bounce">Zıplama</option>
+                    </select>
+                </div>
+
+                <!-- Mobil Görünüm Ayarları -->
+                <div class="form-group">
+                    <label>Mobil Görünüm</label>
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="mobileOptimize">
+                        <label class="custom-control-label" for="mobileOptimize">Mobil için optimize et</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kod Editörü -->
+            <div class="form-group">
+                <label>Özel CSS</label>
+                <div id="cssEditor" class="code-editor"></div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Canlı Önizleme -->
+            <div class="widget-preview" id="widgetPreview">
+                <h5>Önizleme</h5>
+                <div id="previewContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Renk seçici başlatma
+        const pickr = Pickr.create({
+            el: '#color-picker',
+            theme: 'classic',
+            default: '#ffffff',
+            components: {
+                preview: true,
+                opacity: true,
+                hue: true,
+                interaction: {
+                    hex: true,
+                    rgba: true,
+                    hsla: true,
+                    input: true,
+                    save: true
+                }
+            }
+        });
+
+        // Kod editörü başlatma
+        const cssEditor = ace.edit("cssEditor");
+        cssEditor.setTheme("ace/theme/monokai");
+        cssEditor.session.setMode("ace/mode/css");
+
+        // Önizleme güncelleme fonksiyonu
+        function updatePreview() {
+            const width = document.getElementById('widgetWidth').value;
+            const widthUnit = document.getElementById('widthUnit').value;
+            const height = document.getElementById('widgetHeight').value;
+            const heightUnit = document.getElementById('heightUnit').value;
+            
+            const preview = document.getElementById('previewContent');
+            preview.style.width = `${width}${widthUnit}`;
+            preview.style.height = `${height}${heightUnit}`;
+            
+            // Diğer stil güncellemeleri
+            const marginTop = document.getElementById('marginTop').value;
+            const marginRight = document.getElementById('marginRight').value;
+            const marginBottom = document.getElementById('marginBottom').value;
+            const marginLeft = document.getElementById('marginLeft').value;
+            
+            preview.style.margin = `${marginTop}px ${marginRight}px ${marginBottom}px ${marginLeft}px`;
+            
+            // Animasyon
+            const animation = document.getElementById('animation').value;
+            if (animation !== 'none') {
+                preview.style.animation = `${animation} 1s`;
+            }
+            
+            // Özel CSS uygulama
+            const customCSS = cssEditor.getValue();
+            let styleTag = document.getElementById('customStyle');
+            if (!styleTag) {
+                styleTag = document.createElement('style');
+                styleTag.id = 'customStyle';
+                document.head.appendChild(styleTag);
+            }
+            styleTag.textContent = customCSS;
+        }
+
+        // Event listener'lar
+        document.querySelectorAll('input, select').forEach(element => {
+            element.addEventListener('change', updatePreview);
+        });
+
+        pickr.on('save', (color) => {
+            document.getElementById('previewContent').style.backgroundColor = color.toRGBA().toString();
+        });
+
+        cssEditor.on('change', updatePreview);
+
+        // Mobil optimizasyon
+        document.getElementById('mobileOptimize').addEventListener('change', function(e) {
+            if (e.target.checked) {
+                // Mobil için otomatik ayarlar
+                document.getElementById('widthWidth').value = '100';
+                document.getElementById('widthUnit').value = '%';
+                updatePreview();
+            }
+        });
+    </script>
+{% endblock %} 

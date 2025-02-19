@@ -1,0 +1,47 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Profil Ayarları</h2>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.profile') }}">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Kullanıcı Adı</label>
+                    <input type="text" class="form-control" id="username" name="username" 
+                           value="{{ current_user.username }}" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="email" class="form-label">E-posta Adresi</label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                           value="{{ current_user.email }}" required>
+                </div>
+                
+                <hr>
+                <h5 class="mb-3">Şifre Değiştir</h5>
+                
+                <div class="mb-3">
+                    <label for="current_password" class="form-label">Mevcut Şifre</label>
+                    <input type="password" class="form-control" id="current_password" name="current_password">
+                    <small class="form-text text-muted">Şifrenizi değiştirmek istemiyorsanız boş bırakın.</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="new_password" class="form-label">Yeni Şifre</label>
+                    <input type="password" class="form-control" id="new_password" name="new_password">
+                </div>
+                
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,92 @@
+{% extends "main/base.html" %}
+
+{% block meta %}
+    {% if page %}
+    <title>{{ page.title }} - {{ settings.site_name }}</title>
+    <meta name="description" content="{{ page.meta_description }}">
+    <meta name="keywords" content="{{ page.meta_keywords }}">
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="about_section layout_padding">
+    <div class="container">
+        <div class="row">
+            <!-- Ana İçerik -->
+            <div class="col-lg-8">
+                {% if page.featured_image %}
+                <div class="page-featured-image mb-4">
+                    <img src="{{ page.featured_image }}" alt="{{ page.title }}" class="img-fluid">
+                </div>
+                {% endif %}
+                
+                <h1 class="about_taital">{{ page.title }}</h1>
+                <div class="page-content">
+                    {{ page.content|safe }}
+                </div>
+            </div>
+            
+            <!-- Kenar Çubuğu -->
+            <div class="col-lg-4">
+                <!-- Son Blog Yazıları -->
+                {% if blog_posts %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Son Yazılar</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            {% for post in blog_posts %}
+                            <li class="mb-2">
+                                <a href="{{ url_for('main.blog_detail', slug=post.slug) }}">{{ post.title }}</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Hizmetler -->
+                {% if services %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Hizmetlerimiz</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            {% for service in services %}
+                            <li class="mb-2">
+                                <i class="{{ service.icon }}"></i> {{ service.title }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- İletişim Bilgileri -->
+                {% if contact_info %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">İletişim</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if contact_info.phone %}
+                        <p><i class="fas fa-phone"></i> {{ contact_info.phone }}</p>
+                        {% endif %}
+                        
+                        {% if contact_info.email %}
+                        <p><i class="fas fa-envelope"></i> {{ contact_info.email }}</p>
+                        {% endif %}
+                        
+                        {% if contact_info.address %}
+                        <p><i class="fas fa-map-marker-alt"></i> {{ contact_info.address }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

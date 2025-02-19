@@ -1,0 +1,212 @@
+{% extends "main/base.html" %}
+
+{% block content %}
+<!-- contact section start -->
+<div class="contact_section layout_padding">
+    <div class="container">
+        <h1 class="contact_taital">İletişim</h1>
+        <p class="contact_text">Bizimle iletişime geçin</p>
+        <div class="contact_section_2 layout_padding">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="contact_main">
+                        <form id="contact-form" method="post">
+                            {{ form.csrf_token }}
+                            <div class="form-group">
+                                {{ form.name(class="email-bt", placeholder="Adınız Soyadınız") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.email(class="email-bt", placeholder="E-posta Adresiniz") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.phone(class="email-bt", placeholder="Telefon Numaranız") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.message(class="massage-bt", placeholder="Mesajınız", rows=5) }}
+                            </div>
+                            <div class="send_btn">
+                                <button type="submit" class="main_bt">Gönder</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="map_main">
+                        <div class="map-responsive">
+                            {% if contact_info and contact_info.google_maps_embed %}
+                            {{ contact_info.google_maps_embed|safe }}
+                            {% else %}
+                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3019.9625874562394!2d29.0213233!3d41.0250823!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDHCsDAxJzMwLjMiTiAyOcKwMDEnMTYuOCJF!5e0!3m2!1str!2str!4v1625000000000!5m2!1str!2str" width="600" height="400" frameborder="0" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- contact section end -->
+
+<!-- contact info section start -->
+{% if contact_info %}
+<div class="contact_info_section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="contact_info_box">
+                    <div class="contact_info_icon">
+                        <i class="fa fa-map-marker"></i>
+                    </div>
+                    <h4 class="contact_info_title">Adres</h4>
+                    <p class="contact_info_text">{{ contact_info.address }}</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="contact_info_box">
+                    <div class="contact_info_icon">
+                        <i class="fa fa-phone"></i>
+                    </div>
+                    <h4 class="contact_info_title">Telefon</h4>
+                    <p class="contact_info_text">{{ contact_info.phone }}</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="contact_info_box">
+                    <div class="contact_info_icon">
+                        <i class="fa fa-envelope"></i>
+                    </div>
+                    <h4 class="contact_info_title">E-posta</h4>
+                    <p class="contact_info_text">{{ contact_info.email }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+<!-- contact info section end -->
+
+{% if page %}
+<div class="custom_content layout_padding">
+    <div class="container">
+        {{ page.content|safe }}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<style>
+.contact_section {
+    width: 100%;
+    float: left;
+    background-image: url("{{ url_for('static', filename='cobsin_template/images/contact-bg.png') }}");
+    height: auto;
+    background-repeat: no-repeat;
+    background-size: cover;
+    padding-bottom: 90px;
+}
+
+.contact_taital {
+    width: 40%;
+    float: left;
+    font-size: 40px;
+    color: #ffffff;
+    font-weight: bold;
+    font-family: 'Roboto', sans-serif;
+    position: relative;
+}
+
+.contact_taital::after {
+    content: '';
+    position: absolute;
+    width: 193px;
+    height: 2px;
+    background-color: #ffffff;
+    left: initial;
+    right: 0px;
+    top: 44%;
+}
+
+.contact_text {
+    width: 100%;
+    float: left;
+    font-size: 16px;
+    color: #ffffff;
+    margin: 0px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.contact_section_2 {
+    width: 100%;
+    float: left;
+    padding-top: 50px;
+}
+
+.mail_text {
+    width: 100%;
+    float: left;
+    font-size: 16px;
+    color: #727272;
+    border: 0px;
+    background-color: #ffff;
+    padding: 15px;
+    margin-top: 20px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.massage-bt {
+    color: #727272;
+    width: 100%;
+    font-size: 18px;
+    background-color: #ffff;
+    padding: 15px;
+    border: 0px;
+    height: 150px;
+    margin-top: 20px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.send_bt {
+    width: 150px;
+    float: left;
+    margin-top: 40px;
+}
+
+.send_bt a {
+    width: 100%;
+    float: left;
+    background-color: #13a25d;
+    color: #ffffff;
+    text-align: center;
+    padding: 14px 0px;
+    font-size: 16px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.send_bt a:hover {
+    background-color: #ffffff;
+    color: #000;
+}
+
+.map_main {
+    width: 100%;
+    float: left;
+    padding-top: 20px;
+}
+
+.map-responsive {
+    overflow: hidden;
+    padding-bottom: 56.25%;
+    position: relative;
+    height: 0;
+}
+
+.map-responsive iframe {
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+}
+</style>
+{% endblock %}

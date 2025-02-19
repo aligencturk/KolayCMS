@@ -1,0 +1,117 @@
+{% extends "admin/master.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Hizmet Düzenle</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-edit me-1"></i>
+            Hizmet Bilgileri
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Temel Bilgiler -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Başlık</label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                   value="{{ service.title }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Açıklama</label>
+                            <textarea class="form-control editor" id="description" name="description" rows="5" required>{{ service.description }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="icon" class="form-label">İkon (Font Awesome)</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="{{ service.icon or 'fas fa-icons' }}"></i></span>
+                                <input type="text" class="form-control" id="icon" name="icon" 
+                                       value="{{ service.icon }}" placeholder="Örnek: fas fa-laptop">
+                            </div>
+                            <div class="form-text">
+                                Font Awesome ikonları için <a href="https://fontawesome.com/icons" target="_blank">tıklayın</a>.
+                                Seçtiğiniz ikonun class'ını buraya yazın (örn: fas fa-laptop).
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <!-- Yan Panel -->
+                        <div class="card">
+                            <div class="card-header">
+                                Ayarlar
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="order" class="form-label">Sıralama</label>
+                                    <input type="number" class="form-control" id="order" name="order" 
+                                           value="{{ service.order }}" min="0">
+                                    <div class="form-text">Küçük sayılar önce gösterilir</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="image" class="form-label">Hizmet Görseli</label>
+                                    {% if service.image_path %}
+                                        <div class="mb-2">
+                                            <img src="{{ service.image_path }}" alt="{{ service.title }}" class="img-thumbnail" style="max-width: 100%;">
+                                        </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                                    <div class="form-text">
+                                        Önerilen boyut: 800x600px<br>
+                                        Maksimum dosya boyutu: 2MB<br>
+                                        {% if service.image_path %}
+                                            Yeni bir görsel yüklemezseniz mevcut görsel korunacaktır.
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
+                                               {% if service.is_active %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_active">Aktif</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-end mt-3">
+                    <a href="{{ url_for('admin.services_list') }}" class="btn btn-secondary">İptal</a>
+                    <button type="submit" class="btn btn-primary">Değişiklikleri Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script src="https://cdn.ckeditor.com/ckeditor5/27.1.0/classic/ckeditor.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // CKEditor başlat
+    ClassicEditor
+        .create(document.querySelector('.editor'))
+        .catch(error => {
+            console.error(error);
+        });
+    
+    // İkon önizleme
+    const iconInput = document.getElementById('icon');
+    const iconPreview = document.querySelector('.input-group-text i');
+    
+    iconInput.addEventListener('input', function() {
+        const iconClass = this.value;
+        iconPreview.className = iconClass || 'fas fa-icons';
+    });
+});
+</script>
+{% endblock %}
+
+{% endblock %} 

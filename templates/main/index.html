@@ -1,0 +1,205 @@
+{% extends "main/master.html" %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/slider.css') }}">
+<style>
+:root {
+    --slider-height: {{ settings.slider_height|default('600') }}px;
+    --animation-speed: {{ settings.slider_animation_speed|default('600') }}ms;
+}
+</style>
+{% endblock %}
+
+{% block banner %}
+{# Slider Yüksekliği ve Animasyon Süresi #}
+{% set transition_speed = settings.slider_transition_speed|default('5000') %}
+{% set is_autoplay = settings.slider_is_autoplay|default(true) %}
+
+<div class="banner_section">
+    <div class="container-fluid">
+        <section class="slide-wrapper">
+            <div class="container-fluid">
+                <div id="myCarousel" class="carousel slide" 
+                    data-bs-ride="carousel"
+                    data-transition-speed="{% if settings.slider_is_autoplay|default(true) %}{{ settings.slider_transition_speed|default('5000') }}{% else %}false{% endif %}">
+                    <!-- Indicators -->
+                    {% if settings.slider_show_bullets|default(true) %}
+                    <div class="carousel-indicators">
+                        {% for slide in slides %}
+                        <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="{{ loop.index0 }}" {% if loop.first %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ loop.index }}"></button>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Wrapper for slides -->
+                    <div class="carousel-inner">
+                        {% for slide in slides %}
+                        <div class="carousel-item {% if loop.first %}active{% endif %}">
+                            <div class="container">
+                                <div class="banner_main">
+                                    <h1 class="banner_taital">{{ slide.title }}</h1>
+                                    <p class="banner_text">{{ slide.description }}</p>
+                                    <div class="btn_main">
+                                        {% if slide.button_text and slide.button_url %}
+                                        <div class="contact_bt active"><a href="{{ slide.button_url }}">{{ slide.button_text }}</a></div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if settings.slider_show_arrows|default(true) %}
+                    <!-- Left and right controls -->
+                    <button class="carousel-control-prev" type="button" data-bs-target="#myCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Önceki</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#myCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Sonraki</span>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- about section start -->
+{% if about %}
+<div class="about_section layout_padding">
+    <div class="container">
+        <h1 class="about_taital">{{ about.title }}</h1>
+        <p class="about_text">{{ about.subtitle }}</p>
+        <div class="about_section_2">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="about_image">
+                        {% if about.image_path %}
+                        <img src="{{ url_for('static', filename=about.image_path) }}" alt="{{ about.title }}">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='cobsin_template/images/about-img.png') }}" alt="About Us">
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="about_taital_main">
+                        <p class="lorem_text">{{ about.content|safe }}</p>
+                        {% if about.stats_items %}
+                        <div class="about_bt">
+                            {% for stat in about.stats_items %}
+                            <div class="stat_item">
+                                <h2>{{ stat.number }}</h2>
+                                <p>{{ stat.text }}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+<!-- about section end -->
+
+<!-- services section start -->
+{% if services %}
+<div class="services_section layout_padding">
+    <div class="container">
+        <h1 class="services_taital">Hizmetlerimiz</h1>
+        <p class="about_text">Size nasıl yardımcı olabiliriz?</p>
+        <div class="services_section_2">
+            <div class="row">
+                {% for service in services %}
+                <div class="col-lg-4">
+                    <div class="icon_box">
+                        <div class="icon_1">
+                            {% if service.icon %}
+                            <i class="{{ service.icon }} fa-3x"></i>
+                            {% else %}
+                            <img src="{{ url_for('static', filename='cobsin_template/images/icon-' ~ loop.index ~ '.png') }}">
+                            {% endif %}
+                        </div>
+                    </div>
+                    <h4 class="selection_text">{{ service.title }}</h4>
+                    <p class="ipsum_text">{{ service.description }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+<!-- services section end -->
+
+<!-- blog section start -->
+{% if blog_posts %}
+<div class="blog_section layout_padding">
+    <div class="container">
+        <h1 class="blog_taital">Son Blog Yazıları</h1>
+        <p class="about_text">Güncel içeriklerimiz</p>
+        <div class="blog_section_2">
+            <div class="row">
+                {% for post in blog_posts %}
+                <div class="col-md-6">
+                    <div class="blog_box">
+                        <div class="blog_img">
+                            {% if post.featured_image %}
+                            <img src="{{ url_for('static', filename=post.featured_image) }}" alt="{{ post.title }}">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='cobsin_template/images/blog-img.png') }}" alt="Blog">
+                            {% endif %}
+                        </div>
+                        <h4 class="date_text">{{ post.published_at.strftime('%d.%m.%Y') if post.published_at }}</h4>
+                        <h4 class="prep_text">{{ post.title }}</h4>
+                        <p class="lorem_blog_text">{{ post.excerpt }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+<!-- blog section end -->
+
+<!-- video section start -->
+{% if video %}
+<div class="events_section layout_padding">
+    <div class="container">
+        <h1 class="events_taital">{{ video.title }}</h1>
+        <p class="about_text">{{ video.description }}</p>
+        <div class="events_section_2">
+            <div class="events_bg">
+                <div class="play_icon">
+                    <a href="{{ video.url }}" class="video-popup">
+                        <img src="{{ url_for('static', filename='cobsin_template/images/play-icon.png') }}">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+<!-- video section end -->
+
+{% if page %}
+<div class="custom_content layout_padding">
+    <div class="container">
+        {{ page.content|safe }}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/slider.js') }}"></script>
+{% endblock %}

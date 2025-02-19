@@ -1,0 +1,86 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Yeni Slayt</h2>
+            <p class="text-muted">Template'den alınan örnek slayt:</p>
+            <div class="alert alert-info">
+                <strong>Başlık:</strong> Business Agency Profit Your Marketing<br>
+                <strong>Açıklama:</strong> It is a long established fact that a reader will be distracted by the readable content of a page when<br>
+                <strong>Buton 1:</strong> Contact Us<br>
+                <strong>Buton 2:</strong> Read More
+            </div>
+        </div>
+        <div class="col text-end">
+            <a href="{{ url_for('admin.contents_list') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.slide_create') }}" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Başlık</label>
+                    <input type="text" class="form-control" id="title" name="title" required 
+                           placeholder="Örn: Business Agency Profit Your Marketing">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="form-label">Açıklama</label>
+                    <textarea class="form-control" id="description" name="description" rows="3" 
+                              placeholder="Örn: It is a long established fact that a reader will be distracted by the readable content of a page when"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="image" class="form-label">Slayt Görseli</label>
+                    <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
+                    <small class="form-text text-muted">Önerilen boyut: 1920x1080px</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="button1_text" class="form-label">1. Buton Metni</label>
+                    <input type="text" class="form-control" id="button1_text" name="button1_text" 
+                           placeholder="Örn: Contact Us">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="button1_url" class="form-label">1. Buton URL</label>
+                    <input type="text" class="form-control" id="button1_url" name="button1_url" 
+                           placeholder="Örn: /contact">
+                </div>
+
+                <div class="mb-3">
+                    <label for="button2_text" class="form-label">2. Buton Metni</label>
+                    <input type="text" class="form-control" id="button2_text" name="button2_text" 
+                           placeholder="Örn: Read More">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="button2_url" class="form-label">2. Buton URL</label>
+                    <input type="text" class="form-control" id="button2_url" name="button2_url" 
+                           placeholder="Örn: /about">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="order" class="form-label">Sıra</label>
+                    <input type="number" class="form-control" id="order" name="order" value="0" min="0">
+                    <small class="form-text text-muted">Slaytın gösterim sırası (0'dan başlar)</small>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1" checked>
+                    <label class="form-check-label" for="is_active">Aktif</label>
+                </div>
+                
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

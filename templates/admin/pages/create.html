@@ -1,0 +1,57 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Yeni Sayfa Oluştur</h2>
+        </div>
+        <div class="col text-end">
+            <a href="{{ url_for('admin.pages_list') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.pages_create') }}">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Başlık</label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="slug" class="form-label">SEO URL (Boş bırakılırsa otomatik oluşturulur)</label>
+                    <input type="text" class="form-control" id="slug" name="slug">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="content" class="form-label">İçerik</label>
+                    <textarea class="form-control" id="content" name="content" rows="10" required></textarea>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_published" name="is_published" value="1">
+                    <label class="form-check-label" for="is_published">Yayınla</label>
+                </div>
+                
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.ckeditor.com/ckeditor5/27.1.0/classic/ckeditor.js"></script>
+<script>
+    ClassicEditor
+        .create(document.querySelector('#content'))
+        .catch(error => {
+            console.error(error);
+        });
+</script>
+{% endblock %} 

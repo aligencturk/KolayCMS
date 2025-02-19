@@ -1,0 +1,36 @@
+{% extends "main/base.html" %}
+
+{% block content %}
+<!-- blog section start -->
+<div class="blog_section layout_padding">
+    <div class="container">
+        <h1 class="blog_taital">Blog Yazıları</h1>
+        <div class="blog_section_2">
+            <div class="row">
+                {% for post in posts %}
+                <div class="col-md-4 mb-4">
+                    <div class="blog_box">
+                        {% if post.featured_image %}
+                        <div class="blog_img">
+                            <img src="{{ post.featured_image }}" alt="{{ post.title }}">
+                        </div>
+                        {% endif %}
+                        <h4 class="date_text">{{ post.created_at.strftime('%d.%m.%Y') }}</h4>
+                        <h4 class="prep_text">{{ post.title }}</h4>
+                        <p class="lorem_blog_text">{{ post.excerpt }}</p>
+                        <div class="read_bt">
+                            <a href="{{ url_for('main.blog_detail', slug=post.slug) }}">Devamını Oku</a>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-12 text-center">
+                    <p>Henüz blog yazısı bulunmuyor.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<!-- blog section end -->
+{% endblock %}

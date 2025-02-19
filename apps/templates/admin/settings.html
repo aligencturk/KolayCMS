@@ -1,0 +1,234 @@
+{% extends "admin/master.html" %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Site Ayarları</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <form action="{{ url_for('admin.settings_backup') }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-download"></i> Yedek Al
+                    </button>
+                </form>
+                <form action="{{ url_for('admin.settings_maintenance') }}" method="POST" class="d-inline ms-2">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-broom"></i> Bakım Yap
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="general-tab" data-bs-toggle="tab" href="#general" role="tab">
+                                    <i class="fas fa-cog"></i> Genel
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="theme-tab" data-bs-toggle="tab" href="#theme" role="tab">
+                                    <i class="fas fa-paint-brush"></i> Tema
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="contact-tab" data-bs-toggle="tab" href="#contact" role="tab">
+                                    <i class="fas fa-address-card"></i> İletişim
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="social-tab" data-bs-toggle="tab" href="#social" role="tab">
+                                    <i class="fas fa-share-alt"></i> Sosyal Medya
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="advanced-tab" data-bs-toggle="tab" href="#advanced" role="tab">
+                                    <i class="fas fa-code"></i> Gelişmiş
+                                </a>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content mt-3" id="settingsTabContent">
+                            <!-- Genel Ayarlar -->
+                            <div class="tab-pane fade show active" id="general" role="tabpanel">
+                                <div class="mb-3">
+                                    <label for="site_title" class="form-label">Site Başlığı</label>
+                                    <input type="text" class="form-control" id="site_title" name="site_title" value="{{ settings.site_title }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="site_description" class="form-label">Site Açıklaması</label>
+                                    <textarea class="form-control" id="site_description" name="site_description" rows="3">{{ settings.site_description }}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="meta_keywords" class="form-label">Meta Anahtar Kelimeler</label>
+                                    <input type="text" class="form-control" id="meta_keywords" name="meta_keywords" value="{{ settings.meta_keywords }}">
+                                    <small class="text-muted">Virgülle ayırarak yazın</small>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="logo" class="form-label">Logo</label>
+                                            <input type="file" class="form-control" id="logo" name="logo">
+                                            {% if settings.logo_path %}
+                                            <img src="{{ settings.logo_path }}" alt="Mevcut Logo" class="mt-2" style="max-height: 50px;">
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="favicon" class="form-label">Favicon</label>
+                                            <input type="file" class="form-control" id="favicon" name="favicon">
+                                            {% if settings.favicon_path %}
+                                            <img src="{{ settings.favicon_path }}" alt="Mevcut Favicon" class="mt-2" style="max-height: 32px;">
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tema Ayarları -->
+                            <div class="tab-pane fade" id="theme" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="primary_color" class="form-label">Ana Renk</label>
+                                            <input type="color" class="form-control form-control-color" id="primary_color" name="primary_color" value="{{ settings.primary_color }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="secondary_color" class="form-label">İkincil Renk</label>
+                                            <input type="color" class="form-control form-control-color" id="secondary_color" name="secondary_color" value="{{ settings.secondary_color }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="font_family" class="form-label">Yazı Tipi</label>
+                                    <select class="form-select" id="font_family" name="font_family">
+                                        <option value="Roboto" {% if settings.font_family == 'Roboto' %}selected{% endif %}>Roboto</option>
+                                        <option value="Open Sans" {% if settings.font_family == 'Open Sans' %}selected{% endif %}>Open Sans</option>
+                                        <option value="Montserrat" {% if settings.font_family == 'Montserrat' %}selected{% endif %}>Montserrat</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="font_size" class="form-label">Yazı Boyutu</label>
+                                    <select class="form-select" id="font_size" name="font_size">
+                                        <option value="small" {% if settings.font_size == 'small' %}selected{% endif %}>Küçük</option>
+                                        <option value="medium" {% if settings.font_size == 'medium' %}selected{% endif %}>Orta</option>
+                                        <option value="large" {% if settings.font_size == 'large' %}selected{% endif %}>Büyük</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="is_dark_mode" name="is_dark_mode" {% if settings.is_dark_mode %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_dark_mode">Karanlık Mod</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- İletişim Bilgileri -->
+                            <div class="tab-pane fade" id="contact" role="tabpanel">
+                                <div class="mb-3">
+                                    <label for="footer_about" class="form-label">Footer Hakkında Metni</label>
+                                    <textarea class="form-control" id="footer_about" name="footer_about" rows="3">{{ settings.footer_about }}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Adres</label>
+                                    <textarea class="form-control" id="address" name="address" rows="2">{{ settings.address }}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Telefon</label>
+                                    <input type="text" class="form-control" id="phone" name="phone" value="{{ settings.phone }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">E-posta</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ settings.email }}">
+                                </div>
+                            </div>
+
+                            <!-- Sosyal Medya -->
+                            <div class="tab-pane fade" id="social" role="tabpanel">
+                                <div class="mb-3">
+                                    <label for="facebook_url" class="form-label">Facebook URL</label>
+                                    <input type="url" class="form-control" id="facebook_url" name="facebook_url" value="{{ settings.facebook_url }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="twitter_url" class="form-label">Twitter URL</label>
+                                    <input type="url" class="form-control" id="twitter_url" name="twitter_url" value="{{ settings.twitter_url }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="instagram_url" class="form-label">Instagram URL</label>
+                                    <input type="url" class="form-control" id="instagram_url" name="instagram_url" value="{{ settings.instagram_url }}">
+                                </div>
+                            </div>
+
+                            <!-- Gelişmiş Ayarlar -->
+                            <div class="tab-pane fade" id="advanced" role="tabpanel">
+                                <div class="mb-3">
+                                    <label for="custom_css" class="form-label">Özel CSS</label>
+                                    <textarea class="form-control" id="custom_css" name="custom_css" rows="5">{{ settings.custom_css }}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="custom_js" class="form-label">Özel JavaScript</label>
+                                    <textarea class="form-control" id="custom_js" name="custom_js" rows="5">{{ settings.custom_js }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-end mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if backup_files %}
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Yedekler</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Dosya Adı</th>
+                                    <th>Tarih</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for backup in backup_files %}
+                                <tr>
+                                    <td>{{ backup.filename }}</td>
+                                    <td>{{ backup.created_at }}</td>
+                                    <td>
+                                        <form action="{{ url_for('admin.settings_restore', filename=backup.filename) }}" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Bu yedeği geri yüklemek istediğinizden emin misiniz?')">
+                                                <i class="fas fa-undo"></i> Geri Yükle
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

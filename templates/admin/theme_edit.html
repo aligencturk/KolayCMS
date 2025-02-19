@@ -1,0 +1,288 @@
+{% extends 'admin/model/edit.html' %}
+
+{% block tail %}
+    {{ super() }}
+    <link href="https://cdn.jsdelivr.net/npm/ace-builds@1.32.3/css/ace.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.3/src-min-noconflict/ace.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.3/src-min-noconflict/mode-html.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.3/src-min-noconflict/mode-css.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.3/src-min-noconflict/theme-monokai.js"></script>
+    
+    <style>
+        .theme-editor {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .editor-section {
+            flex: 1;
+        }
+        .code-editor {
+            height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .preview-section {
+            flex: 1;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            background: white;
+        }
+        .theme-settings {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .color-scheme {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .color-picker {
+            width: 100%;
+            padding: 5px;
+        }
+        .template-selector {
+            margin-bottom: 15px;
+        }
+    </style>
+
+    <div class="container-fluid">
+        <!-- Tema Ayarları -->
+        <div class="theme-settings">
+            <h4>Tema Ayarları</h4>
+            
+            <!-- Hazır Şablon Seçici -->
+            <div class="template-selector">
+                <label>Hazır Şablon</label>
+                <select class="form-control" id="templateSelector">
+                    <option value="">Özel Tema</option>
+                    <option value="modern">Modern</option>
+                    <option value="minimal">Minimal</option>
+                    <option value="corporate">Kurumsal</option>
+                </select>
+            </div>
+
+            <!-- Renk Şeması -->
+            <div class="form-group">
+                <label>Renk Şeması</label>
+                <div class="color-scheme">
+                    <div>
+                        <label>Ana Renk</label>
+                        <input type="color" class="color-picker" id="primaryColor">
+                    </div>
+                    <div>
+                        <label>İkincil Renk</label>
+                        <input type="color" class="color-picker" id="secondaryColor">
+                    </div>
+                    <div>
+                        <label>Arka Plan</label>
+                        <input type="color" class="color-picker" id="backgroundColor">
+                    </div>
+                    <div>
+                        <label>Metin Rengi</label>
+                        <input type="color" class="color-picker" id="textColor">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Yazı Tipi Ayarları -->
+            <div class="form-group">
+                <label>Yazı Tipi</label>
+                <select class="form-control" id="fontFamily">
+                    <option value="'Open Sans', sans-serif">Open Sans</option>
+                    <option value="'Roboto', sans-serif">Roboto</option>
+                    <option value="'Montserrat', sans-serif">Montserrat</option>
+                    <option value="'Poppins', sans-serif">Poppins</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="theme-editor">
+            <!-- Kod Editörleri -->
+            <div class="editor-section">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-toggle="tab" href="#htmlEditor" role="tab">HTML</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" href="#cssEditor" role="tab">CSS</a>
+                    </li>
+                </ul>
+                
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="htmlEditor" role="tabpanel">
+                        <div id="htmlCodeEditor" class="code-editor"></div>
+                    </div>
+                    <div class="tab-pane fade" id="cssEditor" role="tabpanel">
+                        <div id="cssCodeEditor" class="code-editor"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canlı Önizleme -->
+            <div class="preview-section">
+                <h5>Önizleme</h5>
+                <div id="themePreview"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Kod editörlerini başlat
+        const htmlEditor = ace.edit("htmlCodeEditor");
+        htmlEditor.setTheme("ace/theme/monokai");
+        htmlEditor.session.setMode("ace/mode/html");
+        htmlEditor.setOptions({
+            fontSize: "14px",
+            showPrintMargin: false
+        });
+
+        const cssEditor = ace.edit("cssCodeEditor");
+        cssEditor.setTheme("ace/theme/monokai");
+        cssEditor.session.setMode("ace/mode/css");
+        cssEditor.setOptions({
+            fontSize: "14px",
+            showPrintMargin: false
+        });
+
+        // Hazır şablonları yükle
+        const templates = {
+            modern: {
+                html: `
+                    <header class="modern-header">
+                        <nav class="modern-nav">
+                            <div class="logo">Logo</div>
+                            <ul class="nav-links">
+                                <li><a href="#">Ana Sayfa</a></li>
+                                <li><a href="#">Hakkımızda</a></li>
+                                <li><a href="#">İletişim</a></li>
+                            </ul>
+                        </nav>
+                    </header>
+                    <main class="modern-main">
+                        <h1>Modern Tema</h1>
+                        <p>Bu modern bir tema örneğidir.</p>
+                    </main>
+                `,
+                css: `
+                    .modern-header {
+                        padding: 1rem;
+                        background: var(--primary-color);
+                        color: white;
+                    }
+                    .modern-nav {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    }
+                    .nav-links {
+                        display: flex;
+                        gap: 1rem;
+                        list-style: none;
+                    }
+                    .nav-links a {
+                        color: white;
+                        text-decoration: none;
+                    }
+                `
+            },
+            minimal: {
+                html: `
+                    <div class="minimal-container">
+                        <nav class="minimal-nav">
+                            <a href="#" class="brand">Minimal</a>
+                            <ul>
+                                <li><a href="#">Ana Sayfa</a></li>
+                                <li><a href="#">Blog</a></li>
+                                <li><a href="#">İletişim</a></li>
+                            </ul>
+                        </nav>
+                        <main class="minimal-content">
+                            <h1>Minimal Tasarım</h1>
+                            <p>Sade ve şık bir tasarım örneği.</p>
+                        </main>
+                    </div>
+                `,
+                css: `
+                    .minimal-container {
+                        max-width: 1200px;
+                        margin: 0 auto;
+                        padding: 2rem;
+                    }
+                    .minimal-nav {
+                        border-bottom: 1px solid var(--secondary-color);
+                        padding: 1rem 0;
+                    }
+                    .minimal-content {
+                        margin-top: 2rem;
+                    }
+                `
+            }
+        };
+
+        // Şablon değişikliğini izle
+        document.getElementById('templateSelector').addEventListener('change', function(e) {
+            const template = templates[e.target.value];
+            if (template) {
+                htmlEditor.setValue(template.html);
+                cssEditor.setValue(template.css);
+                updatePreview();
+            }
+        });
+
+        // Renk değişikliklerini izle
+        document.querySelectorAll('.color-picker').forEach(picker => {
+            picker.addEventListener('input', updatePreview);
+        });
+
+        // Yazı tipi değişikliğini izle
+        document.getElementById('fontFamily').addEventListener('change', updatePreview);
+
+        // Editör değişikliklerini izle
+        htmlEditor.session.on('change', updatePreview);
+        cssEditor.session.on('change', updatePreview);
+
+        // Önizlemeyi güncelle
+        function updatePreview() {
+            const preview = document.getElementById('themePreview');
+            const html = htmlEditor.getValue();
+            const css = cssEditor.getValue();
+            
+            // Renk değişkenlerini oluştur
+            const primaryColor = document.getElementById('primaryColor').value;
+            const secondaryColor = document.getElementById('secondaryColor').value;
+            const backgroundColor = document.getElementById('backgroundColor').value;
+            const textColor = document.getElementById('textColor').value;
+            const fontFamily = document.getElementById('fontFamily').value;
+
+            // Stil etiketini oluştur
+            const style = `
+                <style>
+                    :root {
+                        --primary-color: ${primaryColor};
+                        --secondary-color: ${secondaryColor};
+                        --background-color: ${backgroundColor};
+                        --text-color: ${textColor};
+                        --font-family: ${fontFamily};
+                    }
+                    body {
+                        font-family: var(--font-family);
+                        background-color: var(--background-color);
+                        color: var(--text-color);
+                    }
+                    ${css}
+                </style>
+            `;
+
+            // Önizleme içeriğini güncelle
+            preview.innerHTML = style + html;
+        }
+
+        // Sayfa yüklendiğinde varsayılan önizlemeyi göster
+        document.addEventListener('DOMContentLoaded', updatePreview);
+    </script>
+{% endblock %} 

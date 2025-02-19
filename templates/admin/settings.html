@@ -1,0 +1,158 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Site Ayarları</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Site Ayarları</li>
+    </ol>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-cogs me-1"></i>
+            Genel Ayarlar
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.settings') }}" enctype="multipart/form-data">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="site_title" name="site_title" 
+                                   value="{{ settings.site_title }}" required>
+                            <label for="site_title">Site Başlığı</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <textarea class="form-control" id="site_description" name="site_description" 
+                                      style="height: 100px">{{ settings.site_description }}</textarea>
+                            <label for="site_description">Site Açıklaması</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="logo" class="form-label">Logo</label>
+                            <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
+                            {% if settings.logo_path %}
+                            <div class="mt-2">
+                                <img src="{{ settings.logo_path }}" alt="Mevcut Logo" class="img-thumbnail" style="max-height: 100px;">
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="favicon" class="form-label">Favicon</label>
+                            <input type="file" class="form-control" id="favicon" name="favicon" accept="image/*">
+                            {% if settings.favicon_path %}
+                            <div class="mt-2">
+                                <img src="{{ settings.favicon_path }}" alt="Mevcut Favicon" class="img-thumbnail" style="max-height: 32px;">
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="form-floating mb-3">
+                            <input type="color" class="form-control form-control-color w-100" id="primary_color" 
+                                   name="primary_color" value="{{ settings.primary_color }}">
+                            <label for="primary_color">Ana Renk</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating mb-3">
+                            <input type="color" class="form-control form-control-color w-100" id="secondary_color" 
+                                   name="secondary_color" value="{{ settings.secondary_color }}">
+                            <label for="secondary_color">İkincil Renk</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating mb-3">
+                            <select class="form-select" id="font_family" name="font_family">
+                                <option value="Roboto" {% if settings.font_family == 'Roboto' %}selected{% endif %}>Roboto</option>
+                                <option value="Open Sans" {% if settings.font_family == 'Open Sans' %}selected{% endif %}>Open Sans</option>
+                                <option value="Montserrat" {% if settings.font_family == 'Montserrat' %}selected{% endif %}>Montserrat</option>
+                                <option value="Poppins" {% if settings.font_family == 'Poppins' %}selected{% endif %}>Poppins</option>
+                            </select>
+                            <label for="font_family">Yazı Tipi</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <select class="form-select" id="font_size" name="font_size">
+                                <option value="small" {% if settings.font_size == 'small' %}selected{% endif %}>Küçük</option>
+                                <option value="medium" {% if settings.font_size == 'medium' %}selected{% endif %}>Orta</option>
+                                <option value="large" {% if settings.font_size == 'large' %}selected{% endif %}>Büyük</option>
+                            </select>
+                            <label for="font_size">Yazı Boyutu</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check form-switch mt-3">
+                            <input class="form-check-input" type="checkbox" id="is_dark_mode" name="is_dark_mode"
+                                   {% if settings.is_dark_mode %}checked{% endif %}>
+                            <label class="form-check-label" for="is_dark_mode">Karanlık Mod</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Ayarları Kaydet
+                    </button>
+                    <button type="reset" class="btn btn-secondary ms-2">
+                        <i class="fas fa-undo me-1"></i> Sıfırla
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form değişikliklerini izle
+    const form = document.querySelector('form');
+    let formChanged = false;
+
+    form.addEventListener('change', function() {
+        formChanged = true;
+    });
+
+    // Sayfadan ayrılmadan önce uyarı göster
+    window.addEventListener('beforeunload', function(e) {
+        if (formChanged) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
+    // Form gönderildiğinde değişiklik bayrağını sıfırla
+    form.addEventListener('submit', function() {
+        formChanged = false;
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

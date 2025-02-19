@@ -1,0 +1,145 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Hakkımızda Bölümünü Düzenle</h2>
+            <p class="text-muted">Template'den alınan örnek içerik:</p>
+            <div class="alert alert-info">
+                <strong>Başlık:</strong> About Us<br>
+                <strong>Alt Başlık:</strong> It is a long established fact that a reader will be distracted by the readable content of a page when<br>
+                <strong>İçerik:</strong> There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words<br>
+                <strong>Buton:</strong> Read More
+            </div>
+        </div>
+        <div class="col text-end">
+            <a href="{{ url_for('admin.contents_list') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.about_edit') }}" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Başlık</label>
+                    <input type="text" class="form-control" id="title" name="title" value="{{ about.title }}" required
+                           placeholder="Örn: About Us">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="subtitle" class="form-label">Alt Başlık</label>
+                    <input type="text" class="form-control" id="subtitle" name="subtitle" value="{{ about.subtitle }}"
+                           placeholder="Örn: It is a long established fact that a reader will be distracted by the readable content of a page when">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="content" class="form-label">İçerik</label>
+                    <textarea class="form-control" id="content" name="content" rows="5" required
+                              placeholder="Örn: There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words">{{ about.content }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="image" class="form-label">Görsel</label>
+                    {% if about.image %}
+                    <div class="mb-2">
+                        <img src="{{ about.image }}" alt="Mevcut görsel" class="img-thumbnail" style="max-height: 200px;">
+                    </div>
+                    {% endif %}
+                    <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                    <small class="form-text text-muted">Yeni bir görsel yüklemek için seçin (opsiyonel)</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="button_text" class="form-label">Buton Metni</label>
+                    <input type="text" class="form-control" id="button_text" name="button_text" value="{{ about.button_text }}"
+                           placeholder="Örn: Read More">
+                </div>
+
+                <div class="mb-3">
+                    <label for="button_url" class="form-label">Buton URL</label>
+                    <input type="text" class="form-control" id="button_url" name="button_url" value="{{ about.button_url }}"
+                           placeholder="Örn: /about">
+                </div>
+
+                <div class="mb-4">
+                    <h4>İstatistikler</h4>
+                    <div id="stats-container">
+                        {% if about.stats_items %}
+                            {% for stat in about.stats_items %}
+                            <div class="row mb-3 stat-item">
+                                <div class="col-md-5">
+                                    <input type="text" class="form-control" name="stats_number_{{ loop.index0 }}" value="{{ stat.number }}" placeholder="Sayı (örn: 100+)">
+                                </div>
+                                <div class="col-md-5">
+                                    <input type="text" class="form-control" name="stats_text_{{ loop.index0 }}" value="{{ stat.text }}" placeholder="Açıklama">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-danger remove-stat"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <input type="hidden" id="stats_count" name="stats_count" value="{{ about.stats_items|length if about.stats_items else 0 }}">
+                    <button type="button" class="btn btn-secondary" id="add-stat">
+                        <i class="fas fa-plus"></i> Yeni İstatistik Ekle
+                    </button>
+                </div>
+                
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.ckeditor.com/ckeditor5/27.1.0/classic/ckeditor.js"></script>
+<script>
+    ClassicEditor
+        .create(document.querySelector('#content'))
+        .catch(error => {
+            console.error(error);
+        });
+
+    document.getElementById('add-stat').addEventListener('click', function() {
+        const container = document.getElementById('stats-container');
+        const count = document.getElementById('stats_count');
+        const index = parseInt(count.value);
+        
+        const statHtml = `
+            <div class="row mb-3 stat-item">
+                <div class="col-md-5">
+                    <input type="text" class="form-control" name="stats_number_${index}" placeholder="Sayı (örn: 100+)">
+                </div>
+                <div class="col-md-5">
+                    <input type="text" class="form-control" name="stats_text_${index}" placeholder="Açıklama">
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-danger remove-stat"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+        
+        container.insertAdjacentHTML('beforeend', statHtml);
+        count.value = index + 1;
+    });
+
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-stat')) {
+            e.target.closest('.stat-item').remove();
+            updateStatsCount();
+        }
+    });
+
+    function updateStatsCount() {
+        const count = document.querySelectorAll('.stat-item').length;
+        document.getElementById('stats_count').value = count;
+    }
+</script>
+{% endblock %} 

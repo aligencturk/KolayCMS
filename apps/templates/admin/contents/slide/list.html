@@ -1,0 +1,83 @@
+{% extends "admin/master.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h1 class="mt-4">Slaytlar</h1>
+        <a href="{{ url_for('admin.slide_create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Yeni Slayt Ekle
+        </a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-table me-1"></i>
+            Slayt Listesi
+        </div>
+        <div class="card-body">
+            {% if slides %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">Sıra</th>
+                                <th>Görsel</th>
+                                <th>Başlık</th>
+                                <th>Açıklama</th>
+                                <th>Butonlar</th>
+                                <th style="width: 100px;">Durum</th>
+                                <th style="width: 150px;">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for slide in slides %}
+                            <tr>
+                                <td class="text-center">{{ slide.order }}</td>
+                                <td>
+                                    {% if slide.image_path %}
+                                        <img src="{{ slide.image_path }}" alt="{{ slide.title }}" class="img-thumbnail" style="max-width: 200px;">
+                                    {% else %}
+                                        <span class="text-muted">Görsel yok</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ slide.title }}</td>
+                                <td>{{ slide.description|truncate(100) }}</td>
+                                <td>
+                                    {% if slide.button_text %}
+                                        <span class="badge bg-primary">{{ slide.button_text }}</span>
+                                    {% endif %}
+                                    {% if slide.secondary_button_text %}
+                                        <span class="badge bg-secondary">{{ slide.secondary_button_text }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if slide.is_active %}
+                                        <span class="badge bg-success">Aktif</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Pasif</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('admin.slide_edit', id=slide.id) }}" class="btn btn-primary btn-sm" title="Düzenle">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="{{ url_for('admin.slide_delete', id=slide.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bu slaytı silmek istediğinizden emin misiniz?')" title="Sil">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    Henüz slayt eklenmemiş. Yeni bir slayt eklemek için yukarıdaki "Yeni Slayt Ekle" butonunu kullanabilirsiniz.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş Yap - KolayCMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='main/css/bootstrap.min.css') }}">
+    <style>
+        body {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f5;
+        }
+        .login-form {
+            width: 100%;
+            max-width: 400px;
+            padding: 15px;
+            margin: auto;
+        }
+        .login-form .form-control {
+            position: relative;
+            box-sizing: border-box;
+            height: auto;
+            padding: 10px;
+            font-size: 16px;
+        }
+        .login-form .form-control:focus {
+            z-index: 2;
+        }
+        .login-form input[type="text"] {
+            margin-bottom: -1px;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+        .login-form input[type="password"] {
+            margin-bottom: 10px;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-form text-center">
+        <form method="POST">
+            <img class="mb-4" src="{{ url_for('static', filename='main/images/logo.png') }}" alt="Logo" height="72">
+            <h1 class="h3 mb-3 font-weight-normal">Giriş Yap</h1>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+            
+            <div class="form-group">
+                <input type="text" name="username" class="form-control" placeholder="Kullanıcı Adı" required autofocus>
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" class="form-control" placeholder="Şifre" required>
+            </div>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Giriş Yap</button>
+            <p class="mt-5 mb-3 text-muted">&copy; 2024 KolayCMS</p>
+        </form>
+    </div>
+
+    <script src="{{ url_for('static', filename='main/js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='main/js/bootstrap.min.js') }}"></script>
+</body>
+</html> 

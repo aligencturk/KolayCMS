@@ -1,0 +1,314 @@
+{% extends "admin/master.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Yeni Sayfa</h1>
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="POST" id="pageForm" enctype="multipart/form-data" novalidate>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Ana İçerik -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Başlık</label>
+                            <input type="text" class="form-control" id="title" name="title">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="slug" class="form-label">Slug</label>
+                            <input type="text" class="form-control" id="slug" name="slug">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="editor" class="form-label">İçerik</label>
+                            <div id="editor"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <!-- Yan Panel -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                Yayın Ayarları
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">Durum</label>
+                                    <select class="form-select" id="status" name="status">
+                                        <option value="published">Yayında</option>
+                                        <option value="draft">Taslak</option>
+                                        <option value="private">Özel</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="template" class="form-label">Şablon</label>
+                                    <select class="form-select" id="template" name="template">
+                                        <option value="default">Varsayılan</option>
+                                        <option value="full-width">Tam Genişlik</option>
+                                        <option value="sidebar">Kenar Çubuğu</option>
+                                        <option value="landing">Açılış Sayfası</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="parent_id" class="form-label">Üst Sayfa</label>
+                                    <select class="form-select" id="parent_id" name="parent_id">
+                                        <option value="">Üst Sayfa Yok</option>
+                                        {% for page in pages %}
+                                        <option value="{{ page.id }}">{{ page.title }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="order" class="form-label">Sıralama</label>
+                                    <input type="number" class="form-control" id="order" name="order" value="0">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                Kapak Görseli
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="featured_image" class="form-label">Görsel Seç</label>
+                                    <input type="file" class="form-control" id="featured_image" name="featured_image" accept="image/*">
+                                    <div id="image_preview" class="mt-2"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                SEO Ayarları
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="meta_description" class="form-label">Meta Açıklama</label>
+                                    <textarea class="form-control" id="meta_description" name="meta_description" rows="3"></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="meta_keywords" class="form-label">Meta Anahtar Kelimeler</label>
+                                    <input type="text" class="form-control" id="meta_keywords" name="meta_keywords">
+                                    <small class="text-muted">Virgülle ayırarak yazın</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="contact-info" hidden>
+                    <hr>
+                    <h3>İletişim Bilgileri</h3>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Adres</label>
+                        <input type="text" class="form-control" id="address" name="address">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Telefon</label>
+                        <input type="text" class="form-control" id="phone" name="phone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">E-posta</label>
+                        <input type="email" class="form-control" id="email" name="email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="working_hours" class="form-label">Çalışma Saatleri</label>
+                        <input type="text" class="form-control" id="working_hours" name="working_hours">
+                    </div>
+                    <div class="mb-3">
+                        <label for="google_maps_embed" class="form-label">Google Maps Embed Kodu</label>
+                        <textarea class="form-control" id="google_maps_embed" name="google_maps_embed" rows="3"></textarea>
+                    </div>
+                    <hr>
+                    <h4>Sosyal Medya</h4>
+                    <div class="mb-3">
+                        <label for="facebook" class="form-label">Facebook</label>
+                        <input type="url" class="form-control" id="facebook" name="facebook">
+                    </div>
+                    <div class="mb-3">
+                        <label for="twitter" class="form-label">Twitter</label>
+                        <input type="url" class="form-control" id="twitter" name="twitter">
+                    </div>
+                    <div class="mb-3">
+                        <label for="instagram" class="form-label">Instagram</label>
+                        <input type="url" class="form-control" id="instagram" name="instagram">
+                    </div>
+                    <div class="mb-3">
+                        <label for="linkedin" class="form-label">LinkedIn</label>
+                        <input type="url" class="form-control" id="linkedin" name="linkedin">
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col">
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                        <button type="button" class="btn btn-secondary" id="preview">Önizle</button>
+                        <a href="{{ url_for('admin.pages') }}" class="btn btn-light">İptal</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Önizleme Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sayfa Önizleme</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="preview_content"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+<script>
+    let editor;
+    ClassicEditor
+        .create(document.querySelector('#editor'), {
+            language: 'tr',
+            toolbar: ['undo', 'redo', '|', 'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'insertTable', 'blockQuote', '|', 'imageUpload'],
+            placeholder: 'İçerik giriniz...',
+            simpleUpload: {
+                uploadUrl: '{{ url_for("admin.upload_image") }}',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('input[name="csrf_token"]').value
+                }
+            }
+        })
+        .then(newEditor => {
+            editor = newEditor;
+        })
+        .catch(error => {
+            console.error('CKEditor yüklenirken hata:', error);
+            alert('Editör yüklenemedi. Lütfen sayfayı yenileyin.');
+        });
+
+    // Form gönderimi
+    document.getElementById("pageForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        // Form verilerini doğrula
+        const title = document.getElementById('title').value.trim();
+        const slug = document.getElementById('slug').value.trim();
+        
+        if (!title) {
+            alert('Başlık alanı zorunludur.');
+            document.getElementById('title').focus();
+            return;
+        }
+        
+        if (!slug) {
+            alert('Slug alanı zorunludur.');
+            document.getElementById('slug').focus();
+            return;
+        }
+
+        // CKEditor içeriğini kontrol et
+        const content = editor.getData().trim();
+        if (!content) {
+            alert('İçerik alanı zorunludur.');
+            editor.editing.view.focus();
+            return;
+        }
+
+        // Form verilerini hazırla
+        const formData = new FormData(this);
+        formData.set('content', content);
+
+        // AJAX ile gönder
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = "{{ url_for('admin.pages') }}";
+            } else {
+                alert(data.message || 'Bir hata oluştu.');
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+        });
+    });
+
+    // Slug otomatik oluşturma
+    document.getElementById('title').addEventListener('input', function() {
+        const slug = this.value
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+        document.getElementById('slug').value = slug;
+    });
+
+    // Kapak görseli önizleme
+    document.getElementById('featured_image').addEventListener('change', function(e) {
+        const preview = document.getElementById('image_preview');
+        preview.innerHTML = '';
+        
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'img-fluid mt-2';
+                preview.appendChild(img);
+            }
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    // Önizleme butonu
+    document.getElementById('preview').addEventListener('click', function() {
+        const content = editor.getData();
+        const title = document.getElementById('title').value;
+        
+        const previewContent = document.getElementById('preview_content');
+        previewContent.innerHTML = `
+            <h1>${title}</h1>
+            <hr>
+            ${content}
+        `;
+        
+        const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+        modal.show();
+    });
+
+    // Slug kontrol - İletişim sayfası
+    document.getElementById('slug').addEventListener('input', function() {
+        var contactInfo = document.getElementById('contact-info');
+        contactInfo.hidden = this.value !== 'contact';
+    });
+</script>
+
+<style>
+.ck-editor__editable {
+    min-height: 400px;
+}
+
+#image_preview img {
+    max-height: 200px;
+    width: auto;
+}
+</style>
+{% endblock %} 

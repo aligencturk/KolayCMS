@@ -1,0 +1,59 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Kullanıcıyı Düzenle</h2>
+        </div>
+        <div class="col text-end">
+            <a href="{{ url_for('admin.users_list') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.users_edit', id=user.id) }}">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Kullanıcı Adı</label>
+                    <input type="text" class="form-control" id="username" name="username" 
+                           value="{{ user.username }}" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="email" class="form-label">E-posta Adresi</label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                           value="{{ user.email }}" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="new_password" class="form-label">Yeni Şifre</label>
+                    <input type="password" class="form-control" id="new_password" name="new_password">
+                    <small class="form-text text-muted">Şifreyi değiştirmek istemiyorsanız boş bırakın.</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="role" class="form-label">Rol</label>
+                    <select class="form-select" id="role" name="role" required>
+                        <option value="user" {% if user.role == 'user' %}selected{% endif %}>Kullanıcı</option>
+                        <option value="editor" {% if user.role == 'editor' %}selected{% endif %}>Editör</option>
+                        <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Yönetici</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1"
+                           {% if user.is_active %}checked{% endif %}>
+                    <label class="form-check-label" for="is_active">Aktif</label>
+                </div>
+                
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

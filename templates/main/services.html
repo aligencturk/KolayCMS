@@ -1,0 +1,122 @@
+{% extends "main/base.html" %}
+
+{% block content %}
+<!-- services section start -->
+<div class="services_section layout_padding">
+    <div class="container">
+        <h1 class="services_taital">What We Do</h1>
+        <p class="about_text">It is a long established fact that a reader will be distracted by the readable content of a page when</p>
+        <div class="services_section_2">
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="icon_box">
+                        <div class="icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/icon-1.png') }}"></div>
+                    </div>
+                    <h4 class="selection_text">Selection of Business</h4>
+                    <p class="ipsum_text">There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised</p>
+                    <div class="icon_box">
+                        <div class="icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/icon-4.png') }}"></div>
+                    </div>
+                    <h4 class="selection_text">Securities Transactions</h4>
+                    <p class="ipsum_text">There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised</p>
+                </div>
+                <div class="col-lg-4">
+                    <div class="icon_box">
+                        <div class="icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/icon-2.png') }}"></div>
+                    </div>
+                    <h4 class="selection_text">Research and Analytics</h4>
+                    <p class="ipsum_text">There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised</p>
+                    <div class="icon_box">
+                        <div class="icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/icon-5.png') }}"></div>
+                    </div>
+                    <h4 class="selection_text">Advisory Activities</h4>
+                    <p class="ipsum_text">There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised</p>
+                </div>
+                <div class="col-lg-4">
+                    <div class="icon_box">
+                        <div class="icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/icon-3.png') }}"></div>
+                    </div>
+                    <h4 class="selection_text">Business Plans</h4>
+                    <p class="ipsum_text">There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised</p>
+                    <div class="icon_box">
+                        <div class="icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/icon-6.png') }}"></div>
+                    </div>
+                    <h4 class="selection_text">Management and Asset</h4>
+                    <p class="ipsum_text">There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- services section end -->
+{% endblock %}
+
+{% block scripts %}
+<style>
+.service_box {
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+}
+
+.service_box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+}
+
+.service_img {
+    margin-bottom: 20px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.service_img img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: all 0.3s ease;
+}
+
+.service_box:hover .service_img img {
+    transform: scale(1.05);
+}
+
+.service_name {
+    color: #1f1f1f;
+    font-size: 22px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.service_text {
+    color: #666;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.read_more {
+    display: inline-block;
+    padding: 10px 25px;
+    background: #1f1f1f;
+    color: #fff;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.read_more:hover {
+    background: #333;
+    color: #fff;
+    text-decoration: none;
+}
+
+.no_services {
+    text-align: center;
+    padding: 50px 0;
+    color: #666;
+}
+</style>
+{% endblock %}

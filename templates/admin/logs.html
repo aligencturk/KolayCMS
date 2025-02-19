@@ -1,0 +1,160 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Aktivite Logları</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Aktivite Logları</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <i class="fas fa-history me-1"></i>
+                    Sistem Aktiviteleri
+                </div>
+                <div class="col-auto">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Log ara...">
+                        <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="logsTable">
+                    <thead>
+                        <tr>
+                            <th>Kullanıcı</th>
+                            <th>İşlem</th>
+                            <th>Detaylar</th>
+                            <th>Tarih</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs.items %}
+                        <tr>
+                            <td>{{ log.user_id }}</td>
+                            <td>{{ log.action }}</td>
+                            <td>
+                                {% if log.details %}
+                                <button class="btn btn-sm btn-info" onclick="showDetails('{{ log.details|tojson|safe }}')">
+                                    <i class="fas fa-info-circle"></i> Detaylar
+                                </button>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ log.timestamp.strftime('%d.%m.%Y %H:%M:%S') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Sayfalama -->
+            <nav aria-label="Sayfalama">
+                <ul class="pagination justify-content-center">
+                    {% if logs.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin.view_logs', page=logs.prev_num) }}">Önceki</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Önceki</span>
+                    </li>
+                    {% endif %}
+
+                    {% for page_num in logs.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+                        {% if page_num %}
+                            {% if logs.page == page_num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin.view_logs', page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if logs.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin.view_logs', page=logs.next_num) }}">Sonraki</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Sonraki</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Detay Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Log Detayları</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre class="bg-light p-3 rounded"><code id="detailsContent"></code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const clearSearch = document.getElementById('clearSearch');
+    const table = document.getElementById('logsTable');
+    const rows = table.getElementsByTagName('tr');
+
+    // Arama fonksiyonu
+    function filterTable() {
+        const filter = searchInput.value.toLowerCase();
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(filter) ? '' : 'none';
+        }
+    }
+
+    // Arama olayları
+    searchInput.addEventListener('keyup', filterTable);
+    clearSearch.addEventListener('click', function() {
+        searchInput.value = '';
+        filterTable();
+    });
+});
+
+// Detay modalı
+function showDetails(details) {
+    const detailsContent = document.getElementById('detailsContent');
+    try {
+        const formattedDetails = JSON.stringify(JSON.parse(details), null, 2);
+        detailsContent.textContent = formattedDetails;
+    } catch {
+        detailsContent.textContent = details;
+    }
+    new bootstrap.Modal(document.getElementById('detailsModal')).show();
+}
+</script>
+{% endblock %}
+{% endblock %} 

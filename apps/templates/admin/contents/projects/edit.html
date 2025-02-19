@@ -1,0 +1,110 @@
+{% extends "admin/master.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Proje Düzenle</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-edit me-1"></i>
+            Proje Bilgileri
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Temel Bilgiler -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Başlık</label>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ project.title }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Açıklama</label>
+                            <textarea class="form-control" id="description" name="description" rows="5" required>{{ project.description }}</textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="category" class="form-label">Kategori</label>
+                                    <input type="text" class="form-control" id="category" name="category" value="{{ project.category }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="client" class="form-label">Müşteri</label>
+                                    <input type="text" class="form-control" id="client" name="client" value="{{ project.client }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="completion_date" class="form-label">Tamamlanma Tarihi</label>
+                                    <input type="date" class="form-control" id="completion_date" name="completion_date" value="{{ project.completion_date.strftime('%Y-%m-%d') }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="technologies" class="form-label">Kullanılan Teknolojiler</label>
+                                    <input type="text" class="form-control" id="technologies" name="technologies" value="{{ project.technologies }}" placeholder="Örnek: HTML, CSS, JavaScript">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="project_url" class="form-label">Proje URL</label>
+                            <input type="url" class="form-control" id="project_url" name="project_url" value="{{ project.project_url }}" placeholder="https://">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <!-- Yan Panel -->
+                        <div class="card">
+                            <div class="card-header">
+                                Ayarlar
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="order" class="form-label">Sıralama</label>
+                                    <input type="number" class="form-control" id="order" name="order" value="{{ project.order }}" min="0">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="image" class="form-label">Proje Görseli</label>
+                                    {% if project.image_path %}
+                                        <div class="mb-2">
+                                            <img src="{{ project.image_path }}" alt="{{ project.title }}" class="img-thumbnail" style="max-width: 100%;">
+                                        </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                                    <div class="form-text">
+                                        Önerilen boyut: 1200x800px
+                                        {% if project.image_path %}
+                                            <br>Yeni bir görsel yüklemezseniz mevcut görsel korunacaktır.
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if project.is_active %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_active">Aktif</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-end mt-3">
+                    <a href="{{ url_for('admin.projects_list') }}" class="btn btn-secondary">İptal</a>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

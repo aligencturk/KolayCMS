@@ -1,0 +1,18 @@
+{% extends 'admin/master.html' %}
+{% from 'admin/lib.html' import render_form, extra with context %}
+
+{% block body %}
+  {% block navlinks %}
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+        <a href="{{ return_url }}" class="nav-link">
+            <i class="fa fa-arrow-left"></i> Listeye Dön
+        </a>
+    </li>
+  </ul>
+  {% endblock %}
+
+  {% block create_form %}
+    {{ render_form(form, return_url, extra(), form_opts) }}
+  {% endblock %}
+{% endblock %} 

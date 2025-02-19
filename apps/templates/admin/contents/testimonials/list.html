@@ -1,0 +1,82 @@
+{% extends "admin/master.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h1 class="mt-4">Müşteri Yorumları</h1>
+        <a href="{{ url_for('admin.testimonials_create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Yeni Yorum Ekle
+        </a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-table me-1"></i>
+            Müşteri Yorumları Listesi
+        </div>
+        <div class="card-body">
+            {% if testimonials %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">Sıra</th>
+                                <th>Fotoğraf</th>
+                                <th>Müşteri</th>
+                                <th>Pozisyon</th>
+                                <th>Şirket</th>
+                                <th>Puan</th>
+                                <th style="width: 100px;">Durum</th>
+                                <th style="width: 150px;">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for testimonial in testimonials %}
+                            <tr>
+                                <td class="text-center">{{ testimonial.order }}</td>
+                                <td>
+                                    {% if testimonial.image_path %}
+                                        <img src="{{ testimonial.image_path }}" alt="{{ testimonial.client_name }}" class="img-thumbnail" style="max-width: 100px;">
+                                    {% else %}
+                                        <span class="text-muted">Fotoğraf yok</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ testimonial.client_name }}</td>
+                                <td>{{ testimonial.client_title }}</td>
+                                <td>{{ testimonial.client_company }}</td>
+                                <td>
+                                    {% for i in range(testimonial.rating) %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% endfor %}
+                                </td>
+                                <td class="text-center">
+                                    {% if testimonial.is_active %}
+                                        <span class="badge bg-success">Aktif</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Pasif</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('admin.testimonials_edit', id=testimonial.id) }}" class="btn btn-primary btn-sm" title="Düzenle">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="{{ url_for('admin.testimonials_delete', id=testimonial.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bu yorumu silmek istediğinizden emin misiniz?')" title="Sil">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    Henüz müşteri yorumu eklenmemiş. Yeni bir yorum eklemek için yukarıdaki "Yeni Yorum Ekle" butonunu kullanabilirsiniz.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

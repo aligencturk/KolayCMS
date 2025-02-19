@@ -1,0 +1,180 @@
+{% extends "main/base.html" %}
+
+{% block meta %}
+    {% if page %}
+    <title>{{ page.title }} - {{ settings.site_name }}</title>
+    <meta name="description" content="{{ page.meta_description }}">
+    <meta name="keywords" content="{{ page.meta_keywords }}">
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<!-- Hero Bölümü -->
+<div class="banner_section">
+    <div class="container-fluid px-0">
+        {% if page.featured_image %}
+        <div class="landing-hero" style="background: url('{{ page.featured_image }}') no-repeat center center; background-size: cover; height: 100vh; position: relative;">
+            <div class="overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5);"></div>
+            <div class="container h-100">
+                <div class="row h-100 align-items-center">
+                    <div class="col-12 text-center text-white" style="position: relative; z-index: 1;">
+                        <h1 class="banner_taital">{{ page.title }}</h1>
+                        {% if page.meta_description %}
+                        <p class="banner_text">{{ page.meta_description }}</p>
+                        {% endif %}
+                        <div class="btn_main">
+                            <div class="contact_bt active"><a href="{{ url_for('main.contact') }}">İletişime Geç</a></div>
+                            <div class="readmore_bt"><a href="#content">Daha Fazla</a></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- İçerik Bölümü -->
+<div id="content" class="about_section layout_padding">
+    <div class="container">
+        <div class="page-content">
+            {{ page.content|safe }}
+        </div>
+    </div>
+</div>
+
+<!-- Hizmetler -->
+{% if services %}
+<div class="services_section layout_padding">
+    <div class="container">
+        <h1 class="services_taital">Hizmetlerimiz</h1>
+        <div class="services_section_2">
+            <div class="row">
+                {% for service in services %}
+                <div class="col-lg-4">
+                    <div class="icon_box">
+                        <div class="icon_1">
+                            {% if service.icon %}
+                            <i class="{{ service.icon }} fa-3x"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <h4 class="selection_text">{{ service.title }}</h4>
+                    <p class="ipsum_text">{{ service.description }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Hakkımızda -->
+{% if about %}
+<div class="about_section layout_padding">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                {% if about.image %}
+                <div class="about_image">
+                    <img src="{{ about.image }}" alt="{{ about.title }}" class="img-fluid rounded">
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-lg-6">
+                <div class="about_taital_main">
+                    <h2 class="about_taital">{{ about.title }}</h2>
+                    <div class="about_text">{{ about.content|safe }}</div>
+                    <div class="read_bt"><a href="{{ url_for('main.about') }}">Devamını Oku</a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- İstatistikler -->
+<div class="services_section layout_padding" style="background-color: #f8f9fa;">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 mb-4">
+                <div class="icon_box">
+                    <div class="icon_1">
+                        <i class="fa fa-users fa-3x"></i>
+                    </div>
+                </div>
+                <h4 class="selection_text">1000+</h4>
+                <p class="ipsum_text">Mutlu Müşteri</p>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="icon_box">
+                    <div class="icon_1">
+                        <i class="fa fa-project-diagram fa-3x"></i>
+                    </div>
+                </div>
+                <h4 class="selection_text">500+</h4>
+                <p class="ipsum_text">Tamamlanan Proje</p>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="icon_box">
+                    <div class="icon_1">
+                        <i class="fa fa-clock fa-3x"></i>
+                    </div>
+                </div>
+                <h4 class="selection_text">10+</h4>
+                <p class="ipsum_text">Yıllık Deneyim</p>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="icon_box">
+                    <div class="icon_1">
+                        <i class="fa fa-award fa-3x"></i>
+                    </div>
+                </div>
+                <h4 class="selection_text">50+</h4>
+                <p class="ipsum_text">Ödül & Başarı</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- İletişim CTA -->
+<div class="events_section layout_padding">
+    <div class="container text-center">
+        <h2 class="events_taital">Bizimle İletişime Geçin</h2>
+        <p class="banner_text">Sorularınız için bize ulaşın, size yardımcı olmaktan mutluluk duyarız.</p>
+        <div class="btn_main">
+            <div class="contact_bt active"><a href="{{ url_for('main.contact') }}">İletişime Geç</a></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.landing-hero {
+    margin-top: -100px;
+}
+
+.landing-hero .banner_taital {
+    font-size: 4rem;
+    margin-bottom: 2rem;
+}
+
+.landing-hero .banner_text {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.icon_box {
+    margin-bottom: 30px;
+}
+
+.icon_1 i {
+    color: #1f1f1f;
+}
+
+.selection_text {
+    margin: 20px 0;
+}
+</style>
+{% endblock %} 

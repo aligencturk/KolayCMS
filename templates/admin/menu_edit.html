@@ -1,0 +1,238 @@
+{% extends 'admin/model/edit.html' %}
+
+{% block tail %}
+    {{ super() }}
+    <link href="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
+    <style>
+        .menu-builder {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .menu-item {
+            background: white;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: move;
+        }
+        .menu-item-controls {
+            float: right;
+        }
+        .submenu-container {
+            margin-left: 30px;
+            border-left: 2px solid #ddd;
+            padding-left: 10px;
+        }
+        .mega-menu-settings {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+        .preview-area {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-top: 20px;
+            min-height: 200px;
+        }
+        .column-settings {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+    </style>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Menü Oluşturucu -->
+            <div class="menu-builder">
+                <h4>Menü Yapısı</h4>
+                <button class="btn btn-primary mb-3" id="addMenuItem">
+                    <i class="fas fa-plus"></i> Yeni Menü Öğesi
+                </button>
+                
+                <div id="menuItems" class="menu-items-container">
+                    <!-- Menü öğeleri buraya dinamik olarak eklenecek -->
+                </div>
+            </div>
+
+            <!-- Mega Menü Ayarları -->
+            <div class="mega-menu-settings" id="megaMenuSettings" style="display: none;">
+                <h5>Mega Menü Ayarları</h5>
+                
+                <div class="form-group">
+                    <label>Sütun Sayısı</label>
+                    <div class="column-settings">
+                        <input type="number" class="form-control" id="columnCount" min="1" max="6" value="4">
+                        <button class="btn btn-outline-secondary" id="applyColumns">Uygula</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Açılma Animasyonu</label>
+                    <select class="form-control" id="menuAnimation">
+                        <option value="fade">Solma</option>
+                        <option value="slide">Kayma</option>
+                        <option value="zoom">Yakınlaştırma</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Animasyon Süresi (ms)</label>
+                    <input type="number" class="form-control" id="animationDuration" min="100" max="1000" step="100" value="300">
+                </div>
+
+                <!-- Mega Menü Boyutlandırma -->
+                <div class="form-group">
+                    <label>Genişlik</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" id="megaMenuWidth" min="0">
+                        <select class="form-control" id="widthUnit">
+                            <option value="px">px</option>
+                            <option value="%">%</option>
+                            <option value="vw">vw</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Önizleme Alanı -->
+            <div class="preview-area">
+                <h5>Menü Önizleme</h5>
+                <div id="menuPreview"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sürükle & Bırak için Sortable başlatma
+        new Sortable(document.getElementById('menuItems'), {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            handle: '.menu-item',
+            group: 'nested'
+        });
+
+        // Yeni menü öğesi ekleme
+        document.getElementById('addMenuItem').addEventListener('click', function() {
+            const menuItem = document.createElement('div');
+            menuItem.className = 'menu-item';
+            menuItem.innerHTML = `
+                <div class="menu-item-controls">
+                    <button class="btn btn-sm btn-outline-primary toggle-mega-menu">
+                        Mega Menü
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger remove-item">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <input type="text" class="form-control menu-item-title" placeholder="Menü Başlığı">
+                <input type="text" class="form-control menu-item-url mt-2" placeholder="URL">
+                <div class="submenu-container"></div>
+            `;
+            
+            document.getElementById('menuItems').appendChild(menuItem);
+            initializeMenuItemEvents(menuItem);
+        });
+
+        // Menü öğesi olaylarını başlatma
+        function initializeMenuItemEvents(menuItem) {
+            // Mega menü toggle
+            menuItem.querySelector('.toggle-mega-menu').addEventListener('click', function() {
+                const megaMenuSettings = document.getElementById('megaMenuSettings');
+                megaMenuSettings.style.display = megaMenuSettings.style.display === 'none' ? 'block' : 'none';
+                this.classList.toggle('active');
+                updatePreview();
+            });
+
+            // Silme butonu
+            menuItem.querySelector('.remove-item').addEventListener('click', function() {
+                menuItem.remove();
+                updatePreview();
+            });
+
+            // Input değişikliklerini izleme
+            menuItem.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', updatePreview);
+            });
+        }
+
+        // Önizleme güncelleme
+        function updatePreview() {
+            const preview = document.getElementById('menuPreview');
+            preview.innerHTML = '';
+
+            const menuItems = document.querySelectorAll('.menu-item');
+            const ul = document.createElement('ul');
+            ul.className = 'nav';
+
+            menuItems.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'nav-item';
+                
+                const title = item.querySelector('.menu-item-title').value;
+                const url = item.querySelector('.menu-item-url').value;
+                const isMegaMenu = item.querySelector('.toggle-mega-menu').classList.contains('active');
+
+                if (isMegaMenu) {
+                    li.innerHTML = `
+                        <a href="${url}" class="nav-link mega-menu-trigger">${title}</a>
+                        <div class="mega-menu-content">
+                            <!-- Mega menü içeriği dinamik olarak oluşturulacak -->
+                        </div>
+                    `;
+                } else {
+                    li.innerHTML = `<a href="${url}" class="nav-link">${title}</a>`;
+                }
+
+                ul.appendChild(li);
+            });
+
+            preview.appendChild(ul);
+
+            // Mega menü ayarlarını uygula
+            if (document.querySelector('.toggle-mega-menu.active')) {
+                applyMegaMenuStyles();
+            }
+        }
+
+        // Mega menü stillerini uygulama
+        function applyMegaMenuStyles() {
+            const width = document.getElementById('megaMenuWidth').value;
+            const widthUnit = document.getElementById('widthUnit').value;
+            const animation = document.getElementById('menuAnimation').value;
+            const duration = document.getElementById('animationDuration').value;
+
+            const style = document.createElement('style');
+            style.textContent = `
+                .mega-menu-content {
+                    width: ${width}${widthUnit};
+                    animation: ${animation} ${duration}ms;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Sütun sayısını uygulama
+        document.getElementById('applyColumns').addEventListener('click', function() {
+            const columns = document.getElementById('columnCount').value;
+            const megaMenuContent = document.querySelector('.mega-menu-content');
+            
+            if (megaMenuContent) {
+                megaMenuContent.style.display = 'grid';
+                megaMenuContent.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+            }
+        });
+
+        // Sayfa yüklendiğinde varsayılan önizlemeyi göster
+        document.addEventListener('DOMContentLoaded', updatePreview);
+    </script>
+{% endblock %} 

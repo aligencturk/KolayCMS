@@ -1,0 +1,78 @@
+{% extends "admin/master.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h1 class="mt-4">Ekip Üyeleri</h1>
+        <a href="{{ url_for('admin.team_create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Yeni Ekip Üyesi Ekle
+        </a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-table me-1"></i>
+            Ekip Üyeleri Listesi
+        </div>
+        <div class="card-body">
+            {% if team_members %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">Sıra</th>
+                                <th>Fotoğraf</th>
+                                <th>Ad Soyad</th>
+                                <th>Pozisyon</th>
+                                <th>E-posta</th>
+                                <th>Telefon</th>
+                                <th style="width: 100px;">Durum</th>
+                                <th style="width: 150px;">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for member in team_members %}
+                            <tr>
+                                <td class="text-center">{{ member.order }}</td>
+                                <td>
+                                    {% if member.image_path %}
+                                        <img src="{{ member.image_path }}" alt="{{ member.name }}" class="img-thumbnail" style="max-width: 100px;">
+                                    {% else %}
+                                        <span class="text-muted">Fotoğraf yok</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ member.name }}</td>
+                                <td>{{ member.title }}</td>
+                                <td>{{ member.email }}</td>
+                                <td>{{ member.phone }}</td>
+                                <td class="text-center">
+                                    {% if member.is_active %}
+                                        <span class="badge bg-success">Aktif</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Pasif</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('admin.team_edit', id=member.id) }}" class="btn btn-primary btn-sm" title="Düzenle">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="{{ url_for('admin.team_delete', id=member.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bu ekip üyesini silmek istediğinizden emin misiniz?')" title="Sil">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    Henüz ekip üyesi eklenmemiş. Yeni bir ekip üyesi eklemek için yukarıdaki "Yeni Ekip Üyesi Ekle" butonunu kullanabilirsiniz.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 
