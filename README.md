@@ -17,7 +17,7 @@ KolayCMS, Python Flask ile geliştirilmiş, kullanımı kolay bir içerik yönet
 
 1. Projeyi klonlayın:
 ```bash
-git clone https://github.com/KULLANICI_ADI/KolayCMS.git
+git clone https://github.com/aligencturk/KolayCMS.git
 cd KolayCMS
 ```
 
@@ -61,4 +61,4 @@ python app.py
 
 ## Lisans
 
-Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICENSE) dosyasına bakın. 
+Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICENSE) dosyasına bakın.
