@@ -1,0 +1,117 @@
+/* Temel Stiller */
+:root {
+    --font-family: 'Poppins', sans-serif;
+    --base-font-size: 14px;
+}
+
+body {
+    background-color: var(--body-bg-color, #ffffff);
+    color: var(--body-text-color, #212529);
+    font-family: var(--font-family);
+    font-size: var(--base-font-size);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--primary-color, #007bff);
+}
+
+/* Navbar Stilleri */
+.navbar {
+    background-color: var(--navbar-bg-color, #ffffff);
+}
+
+.navbar-light .navbar-nav .nav-link {
+    color: var(--navbar-text-color, #000000);
+}
+
+.navbar-light .navbar-nav .nav-link:hover {
+    color: var(--navbar-hover-color, #0056b3);
+}
+
+.navbar-light .navbar-nav .active > .nav-link {
+    color: var(--navbar-active-color, #007bff);
+}
+
+/* Banner Stilleri */
+.banner_section {
+    background-color: var(--banner-bg-color, #f8f9fa);
+}
+
+.banner_taital {
+    color: var(--banner-title-color, #000000);
+}
+
+.banner_text {
+    color: var(--banner-text-color, #212529);
+}
+
+.btn-banner {
+    background-color: var(--banner-button-bg-color, #007bff);
+    color: var(--banner-button-text-color, #ffffff);
+}
+
+/* Hakkımızda Stilleri */
+.about_section {
+    background-color: var(--about-bg-color, #ffffff);
+}
+
+.about_taital {
+    color: var(--about-title-color, #000000);
+}
+
+.about_text {
+    color: var(--about-text-color, #212529);
+}
+
+.stat-number {
+    color: var(--about-stats-number-color, #007bff);
+}
+
+.stat-text {
+    color: var(--about-stats-text-color, #6c757d);
+}
+
+/* Video Bölümü Stilleri */
+.video_section {
+    background-color: var(--video-bg-color, #f8f9fa);
+}
+
+.video_section h2 {
+    color: var(--video-title-color, #000000);
+}
+
+.play-button {
+    color: var(--video-play-button-color, #007bff);
+}
+
+.video-overlay {
+    background-color: var(--video-overlay-color, #000000);
+    opacity: var(--video-overlay-opacity, 0.5);
+}
+
+/* Footer Stilleri */
+.footer_section {
+    background-color: var(--footer-bg-color, #343a40);
+    color: var(--footer-text-color, #ffffff);
+}
+
+.footer_section a {
+    color: var(--footer-link-color, #ffffff);
+}
+
+/* Genel Yardımcı Sınıflar */
+.text-primary {
+    color: var(--primary-color, #007bff) !important;
+}
+
+.text-secondary {
+    color: var(--secondary-color, #6c757d) !important;
+}
+
+.bg-primary {
+    background-color: var(--primary-color, #007bff) !important;
+}
+
+.bg-secondary {
+    background-color: var(--secondary-color, #6c757d) !important;
+} 

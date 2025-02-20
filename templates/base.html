@@ -1,0 +1,68 @@
+{% extends "bootstrap/base.html" %}
+
+{% block styles %}
+{{ super() }}
+<!-- Tema CSS -->
+<style type="text/css">
+:root {
+    /* Navbar */
+    --navbar-bg-color: {{ settings.navbar_bg_color or '#ffffff' }};
+    --navbar-text-color: {{ settings.navbar_text_color or '#000000' }};
+    --navbar-active-color: {{ settings.navbar_active_color or '#007bff' }};
+    --navbar-hover-color: {{ settings.navbar_hover_color or '#0056b3' }};
+
+    /* Genel */
+    --body-bg-color: {{ settings.body_bg_color or '#ffffff' }};
+    --body-text-color: {{ settings.body_text_color or '#212529' }};
+    --body-link-color: {{ settings.body_link_color or '#007bff' }};
+    --primary-color: {{ settings.primary_color or '#007bff' }};
+    --secondary-color: {{ settings.secondary_color or '#6c757d' }};
+
+    /* Banner */
+    --banner-bg-color: {{ settings.banner_bg_color or '#f8f9fa' }};
+    --banner-title-color: {{ settings.banner_title_color or '#000000' }};
+    --banner-text-color: {{ settings.banner_text_color or '#212529' }};
+    --banner-button-bg-color: {{ settings.banner_button_bg_color or '#007bff' }};
+    --banner-button-text-color: {{ settings.banner_button_text_color or '#ffffff' }};
+
+    /* Hakkımızda */
+    --about-bg-color: {{ settings.about_bg_color or '#ffffff' }};
+    --about-title-color: {{ settings.about_title_color or '#000000' }};
+    --about-text-color: {{ settings.about_text_color or '#212529' }};
+    --about-stats-number-color: {{ settings.about_stats_number_color or '#007bff' }};
+    --about-stats-text-color: {{ settings.about_stats_text_color or '#6c757d' }};
+
+    /* Video */
+    --video-bg-color: {{ settings.video_bg_color or '#f8f9fa' }};
+    --video-title-color: {{ settings.video_title_color or '#000000' }};
+    --video-play-button-color: {{ settings.video_play_button_color or '#007bff' }};
+    --video-overlay-color: {{ settings.video_overlay_color or '#000000' }};
+    --video-overlay-opacity: {{ settings.video_overlay_opacity or '50' }};
+
+    /* Footer */
+    --footer-bg-color: {{ settings.footer_bg_color or '#343a40' }};
+    --footer-text-color: {{ settings.footer_text_color or '#ffffff' }};
+    --footer-link-color: {{ settings.footer_link_color or '#ffffff' }};
+
+    /* Font Ayarları */
+    --font-family: {{ settings.body_font_family or "'Poppins', sans-serif" }};
+    --font-size: {{ settings.body_font_size or '14px' }};
+}
+</style>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+
+<!-- Özel CSS -->
+{% if settings and settings.custom_css %}
+    {% set custom_css = settings.custom_css|trim %}
+    {% if custom_css %}
+        {{ custom_css|safe }}
+    {% endif %}
+{% endif %}
+{% endblock %}
+
+{% block title %}{{ settings.site_title }}{% endblock %}
+
+{% block content %}
+{{ super() }}
+{% endblock %} 

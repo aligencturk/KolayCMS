@@ -76,6 +76,78 @@ class SiteSettings(db.Model):
     body_font_size = db.Column(db.String(10), default='14px')
     body_line_height = db.Column(db.String(10), default='1.5')
     
+    # Banner/Slider Ayarları
+    banner_bg_color = db.Column(db.String(10), default='#f8f9fa', nullable=False)
+    banner_title_color = db.Column(db.String(10), default='#212529', nullable=False)
+    banner_text_color = db.Column(db.String(10), default='#6c757d', nullable=False)
+    banner_button_bg_color = db.Column(db.String(10), default='#007bff', nullable=False)
+    banner_button_text_color = db.Column(db.String(10), default='#ffffff', nullable=False)
+    banner_button_hover_bg_color = db.Column(db.String(10), default='#0056b3', nullable=False)
+    banner_button_hover_text_color = db.Column(db.String(10), default='#ffffff', nullable=False)
+    banner_indicator_color = db.Column(db.String(10), default='#007bff', nullable=False)
+    banner_arrow_color = db.Column(db.String(10), default='#007bff', nullable=False)
+    
+    # Hakkımızda Ayarları
+    about_bg_color = db.Column(db.String(10), default='#ffffff', nullable=False)
+    about_title_color = db.Column(db.String(10), default='#212529', nullable=False)
+    about_subtitle_color = db.Column(db.String(10), default='#6c757d', nullable=False)
+    about_text_color = db.Column(db.String(10), default='#212529', nullable=False)
+    about_stats_number_color = db.Column(db.String(10), default='#007bff', nullable=False)
+    about_stats_text_color = db.Column(db.String(10), default='#6c757d', nullable=False)
+    about_box_bg_color = db.Column(db.String(10), default='#f8f9fa', nullable=False)
+    about_box_border_color = db.Column(db.String(10), default='#dee2e6', nullable=False)
+    
+    # Hizmetler Ayarları
+    services_bg_color = db.Column(db.String(10), default='#f8f9fa', nullable=False)
+    services_title_color = db.Column(db.String(10), default='#212529', nullable=False)
+    services_subtitle_color = db.Column(db.String(10), default='#6c757d', nullable=False)
+    services_card_bg_color = db.Column(db.String(10), default='#ffffff', nullable=False)
+    services_card_border_color = db.Column(db.String(10), default='#dee2e6', nullable=False)
+    services_icon_color = db.Column(db.String(10), default='#007bff', nullable=False)
+    services_icon_bg_color = db.Column(db.String(10), default='#e9ecef', nullable=False)
+    services_card_title_color = db.Column(db.String(10), default='#212529', nullable=False)
+    services_card_text_color = db.Column(db.String(10), default='#6c757d', nullable=False)
+    services_card_hover_shadow = db.Column(db.String(10), default='rgba(0,0,0,0.1)', nullable=False)
+    
+    # Blog Ayarları
+    blog_bg_color = db.Column(db.String(10), default='#ffffff', nullable=False)
+    blog_title_color = db.Column(db.String(10), default='#212529', nullable=False)
+    blog_subtitle_color = db.Column(db.String(10), default='#6c757d', nullable=False)
+    blog_card_bg_color = db.Column(db.String(10), default='#ffffff', nullable=False)
+    blog_card_border_color = db.Column(db.String(10), default='#dee2e6', nullable=False)
+    blog_date_color = db.Column(db.String(10), default='#6c757d', nullable=False)
+    blog_post_title_color = db.Column(db.String(10), default='#212529', nullable=False)
+    blog_excerpt_color = db.Column(db.String(10), default='#6c757d', nullable=False)
+    blog_card_hover_shadow = db.Column(db.String(10), default='rgba(0,0,0,0.1)', nullable=False)
+    
+    # İletişim Ayarları
+    contact_bg_color = db.Column(db.String(10), default='#f8f9fa', nullable=False)
+    contact_title_color = db.Column(db.String(10), default='#212529', nullable=False)
+    contact_subtitle_color = db.Column(db.String(10), default='#6c757d', nullable=False)
+    contact_text_color = db.Column(db.String(10), default='#212529', nullable=False)
+    contact_info_bg_color = db.Column(db.String(10), default='#ffffff', nullable=False)
+    contact_info_border_color = db.Column(db.String(10), default='#dee2e6', nullable=False)
+    contact_info_icon_color = db.Column(db.String(10), default='#007bff', nullable=False)
+    contact_form_bg_color = db.Column(db.String(10), default='#ffffff', nullable=False)
+    contact_form_border_color = db.Column(db.String(10), default='#dee2e6', nullable=False)
+    contact_input_bg_color = db.Column(db.String(10), default='#ffffff', nullable=False)
+    contact_input_text_color = db.Column(db.String(10), default='#212529', nullable=False)
+    contact_input_border_color = db.Column(db.String(10), default='#ced4da', nullable=False)
+    contact_button_bg_color = db.Column(db.String(10), default='#007bff', nullable=False)
+    contact_button_text_color = db.Column(db.String(10), default='#ffffff', nullable=False)
+    contact_button_hover_bg_color = db.Column(db.String(10), default='#0056b3', nullable=False)
+    contact_button_hover_text_color = db.Column(db.String(10), default='#ffffff', nullable=False)
+    
+    # Video Ayarları
+    video_bg_color = db.Column(db.String(10), default='#f8f9fa', nullable=False)
+    video_overlay_color = db.Column(db.String(20), default='rgba(0,0,0,0.5)', nullable=False)
+    video_title_color = db.Column(db.String(10), default='#ffffff', nullable=False)
+    video_subtitle_color = db.Column(db.String(10), default='#ffffff', nullable=False)
+    video_play_button_color = db.Column(db.String(10), default='#ffffff', nullable=False)
+    video_play_button_bg_color = db.Column(db.String(10), default='#007bff', nullable=False)
+    video_play_button_hover_color = db.Column(db.String(10), default='#ffffff', nullable=False)
+    video_play_button_hover_bg_color = db.Column(db.String(10), default='#0056b3', nullable=False)
+    
     # Footer Ayarları
     footer_bg_color = db.Column(db.String(10), default='#343a40', nullable=False)
     footer_text_color = db.Column(db.String(10), default='#ffffff', nullable=False)

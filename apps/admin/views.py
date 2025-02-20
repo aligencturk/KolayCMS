@@ -1742,7 +1742,103 @@ def contact_edit():
     
     return render_template('admin/contents/contact/edit.html', contact=contact, stats=stats)
 
-@admin_bp.route('/contents/slider-settings', methods=['GET', 'POST'])
+@admin_bp.route('/settings/theme', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def theme_settings():
+    # İstatistikleri al
+    stats = get_admin_stats()
+    
+    settings = SiteSettings.query.first()
+    if not settings:
+        settings = SiteSettings()
+        db.session.add(settings)
+        db.session.commit()
+
+    if request.method == 'POST':
+        # Navbar ayarları
+        settings.navbar_bg_color = request.form.get('navbar_bg_color')
+        settings.navbar_text_color = request.form.get('navbar_text_color')
+        settings.navbar_active_color = request.form.get('navbar_active_color')
+        settings.navbar_hover_color = request.form.get('navbar_hover_color')
+        settings.navbar_is_fixed = 'navbar_is_fixed' in request.form
+        settings.navbar_is_transparent = 'navbar_is_transparent' in request.form
+
+        # Genel ayarlar
+        settings.body_bg_color = request.form.get('body_bg_color')
+        settings.body_text_color = request.form.get('body_text_color')
+        settings.body_link_color = request.form.get('body_link_color')
+        settings.body_heading_color = request.form.get('body_heading_color')
+        settings.body_font_family = request.form.get('body_font_family')
+        settings.body_font_size = request.form.get('body_font_size')
+        settings.primary_color = request.form.get('primary_color')
+        settings.secondary_color = request.form.get('secondary_color')
+        settings.is_dark_mode = 'is_dark_mode' in request.form
+        settings.enable_animations = 'enable_animations' in request.form
+
+        # Banner ayarları
+        settings.banner_bg_color = request.form.get('banner_bg_color')
+        settings.banner_title_color = request.form.get('banner_title_color')
+        settings.banner_text_color = request.form.get('banner_text_color')
+        settings.banner_button_bg_color = request.form.get('banner_button_bg_color')
+        settings.banner_button_text_color = request.form.get('banner_button_text_color')
+        settings.banner_indicator_color = request.form.get('banner_indicator_color')
+
+        # Hakkımızda ayarları
+        settings.about_bg_color = request.form.get('about_bg_color')
+        settings.about_title_color = request.form.get('about_title_color')
+        settings.about_text_color = request.form.get('about_text_color')
+        settings.about_stats_number_color = request.form.get('about_stats_number_color')
+        settings.about_stats_text_color = request.form.get('about_stats_text_color')
+        settings.about_box_bg_color = request.form.get('about_box_bg_color')
+
+        # Hizmetler ayarları
+        settings.services_bg_color = request.form.get('services_bg_color')
+        settings.services_title_color = request.form.get('services_title_color')
+        settings.services_card_bg_color = request.form.get('services_card_bg_color')
+        settings.services_icon_color = request.form.get('services_icon_color')
+        settings.services_card_title_color = request.form.get('services_card_title_color')
+        settings.services_card_text_color = request.form.get('services_card_text_color')
+
+        # Blog ayarları
+        settings.blog_bg_color = request.form.get('blog_bg_color')
+        settings.blog_title_color = request.form.get('blog_title_color')
+        settings.blog_card_bg_color = request.form.get('blog_card_bg_color')
+        settings.blog_date_color = request.form.get('blog_date_color')
+        settings.blog_post_title_color = request.form.get('blog_post_title_color')
+        settings.blog_excerpt_color = request.form.get('blog_excerpt_color')
+
+        # İletişim ayarları
+        settings.contact_bg_color = request.form.get('contact_bg_color')
+        settings.contact_title_color = request.form.get('contact_title_color')
+        settings.contact_text_color = request.form.get('contact_text_color')
+        settings.contact_form_bg_color = request.form.get('contact_form_bg_color')
+        settings.contact_button_bg_color = request.form.get('contact_button_bg_color')
+        settings.contact_button_text_color = request.form.get('contact_button_text_color')
+
+        # Video ayarları
+        settings.video_bg_color = request.form.get('video_bg_color')
+        settings.video_title_color = request.form.get('video_title_color')
+        settings.video_play_button_color = request.form.get('video_play_button_color')
+        settings.video_overlay_color = request.form.get('video_overlay_color')
+        settings.video_overlay_opacity = request.form.get('video_overlay_opacity')
+
+        # Footer ayarları
+        settings.footer_bg_color = request.form.get('footer_bg_color')
+        settings.footer_text_color = request.form.get('footer_text_color')
+        settings.footer_link_color = request.form.get('footer_link_color')
+
+        # Özel kodlar
+        settings.custom_css = request.form.get('custom_css')
+        settings.custom_js = request.form.get('custom_js')
+
+        db.session.commit()
+        flash('Tema ayarları başarıyla kaydedildi.', 'success')
+        return redirect(url_for('admin.theme_settings'))
+
+    return render_template('admin/settings/theme.html', settings=settings, stats=stats)
+
+@admin_bp.route('/settings/slider', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def slider_settings():
@@ -1768,105 +1864,11 @@ def slider_settings():
             
             db.session.commit()
             flash('Slider ayarları başarıyla güncellendi.', 'success')
-            return redirect(url_for('admin.contents_list'))
+            return redirect(url_for('admin.settings'))
             
         except Exception as e:
             db.session.rollback()
             current_app.logger.error(f'Slider ayarları güncelleme hatası: {str(e)}')
             flash('Slider ayarları güncellenirken bir hata oluştu.', 'error')
     
-    return render_template('admin/contents/slider/settings.html', settings=settings, stats=stats)
-
-@admin_bp.route('/settings/theme', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def theme_settings():
-    form = ThemeSettingsForm()
-    settings = SiteSettings.query.first()
-    stats = get_admin_stats()  # Stats değişkenini ekle
-    
-    # Eğer ayarlar yoksa, varsayılan ayarları oluştur
-    if not settings:
-        settings = SiteSettings(
-            site_title='KolayCMS',
-            navbar_bg_color='#ffffff',
-            navbar_text_color='#000000',
-            navbar_active_color='#007bff',
-            navbar_hover_color='#0056b3',
-            navbar_is_fixed=True,
-            navbar_is_transparent=False,
-            body_bg_color='#ffffff',
-            body_text_color='#212529',
-            body_link_color='#007bff',
-            body_font_family='Poppins',
-            body_font_size='14px',
-            footer_bg_color='#343a40',
-            footer_text_color='#ffffff',
-            footer_link_color='#ffffff'
-        )
-        db.session.add(settings)
-        db.session.commit()
-    
-    if form.validate_on_submit():
-        try:
-            # Navbar Ayarları
-            settings.navbar_bg_color = form.navbar_bg_color.data
-            settings.navbar_text_color = form.navbar_text_color.data
-            settings.navbar_active_color = form.navbar_active_color.data
-            settings.navbar_hover_color = form.navbar_hover_color.data
-            settings.navbar_is_fixed = form.navbar_is_fixed.data
-            settings.navbar_is_transparent = form.navbar_is_transparent.data
-            
-            # Body Ayarları
-            settings.body_bg_color = form.body_bg_color.data
-            settings.body_text_color = form.body_text_color.data
-            settings.body_link_color = form.body_link_color.data
-            settings.body_font_family = form.body_font_family.data
-            settings.body_font_size = form.body_font_size.data
-            
-            # Footer Ayarları
-            settings.footer_bg_color = form.footer_bg_color.data
-            settings.footer_text_color = form.footer_text_color.data
-            settings.footer_link_color = form.footer_link_color.data
-            
-            # Özel CSS ve JS
-            settings.custom_css = form.custom_css.data
-            settings.custom_js = form.custom_js.data
-            
-            db.session.commit()
-            
-            # Aktivite logu
-            log_activity('Tema ayarları güncellendi', 'success')
-            
-            flash('Tema ayarları başarıyla güncellendi.', 'success')
-            return redirect(url_for('admin.theme_settings'))
-            
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f'Tema ayarları güncellenirken hata: {str(e)}')
-            flash('Tema ayarları güncellenirken bir hata oluştu.', 'error')
-    
-    elif request.method == 'GET':
-        # Form alanlarını mevcut ayarlarla doldur
-        if settings:
-            form.navbar_bg_color.data = settings.navbar_bg_color
-            form.navbar_text_color.data = settings.navbar_text_color
-            form.navbar_active_color.data = settings.navbar_active_color
-            form.navbar_hover_color.data = settings.navbar_hover_color
-            form.navbar_is_fixed.data = settings.navbar_is_fixed
-            form.navbar_is_transparent.data = settings.navbar_is_transparent
-            
-            form.body_bg_color.data = settings.body_bg_color
-            form.body_text_color.data = settings.body_text_color
-            form.body_link_color.data = settings.body_link_color
-            form.body_font_family.data = settings.body_font_family
-            form.body_font_size.data = settings.body_font_size
-            
-            form.footer_bg_color.data = settings.footer_bg_color
-            form.footer_text_color.data = settings.footer_text_color
-            form.footer_link_color.data = settings.footer_link_color
-            
-            form.custom_css.data = settings.custom_css
-            form.custom_js.data = settings.custom_js
-    
-    return render_template('admin/settings/theme.html', form=form, settings=settings, stats=stats)  # stats değişkenini şablona gönder
+    return render_template('admin/settings/slider.html', settings=settings, stats=stats)

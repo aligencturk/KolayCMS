@@ -19,6 +19,47 @@
         {% endif %}
     {% endwith %}
 
+    <!-- Ayar Kartları -->
+    <div class="row mb-4">
+        <!-- Tema Ayarları Kartı -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="h5">Tema Ayarları</div>
+                            <div class="small">Tema renkleri, yazı tipleri ve diğer görsel ayarlar</div>
+                        </div>
+                        <i class="fas fa-palette fa-2x"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" href="{{ url_for('admin.theme_settings') }}">Detayları Görüntüle</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slider Ayarları Kartı -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="h5">Slider Ayarları</div>
+                            <div class="small">Slider görünümü ve davranış ayarları</div>
+                        </div>
+                        <i class="fas fa-images fa-2x"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" href="{{ url_for('admin.slider_settings') }}">Detayları Görüntüle</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card mb-4">
         <div class="card-header">
             <i class="fas fa-cogs me-1"></i>

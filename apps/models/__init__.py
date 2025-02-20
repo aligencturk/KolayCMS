@@ -31,12 +31,94 @@ class SiteSettings(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     
-    # Genel Ayarlar
-    site_title = db.Column(db.String(100), default='KolayCMS')
+    # Genel ayarlar
+    site_title = db.Column(db.String(100))
     site_description = db.Column(db.Text)
-    meta_keywords = db.Column(db.String(200))
-    logo_path = db.Column(db.String(200))
-    favicon_path = db.Column(db.String(200))
+    logo_path = db.Column(db.String(255))
+    favicon_path = db.Column(db.String(255))
+    
+    # Tema ayarları - Navbar
+    navbar_bg_color = db.Column(db.String(7))
+    navbar_text_color = db.Column(db.String(7))
+    navbar_active_color = db.Column(db.String(7))
+    navbar_hover_color = db.Column(db.String(7))
+    navbar_is_fixed = db.Column(db.Boolean, default=False)
+    navbar_is_transparent = db.Column(db.Boolean, default=False)
+    
+    # Tema ayarları - Genel
+    body_bg_color = db.Column(db.String(7))
+    body_text_color = db.Column(db.String(7))
+    body_link_color = db.Column(db.String(7))
+    body_font_family = db.Column(db.String(50))
+    body_font_size = db.Column(db.String(10))
+    primary_color = db.Column(db.String(7))
+    secondary_color = db.Column(db.String(7))
+    is_dark_mode = db.Column(db.Boolean, default=False)
+    enable_animations = db.Column(db.Boolean, default=True)
+    
+    # Tema ayarları - Banner
+    banner_bg_color = db.Column(db.String(7))
+    banner_title_color = db.Column(db.String(7))
+    banner_text_color = db.Column(db.String(7))
+    banner_button_bg_color = db.Column(db.String(7))
+    banner_button_text_color = db.Column(db.String(7))
+    banner_indicator_color = db.Column(db.String(7))
+    
+    # Tema ayarları - Hakkımızda
+    about_bg_color = db.Column(db.String(7))
+    about_title_color = db.Column(db.String(7))
+    about_text_color = db.Column(db.String(7))
+    about_stats_number_color = db.Column(db.String(7))
+    about_stats_text_color = db.Column(db.String(7))
+    about_box_bg_color = db.Column(db.String(7))
+    
+    # Tema ayarları - Hizmetler
+    services_bg_color = db.Column(db.String(7))
+    services_title_color = db.Column(db.String(7))
+    services_card_bg_color = db.Column(db.String(7))
+    services_icon_color = db.Column(db.String(7))
+    services_card_title_color = db.Column(db.String(7))
+    services_card_text_color = db.Column(db.String(7))
+    
+    # Tema ayarları - Blog
+    blog_bg_color = db.Column(db.String(7))
+    blog_title_color = db.Column(db.String(7))
+    blog_card_bg_color = db.Column(db.String(7))
+    blog_date_color = db.Column(db.String(7))
+    blog_post_title_color = db.Column(db.String(7))
+    blog_excerpt_color = db.Column(db.String(7))
+    
+    # Tema ayarları - İletişim
+    contact_bg_color = db.Column(db.String(7))
+    contact_title_color = db.Column(db.String(7))
+    contact_text_color = db.Column(db.String(7))
+    contact_form_bg_color = db.Column(db.String(7))
+    contact_button_bg_color = db.Column(db.String(7))
+    contact_button_text_color = db.Column(db.String(7))
+    
+    # Tema ayarları - Video
+    video_bg_color = db.Column(db.String(7))
+    video_title_color = db.Column(db.String(7))
+    video_play_button_color = db.Column(db.String(7))
+    video_overlay_color = db.Column(db.String(7))
+    video_overlay_opacity = db.Column(db.Integer)
+    
+    # Tema ayarları - Footer
+    footer_bg_color = db.Column(db.String(7))
+    footer_text_color = db.Column(db.String(7))
+    footer_link_color = db.Column(db.String(7))
+    
+    # Özel kodlar
+    custom_css = db.Column(db.Text)
+    custom_js = db.Column(db.Text)
+    
+    # Slider ayarları
+    slider_height = db.Column(db.Integer, default=600)
+    slider_transition_speed = db.Column(db.Integer, default=5000)
+    slider_animation_speed = db.Column(db.Integer, default=600)
+    slider_is_autoplay = db.Column(db.Boolean, default=True)
+    slider_show_arrows = db.Column(db.Boolean, default=True)
+    slider_show_bullets = db.Column(db.Boolean, default=True)
     
     # İletişim Bilgileri
     address = db.Column(db.String(200))
@@ -50,45 +132,24 @@ class SiteSettings(db.Model):
     theme_version = db.Column(db.String(10), default='1.0')
     theme_name = db.Column(db.String(50), default='default')
     is_customized = db.Column(db.Boolean, default=False)
-    primary_color = db.Column(db.String(10), default='#007bff', nullable=False)
-    secondary_color = db.Column(db.String(10), default='#6c757d', nullable=False)
     success_color = db.Column(db.String(10), default='#28a745', nullable=False)
     info_color = db.Column(db.String(10), default='#17a2b8', nullable=False)
     warning_color = db.Column(db.String(10), default='#ffc107', nullable=False)
     danger_color = db.Column(db.String(10), default='#dc3545', nullable=False)
     
     # Navbar Ayarları
-    navbar_bg_color = db.Column(db.String(10), default='#ffffff', nullable=False)
-    navbar_text_color = db.Column(db.String(10), default='#000000', nullable=False)
-    navbar_active_color = db.Column(db.String(10), default='#007bff', nullable=False)
-    navbar_hover_color = db.Column(db.String(10), default='#0056b3', nullable=False)
-    navbar_is_fixed = db.Column(db.Boolean, default=True)
-    navbar_is_transparent = db.Column(db.Boolean, default=False)
     navbar_font_family = db.Column(db.String(50), default='inherit')
     navbar_font_size = db.Column(db.String(10), default='1rem')
     
     # Body Ayarları
-    body_bg_color = db.Column(db.String(10), default='#ffffff', nullable=False)
-    body_text_color = db.Column(db.String(10), default='#212529', nullable=False)
-    body_link_color = db.Column(db.String(10), default='#007bff', nullable=False)
     body_font_family = db.Column(db.String(50), default='Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif')
     body_font_size = db.Column(db.String(10), default='14px')
     body_line_height = db.Column(db.String(10), default='1.5')
     
     # Footer Ayarları
-    footer_bg_color = db.Column(db.String(10), default='#343a40', nullable=False)
-    footer_text_color = db.Column(db.String(10), default='#ffffff', nullable=False)
-    footer_link_color = db.Column(db.String(10), default='#ffffff', nullable=False)
     footer_font_family = db.Column(db.String(50), default='inherit')
     footer_font_size = db.Column(db.String(10), default='1rem')
     footer_about = db.Column(db.Text)
-    
-    # Özel Kodlar
-    custom_css = db.Column(db.Text)
-    custom_js = db.Column(db.Text)
-    custom_header_code = db.Column(db.Text)
-    custom_footer_code = db.Column(db.Text)
-    custom_meta_tags = db.Column(db.Text)
     
     # Diğer Ayarlar
     maintenance_mode = db.Column(db.Boolean, default=False)
