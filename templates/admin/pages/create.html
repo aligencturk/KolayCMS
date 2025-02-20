@@ -15,7 +15,9 @@
 
     <div class="card">
         <div class="card-body">
-            <form method="POST" action="{{ url_for('admin.pages_create') }}">
+            <form method="POST" action="{{ url_for('admin.pages_create') }}" id="createPageForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
                 <div class="mb-3">
                     <label for="title" class="form-label">Başlık</label>
                     <input type="text" class="form-control" id="title" name="title" required>
@@ -28,11 +30,12 @@
                 
                 <div class="mb-3">
                     <label for="content" class="form-label">İçerik</label>
-                    <textarea class="form-control" id="content" name="content" rows="10" required></textarea>
+                    <div id="editor"></div>
+                    <input type="hidden" name="content" id="content">
                 </div>
                 
                 <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="is_published" name="is_published" value="1">
+                    <input type="checkbox" class="form-check-input" id="is_published" name="is_published" value="1" checked>
                     <label class="form-check-label" for="is_published">Yayınla</label>
                 </div>
                 
@@ -48,10 +51,39 @@
 {% block scripts %}
 <script src="https://cdn.ckeditor.com/ckeditor5/27.1.0/classic/ckeditor.js"></script>
 <script>
+let editor;
+
+document.addEventListener('DOMContentLoaded', function() {
     ClassicEditor
-        .create(document.querySelector('#content'))
+        .create(document.querySelector('#editor'), {
+            toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'outdent', 'indent', '|', 'blockQuote', 'insertTable', 'undo', 'redo'],
+            language: 'tr'
+        })
+        .then(newEditor => {
+            editor = newEditor;
+        })
         .catch(error => {
             console.error(error);
         });
+
+    document.getElementById('createPageForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // CKEditor içeriğini gizli alana aktar
+        document.getElementById('content').value = editor.getData();
+        
+        // Formu gönder
+        this.submit();
+    });
+
+    // Başlıktan otomatik slug oluştur
+    document.getElementById('title').addEventListener('input', function() {
+        let slug = this.value
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+        document.getElementById('slug').value = slug;
+    });
+});
 </script>
 {% endblock %} 

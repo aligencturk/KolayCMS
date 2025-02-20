@@ -1,0 +1,135 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Menü Yönetimi{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Menü Yönetimi</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Panel</a></li>
+        <li class="breadcrumb-item active">Menüler</li>
+    </ol>
+    
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-list me-1"></i>
+                Menü Listesi
+            </div>
+            <a href="{{ url_for('admin.menu_create') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>Yeni Menü
+            </a>
+        </div>
+        <div class="card-body">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Başlık</th>
+                            <th>URL</th>
+                            <th>Tür</th>
+                            <th>İkon</th>
+                            <th>Yetki</th>
+                            <th>Sıra</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for menu in menus %}
+                        <tr>
+                            <td>
+                                {% if menu.parent_id %}
+                                    <span class="ms-3">└</span>
+                                {% endif %}
+                                {{ menu.title }}
+                            </td>
+                            <td>{{ menu.url }}</td>
+                            <td>
+                                <span class="badge {% if menu.menu_type == 'header' %}bg-primary{% elif menu.menu_type == 'footer' %}bg-secondary{% else %}bg-info{% endif %}">
+                                    {{ menu.menu_type }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if menu.icon %}
+                                    <i class="{{ menu.icon }}"></i>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ menu.permission or '-' }}</td>
+                            <td>{{ menu.order }}</td>
+                            <td>
+                                <span class="badge {% if menu.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ 'Aktif' if menu.is_active else 'Pasif' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('admin.menu_edit', id=menu.id) }}" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-danger btn-sm delete-menu" data-menu-id="{{ menu.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Silme Onay Modalı -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Menü Sil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bu menüyü silmek istediğinizden emin misiniz?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form id="deleteForm" method="POST">
+                    <button type="submit" class="btn btn-danger">Sil</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const deleteForm = document.getElementById('deleteForm');
+    
+    document.querySelectorAll('.delete-menu').forEach(button => {
+        button.addEventListener('click', function() {
+            const menuId = this.getAttribute('data-menu-id');
+            deleteForm.action = `/admin/menus/${menuId}/delete`;
+            deleteModal.show();
+        });
+    });
+});
+</script>
+{% endblock %} 

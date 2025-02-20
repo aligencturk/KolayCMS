@@ -1,6 +1,6 @@
-from flask import render_template, request, redirect, url_for, flash, current_app, jsonify
+from flask import render_template, request, redirect, url_for, flash, current_app, jsonify, session
 from flask_login import login_required, current_user
-from apps.models import Page, db, User, Content, Product, ActivityLog, BlogPost, Slide, Service, AboutSection, VideoSection, Category, Order, SiteSettings, Project, TeamMember, Testimonial, ContactInfo
+from apps.models import Page, db, User, Content, Product, ActivityLog, BlogPost, Slide, Service, AboutSection, VideoSection, Category, Order, SiteSettings, Project, TeamMember, Testimonial, ContactInfo, Menu
 from . import admin_bp
 from slugify import slugify
 from datetime import datetime
@@ -19,16 +19,14 @@ def admin_required(f):
     return decorated_function
 
 def get_admin_stats():
-    """Yönetici paneli için istatistikleri hesaplar"""
-    return {
-        'total_users': User.query.count(),
-        'pending_users': User.query.filter_by(is_active=False).count(),
-        'total_pages': Page.query.count(),
-        'total_products': Product.query.count(),
-        'low_stock': Product.query.filter(Product.stock < 5).count(),
-        'total_orders': Order.query.count(),
-        'new_orders': Order.query.filter_by(status='pending').count()
+    """Admin paneli için istatistikleri döndürür"""
+    stats = {
+        'total_users': 0,
+        'total_pages': 0,
+        'total_menus': 0,
+        'low_stock': 0,
     }
+    return stats
 
 def log_activity(action, status='info', details=None):
     """
@@ -201,45 +199,54 @@ def pages_edit(id):
     stats = get_admin_stats()
 
     if request.method == 'POST':
-        page.title = request.form.get('title')
-        page.slug = request.form.get('slug')
-        page.content = request.form.get('content')
-        page.meta_description = request.form.get('meta_description')
-        page.meta_keywords = request.form.get('meta_keywords')
-        page.is_published = True if request.form.get('is_published') else False
-
-        if page.slug == 'contact':
-            if not page.contact_info:
-                contact_info = ContactInfo(
-                    address=request.form.get('address', ''),
-                    phone=request.form.get('phone', ''),
-                    email=request.form.get('email', ''),
-                    google_maps_embed=request.form.get('google_maps_embed', ''),
-                    working_hours=request.form.get('working_hours', ''),
-                    facebook=request.form.get('facebook', ''),
-                    twitter=request.form.get('twitter', ''),
-                    instagram=request.form.get('instagram', ''),
-                    linkedin=request.form.get('linkedin', '')
-                )
-                db.session.add(contact_info)
-                db.session.flush()  # ID'yi almak için flush
-                page.contact_info_id = contact_info.id
-            else:
-                page.contact_info.address = request.form.get('address', '')
-                page.contact_info.phone = request.form.get('phone', '')
-                page.contact_info.email = request.form.get('email', '')
-                page.contact_info.google_maps_embed = request.form.get('google_maps_embed', '')
-                page.contact_info.working_hours = request.form.get('working_hours', '')
-                page.contact_info.facebook = request.form.get('facebook', '')
-                page.contact_info.twitter = request.form.get('twitter', '')
-                page.contact_info.instagram = request.form.get('instagram', '')
-                page.contact_info.linkedin = request.form.get('linkedin', '')
-
         try:
+            # Form verilerini al
+            page.title = request.form.get('title')
+            page.slug = request.form.get('slug')
+            page.content = request.form.get('content')
+            page.meta_description = request.form.get('meta_description')
+            page.meta_keywords = request.form.get('meta_keywords')
+            page.is_published = True if request.form.get('is_published') else False
+            page.updated_at = datetime.now()
+
+            if page.slug == 'contact':
+                if not page.contact_info:
+                    contact_info = ContactInfo(
+                        address=request.form.get('address', ''),
+                        phone=request.form.get('phone', ''),
+                        email=request.form.get('email', ''),
+                        google_maps_embed=request.form.get('google_maps_embed', ''),
+                        working_hours=request.form.get('working_hours', ''),
+                        facebook=request.form.get('facebook', ''),
+                        twitter=request.form.get('twitter', ''),
+                        instagram=request.form.get('instagram', ''),
+                        linkedin=request.form.get('linkedin', '')
+                    )
+                    db.session.add(contact_info)
+                    db.session.flush()  # ID'yi almak için flush
+                    page.contact_info_id = contact_info.id
+                else:
+                    page.contact_info.address = request.form.get('address', '')
+                    page.contact_info.phone = request.form.get('phone', '')
+                    page.contact_info.email = request.form.get('email', '')
+                    page.contact_info.google_maps_embed = request.form.get('google_maps_embed', '')
+                    page.contact_info.working_hours = request.form.get('working_hours', '')
+                    page.contact_info.facebook = request.form.get('facebook', '')
+                    page.contact_info.twitter = request.form.get('twitter', '')
+                    page.contact_info.instagram = request.form.get('instagram', '')
+                    page.contact_info.linkedin = request.form.get('linkedin', '')
+
+            # Değişiklikleri kaydet
             db.session.commit()
+            
+            # Önbelleği temizle
+            db.session.expire_all()
+            
             flash('Sayfa başarıyla güncellendi!', 'success')
             return redirect(url_for('admin.pages_list'))
+            
         except Exception as e:
+            current_app.logger.error(f'Sayfa güncelleme hatası: {str(e)}')
             db.session.rollback()
             flash('Sayfa güncellenirken bir hata oluştu!', 'error')
             return render_template('admin/pages/edit.html', page=page, stats=stats)
@@ -1214,6 +1221,273 @@ def settings_maintenance():
         
     return redirect(url_for('admin.settings'))
 
+@admin_bp.route('/settings/theme', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def theme_settings():
+    settings = SiteSettings.query.first()
+    stats = get_admin_stats()
+    
+    if not settings:
+        settings = SiteSettings()
+        db.session.add(settings)
+        db.session.commit()
+
+    if request.method == 'POST':
+        # Tema ayarlarını güncelle
+        settings.primary_color = request.form.get('primary_color')
+        settings.secondary_color = request.form.get('secondary_color')
+        settings.is_dark_mode = 'is_dark_mode' in request.form
+        settings.enable_animations = 'enable_animations' in request.form
+        settings.body_bg_color = request.form.get('body_bg_color')
+        settings.body_text_color = request.form.get('body_text_color')
+        settings.body_link_color = request.form.get('body_link_color')
+        settings.body_font_family = request.form.get('body_font_family')
+        settings.body_font_size = request.form.get('body_font_size')
+        settings.navbar_bg_color = request.form.get('navbar_bg_color')
+        settings.navbar_text_color = request.form.get('navbar_text_color')
+        settings.navbar_active_color = request.form.get('navbar_active_color')
+        settings.navbar_hover_color = request.form.get('navbar_hover_color')
+        settings.footer_bg_color = request.form.get('footer_bg_color')
+        settings.footer_text_color = request.form.get('footer_text_color')
+        settings.footer_link_color = request.form.get('footer_link_color')
+        settings.banner_bg_color = request.form.get('banner_bg_color')
+        settings.banner_title_color = request.form.get('banner_title_color')
+        settings.banner_text_color = request.form.get('banner_text_color')
+        settings.banner_button_bg_color = request.form.get('banner_button_bg_color')
+        settings.banner_button_text_color = request.form.get('banner_button_text_color')
+        settings.banner_button_hover_bg_color = request.form.get('banner_button_hover_bg_color')
+        settings.banner_button_hover_text_color = request.form.get('banner_button_hover_text_color')
+        settings.banner_indicator_color = request.form.get('banner_indicator_color')
+        settings.banner_arrow_color = request.form.get('banner_arrow_color')
+        settings.about_bg_color = request.form.get('about_bg_color')
+        settings.about_title_color = request.form.get('about_title_color')
+        settings.about_subtitle_color = request.form.get('about_subtitle_color')
+        settings.about_text_color = request.form.get('about_text_color')
+        settings.about_stats_number_color = request.form.get('about_stats_number_color')
+        settings.about_stats_text_color = request.form.get('about_stats_text_color')
+        settings.services_bg_color = request.form.get('services_bg_color')
+        settings.services_title_color = request.form.get('services_title_color')
+        settings.services_subtitle_color = request.form.get('services_subtitle_color')
+        settings.services_card_bg_color = request.form.get('services_card_bg_color')
+        settings.services_icon_color = request.form.get('services_icon_color')
+        settings.services_card_title_color = request.form.get('services_card_title_color')
+        settings.services_card_text_color = request.form.get('services_card_text_color')
+
+        try:
+            db.session.commit()
+            flash('Tema ayarları başarıyla güncellendi.', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Tema ayarları güncellenirken bir hata oluştu.', 'error')
+
+    return render_template('admin/settings/theme.html', settings=settings, stats=stats)
+
+@admin_bp.route('/settings/theme/reset/<section>', methods=['POST'])
+@login_required
+@admin_required
+def theme_settings_reset_section(section):
+    try:
+        settings = SiteSettings.query.first()
+        if settings:
+            if section == 'navbar':
+                # Navbar varsayılan ayarları
+                settings.navbar_bg_color = '#ffffff'
+                settings.navbar_text_color = '#000000'
+                settings.navbar_active_color = '#007bff'
+                settings.navbar_hover_color = '#0056b3'
+                settings.navbar_is_fixed = True
+                settings.navbar_is_transparent = False
+                settings.navbar_font_family = 'inherit'
+                settings.navbar_font_size = '1rem'
+            
+            elif section == 'body':
+                # Body varsayılan ayarları
+                settings.body_bg_color = '#ffffff'
+                settings.body_text_color = '#212529'
+                settings.body_link_color = '#007bff'
+                settings.body_font_family = 'Poppins'
+                settings.body_font_size = '16px'
+                settings.body_heading_color = '#212529'
+                settings.primary_color = '#007bff'
+                settings.secondary_color = '#6c757d'
+                settings.is_dark_mode = False
+                settings.enable_animations = True
+            
+            elif section == 'banner':
+                # Banner varsayılan ayarları
+                settings.banner_bg_color = '#f8f9fa'
+                settings.banner_title_color = '#212529'
+                settings.banner_text_color = '#6c757d'
+                settings.banner_button_bg_color = '#007bff'
+                settings.banner_button_text_color = '#ffffff'
+                settings.banner_indicator_color = '#007bff'
+            
+            elif section == 'about':
+                # Hakkımızda varsayılan ayarları
+                settings.about_bg_color = '#ffffff'
+                settings.about_title_color = '#212529'
+                settings.about_text_color = '#6c757d'
+                settings.about_stats_number_color = '#007bff'
+                settings.about_stats_text_color = '#6c757d'
+                settings.about_box_bg_color = '#f8f9fa'
+            
+            elif section == 'services':
+                # Hizmetler varsayılan ayarları
+                settings.services_bg_color = '#ffffff'
+                settings.services_title_color = '#212529'
+                settings.services_card_bg_color = '#f8f9fa'
+                settings.services_icon_color = '#007bff'
+                settings.services_card_title_color = '#212529'
+                settings.services_card_text_color = '#6c757d'
+            
+            elif section == 'blog':
+                # Blog varsayılan ayarları
+                settings.blog_bg_color = '#ffffff'
+                settings.blog_title_color = '#212529'
+                settings.blog_card_bg_color = '#f8f9fa'
+                settings.blog_date_color = '#6c757d'
+                settings.blog_post_title_color = '#212529'
+                settings.blog_excerpt_color = '#6c757d'
+            
+            elif section == 'contact':
+                # İletişim varsayılan ayarları
+                settings.contact_bg_color = '#ffffff'
+                settings.contact_title_color = '#212529'
+                settings.contact_text_color = '#6c757d'
+                settings.contact_form_bg_color = '#f8f9fa'
+                settings.contact_button_bg_color = '#007bff'
+                settings.contact_button_text_color = '#ffffff'
+                settings.contact_info_bg_color = '#f8f9fa'
+                settings.contact_info_border_color = '#dee2e6'
+                settings.contact_info_icon_color = '#007bff'
+                settings.contact_form_border_color = '#dee2e6'
+                settings.contact_input_bg_color = '#ffffff'
+                settings.contact_input_text_color = '#495057'
+                settings.contact_input_border_color = '#ced4da'
+                settings.contact_button_hover_bg_color = '#0056b3'
+                settings.contact_button_hover_text_color = '#ffffff'
+            
+            elif section == 'video':
+                # Video varsayılan ayarları
+                settings.video_bg_color = '#ffffff'
+                settings.video_title_color = '#212529'
+                settings.video_play_button_color = '#007bff'
+                settings.video_overlay_color = '#000000'
+                settings.video_overlay_opacity = 50
+                settings.video_play_button_bg_color = '#ffffff'
+                settings.video_play_button_hover_color = '#0056b3'
+                settings.video_play_button_hover_bg_color = '#ffffff'
+            
+            elif section == 'footer':
+                # Footer varsayılan ayarları
+                settings.footer_bg_color = '#212529'
+                settings.footer_text_color = '#ffffff'
+                settings.footer_link_color = '#ffffff'
+                settings.footer_font_family = 'inherit'
+                settings.footer_font_size = '1rem'
+            
+            db.session.commit()
+            return jsonify({'status': 'success', 'message': f'{section} bölümü varsayılan ayarlara döndürüldü.'})
+        
+        return jsonify({'status': 'error', 'message': 'Ayarlar bulunamadı.'})
+    
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
+@admin_bp.route('/settings/slider', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def slider_settings():
+    settings = SiteSettings.query.first()
+    stats = get_admin_stats()
+    
+    if not settings:
+        settings = SiteSettings()
+        db.session.add(settings)
+        db.session.commit()
+
+    if request.method == 'POST':
+        # Slider ayarlarını güncelle
+        settings.slider_height = request.form.get('slider_height', type=int)
+        settings.slider_transition_speed = request.form.get('slider_transition_speed', type=int)
+        settings.slider_animation_speed = request.form.get('slider_animation_speed', type=int)
+        settings.slider_is_autoplay = 'slider_is_autoplay' in request.form
+        settings.slider_show_arrows = 'slider_show_arrows' in request.form
+        settings.slider_show_bullets = 'slider_show_bullets' in request.form
+
+        try:
+            db.session.commit()
+            flash('Slider ayarları başarıyla güncellendi.', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Slider ayarları güncellenirken bir hata oluştu.', 'error')
+
+    return render_template('admin/settings/slider.html', settings=settings, stats=stats)
+
+@admin_bp.route('/settings/slider/reset', methods=['POST'])
+@login_required
+@admin_required
+def slider_settings_reset():
+    try:
+        settings = SiteSettings.query.first()
+        if settings:
+            # Slider ayarlarını varsayılan değerlere sıfırla
+            settings.slider_height = 600
+            settings.slider_transition_speed = 5000
+            settings.slider_animation_speed = 600
+            settings.slider_is_autoplay = True
+            settings.slider_show_arrows = True
+            settings.slider_show_bullets = True
+
+            db.session.commit()
+            flash('Slider ayarları başarıyla varsayılan değerlere döndürüldü.', 'success')
+        else:
+            flash('Ayarlar bulunamadı.', 'error')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f'Slider ayarları sıfırlama hatası: {str(e)}')
+        flash('Slider ayarları sıfırlanırken bir hata oluştu.', 'error')
+
+    return redirect(url_for('admin.slider_settings'))
+
+@admin_bp.route('/settings/reset', methods=['POST'])
+@login_required
+@admin_required
+def settings_reset():
+    try:
+        settings = SiteSettings.query.first()
+        if settings:
+            # Genel site ayarlarını varsayılan değerlere döndür
+            settings.site_title = 'KolayCMS'
+            settings.site_description = 'Modern ve Kolay Yönetilebilir İçerik Yönetim Sistemi'
+            settings.meta_keywords = 'cms, içerik yönetim sistemi, web sitesi'
+            settings.footer_about = 'KolayCMS ile web sitenizi kolayca yönetin'
+            settings.address = 'Örnek Adres'
+            settings.phone = '+90 555 555 55 55'
+            settings.email = 'info@example.com'
+            settings.facebook_url = '#'
+            settings.twitter_url = '#'
+            settings.instagram_url = '#'
+            settings.custom_css = ''
+            settings.custom_js = ''
+            
+            # Logo ve favicon yollarını varsayılana döndür
+            settings.logo_path = '/static/cobsin_template/images/logo.png'
+            settings.favicon_path = '/static/cobsin_template/images/favicon.ico'
+            
+            db.session.commit()
+            flash('Site ayarları başarıyla varsayılan değerlere döndürüldü.', 'success')
+            return jsonify({'success': True}), 200
+        else:
+            flash('Ayarlar bulunamadı.', 'error')
+            return jsonify({'success': False, 'message': 'Ayarlar bulunamadı.'}), 404
+            
+    except Exception as e:
+        db.session.rollback()
+        flash('Bir hata oluştu. Lütfen tekrar deneyin.', 'error')
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 def allowed_file(filename, allowed_extensions):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
@@ -1223,6 +1497,7 @@ def allowed_file(filename, allowed_extensions):
 @admin_required
 def about_edit():
     about = AboutSection.query.first()
+    stats = get_admin_stats()
     
     if not about:
         # Varsayılan içeriği oluştur
@@ -1274,7 +1549,6 @@ def about_edit():
         flash('Hakkımızda bilgileri başarıyla güncellendi.', 'success')
         return redirect(url_for('admin.about_edit'))
     
-    stats = get_admin_stats()
     return render_template('admin/contents/about/edit.html', about=about, stats=stats)
 
 # Hizmetler
@@ -1530,15 +1804,16 @@ def team_create():
             order=int(request.form.get('order', 0)),
             is_active=bool(request.form.get('is_active'))
         )
-        
+
         if 'image' in request.files:
             image = request.files['image']
             if image and allowed_file(image.filename, {'png', 'jpg', 'jpeg', 'gif'}):
                 filename = secure_filename(image.filename)
                 image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'team', filename)
+                os.makedirs(os.path.dirname(image_path), exist_ok=True)
                 image.save(image_path)
                 member.image_path = f'/static/uploads/team/{filename}'
-        
+
         try:
             db.session.add(member)
             db.session.commit()
@@ -1548,327 +1823,218 @@ def team_create():
             db.session.rollback()
             current_app.logger.error(f'Ekip üyesi ekleme hatası: {str(e)}')
             flash('Ekip üyesi eklenirken bir hata oluştu.', 'error')
-    
+
     return render_template('admin/contents/team/create.html', stats=stats)
 
-@admin_bp.route('/contents/team/edit/<int:id>', methods=['GET', 'POST'])
+@admin_bp.route('/settings/theme/reset/all', methods=['POST'])
 @login_required
 @admin_required
-def team_edit(id):
-    stats = get_admin_stats()
-    member = TeamMember.query.get_or_404(id)
-    
-    if request.method == 'POST':
-        member.name = request.form.get('name')
-        member.title = request.form.get('title')
-        member.bio = request.form.get('bio')
-        member.email = request.form.get('email')
-        member.phone = request.form.get('phone')
-        member.linkedin_url = request.form.get('linkedin_url')
-        member.github_url = request.form.get('github_url')
-        member.twitter_url = request.form.get('twitter_url')
-        member.order = int(request.form.get('order', 0))
-        member.is_active = bool(request.form.get('is_active'))
-        
-        if 'image' in request.files:
-            image = request.files['image']
-            if image and allowed_file(image.filename, {'png', 'jpg', 'jpeg', 'gif'}):
-                filename = secure_filename(image.filename)
-                image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'team', filename)
-                image.save(image_path)
-                member.image_path = f'/static/uploads/team/{filename}'
-        
-        try:
-            db.session.commit()
-            flash('Ekip üyesi başarıyla güncellendi.', 'success')
-            return redirect(url_for('admin.team_list'))
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f'Ekip üyesi güncelleme hatası: {str(e)}')
-            flash('Ekip üyesi güncellenirken bir hata oluştu.', 'error')
-    
-    return render_template('admin/contents/team/edit.html', member=member, stats=stats)
-
-@admin_bp.route('/contents/team/delete/<int:id>', methods=['POST'])
-@login_required
-@admin_required
-def team_delete(id):
-    stats = get_admin_stats()
-    member = TeamMember.query.get_or_404(id)
-    
+def theme_settings_reset_all():
     try:
-        db.session.delete(member)
-        db.session.commit()
-        flash('Ekip üyesi başarıyla silindi.', 'success')
-    except Exception as e:
-        current_app.logger.error(f'Ekip üyesi silme hatası: {str(e)}')
-        flash('Ekip üyesi silinirken bir hata oluştu.', 'error')
+        settings = SiteSettings.query.first()
+        if settings:
+            # Navbar Ayarları
+            settings.navbar_bg_color = '#ffffff'
+            settings.navbar_text_color = '#000000'
+            settings.navbar_active_color = '#007bff'
+            settings.navbar_hover_color = '#0056b3'
+            settings.navbar_is_fixed = True
+            settings.navbar_is_transparent = False
+            settings.navbar_font_family = 'inherit'
+            settings.navbar_font_size = '1rem'
+            
+            # Body Ayarları
+            settings.body_bg_color = '#ffffff'
+            settings.body_text_color = '#212529'
+            settings.body_link_color = '#007bff'
+            settings.body_font_family = 'Poppins'
+            settings.body_font_size = '16px'
+            settings.body_heading_color = '#212529'
+            settings.primary_color = '#007bff'
+            settings.secondary_color = '#6c757d'
+            settings.is_dark_mode = False
+            settings.enable_animations = True
+            
+            # Banner Ayarları
+            settings.banner_bg_color = '#f8f9fa'
+            settings.banner_title_color = '#212529'
+            settings.banner_text_color = '#6c757d'
+            settings.banner_button_bg_color = '#007bff'
+            settings.banner_button_text_color = '#ffffff'
+            settings.banner_indicator_color = '#007bff'
+            
+            # Hakkımızda Ayarları
+            settings.about_bg_color = '#ffffff'
+            settings.about_title_color = '#212529'
+            settings.about_text_color = '#6c757d'
+            settings.about_stats_number_color = '#007bff'
+            settings.about_stats_text_color = '#6c757d'
+            settings.about_box_bg_color = '#f8f9fa'
+            
+            # Hizmetler Ayarları
+            settings.services_bg_color = '#ffffff'
+            settings.services_title_color = '#212529'
+            settings.services_card_bg_color = '#f8f9fa'
+            settings.services_icon_color = '#007bff'
+            settings.services_card_title_color = '#212529'
+            settings.services_card_text_color = '#6c757d'
+            
+            # Blog Ayarları
+            settings.blog_bg_color = '#ffffff'
+            settings.blog_title_color = '#212529'
+            settings.blog_card_bg_color = '#f8f9fa'
+            settings.blog_date_color = '#6c757d'
+            settings.blog_post_title_color = '#212529'
+            settings.blog_excerpt_color = '#6c757d'
+            
+            # İletişim Ayarları
+            settings.contact_bg_color = '#ffffff'
+            settings.contact_title_color = '#212529'
+            settings.contact_text_color = '#6c757d'
+            settings.contact_form_bg_color = '#f8f9fa'
+            settings.contact_button_bg_color = '#007bff'
+            settings.contact_button_text_color = '#ffffff'
+            settings.contact_info_bg_color = '#f8f9fa'
+            settings.contact_info_border_color = '#dee2e6'
+            settings.contact_info_icon_color = '#007bff'
+            settings.contact_form_border_color = '#dee2e6'
+            settings.contact_input_bg_color = '#ffffff'
+            settings.contact_input_text_color = '#495057'
+            settings.contact_input_border_color = '#ced4da'
+            settings.contact_button_hover_bg_color = '#0056b3'
+            settings.contact_button_hover_text_color = '#ffffff'
+            
+            # Video Ayarları
+            settings.video_bg_color = '#ffffff'
+            settings.video_title_color = '#212529'
+            settings.video_play_button_color = '#007bff'
+            settings.video_overlay_color = '#000000'
+            settings.video_overlay_opacity = 50
+            settings.video_play_button_bg_color = '#ffffff'
+            settings.video_play_button_hover_color = '#0056b3'
+            settings.video_play_button_hover_bg_color = '#ffffff'
+            
+            # Footer Ayarları
+            settings.footer_bg_color = '#212529'
+            settings.footer_text_color = '#ffffff'
+            settings.footer_link_color = '#ffffff'
+            settings.footer_font_family = 'inherit'
+            settings.footer_font_size = '1rem'
+            
+            db.session.commit()
+            return jsonify({'status': 'success'})
+        
+        return jsonify({'status': 'error', 'message': 'Ayarlar bulunamadı.'})
     
-    return redirect(url_for('admin.team_list'))
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
 
-# Müşteri Yorumları
-@admin_bp.route('/contents/testimonials')
+@admin_bp.route('/menus')
 @login_required
 @admin_required
-def testimonials_list():
-    testimonials = Testimonial.query.order_by(Testimonial.order.asc()).all()
-    stats = get_admin_stats()
-    return render_template('admin/contents/testimonials/list.html', testimonials=testimonials, stats=stats)
+def menus():
+    try:
+        # Tüm menüleri sıralı bir şekilde getir
+        menus = Menu.query.order_by(Menu.order.asc()).all()
+        stats = get_admin_stats()
+        
+        # Aktivite logu oluştur
+        activity = ActivityLog(
+            user_id=current_user.id,
+            action='Menü listesi görüntülendi',
+            status='info'
+        )
+        db.session.add(activity)
+        db.session.commit()
+        
+        return render_template('admin/menus/index.html', menus=menus, stats=stats)
+    except Exception as e:
+        current_app.logger.error(f'Menü listeleme hatası: {str(e)}')
+        flash('Menüler listelenirken bir hata oluştu.', 'danger')
+        return redirect(url_for('admin.index'))
 
-@admin_bp.route('/contents/testimonials/create', methods=['GET', 'POST'])
+@admin_bp.route('/menus/create', methods=['GET', 'POST'])
 @login_required
 @admin_required
-def testimonials_create():
-    stats = get_admin_stats()
+def menu_create():
     if request.method == 'POST':
-        testimonial = Testimonial(
-            client_name=request.form.get('client_name'),
-            client_title=request.form.get('client_title'),
-            client_company=request.form.get('client_company'),
-            content=request.form.get('content'),
-            rating=int(request.form.get('rating', 5)),
-            order=int(request.form.get('order', 0)),
-            is_active=bool(request.form.get('is_active'))
+        title = request.form.get('title')
+        url = request.form.get('url')
+        parent_id = request.form.get('parent_id')
+        order = request.form.get('order', 0, type=int)
+        is_active = request.form.get('is_active') == 'on'
+        menu_type = request.form.get('menu_type', 'header')
+        icon = request.form.get('icon')
+        permission = request.form.get('permission')
+        css_class = request.form.get('css_class')
+        
+        menu = Menu(
+            title=title,
+            url=url,
+            parent_id=parent_id if parent_id else None,
+            order=order,
+            is_active=is_active,
+            menu_type=menu_type,
+            icon=icon,
+            permission=permission,
+            css_class=css_class
         )
         
-        if 'image' in request.files:
-            image = request.files['image']
-            if image and allowed_file(image.filename, {'png', 'jpg', 'jpeg', 'gif'}):
-                filename = secure_filename(image.filename)
-                image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'testimonials', filename)
-                image.save(image_path)
-                testimonial.image_path = f'/static/uploads/testimonials/{filename}'
-        
         try:
-            db.session.add(testimonial)
+            db.session.add(menu)
             db.session.commit()
-            flash('Müşteri yorumu başarıyla eklendi.', 'success')
-            return redirect(url_for('admin.testimonials_list'))
+            flash('Menü başarıyla oluşturuldu.', 'success')
+            return redirect(url_for('admin.menus'))
         except Exception as e:
             db.session.rollback()
-            current_app.logger.error(f'Müşteri yorumu ekleme hatası: {str(e)}')
-            flash('Müşteri yorumu eklenirken bir hata oluştu.', 'error')
+            flash('Menü oluşturulurken bir hata oluştu.', 'danger')
+            current_app.logger.error(f'Menü oluşturma hatası: {str(e)}')
     
-    return render_template('admin/contents/testimonials/create.html', stats=stats)
+    parent_menus = Menu.query.filter_by(parent_id=None).all()
+    return render_template('admin/menus/form.html', parent_menus=parent_menus)
 
-@admin_bp.route('/contents/testimonials/edit/<int:id>', methods=['GET', 'POST'])
+@admin_bp.route('/menus/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
 @admin_required
-def testimonials_edit(id):
-    stats = get_admin_stats()
-    testimonial = Testimonial.query.get_or_404(id)
+def menu_edit(id):
+    menu = Menu.query.get_or_404(id)
     
     if request.method == 'POST':
-        testimonial.client_name = request.form.get('client_name')
-        testimonial.client_title = request.form.get('client_title')
-        testimonial.client_company = request.form.get('client_company')
-        testimonial.content = request.form.get('content')
-        testimonial.rating = int(request.form.get('rating', 5))
-        testimonial.order = int(request.form.get('order', 0))
-        testimonial.is_active = bool(request.form.get('is_active'))
-        
-        if 'image' in request.files:
-            image = request.files['image']
-            if image and allowed_file(image.filename, {'png', 'jpg', 'jpeg', 'gif'}):
-                filename = secure_filename(image.filename)
-                image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'testimonials', filename)
-                image.save(image_path)
-                testimonial.image_path = f'/static/uploads/testimonials/{filename}'
+        menu.title = request.form.get('title')
+        menu.url = request.form.get('url')
+        menu.parent_id = request.form.get('parent_id') if request.form.get('parent_id') else None
+        menu.order = request.form.get('order', 0, type=int)
+        menu.is_active = request.form.get('is_active') == 'on'
+        menu.menu_type = request.form.get('menu_type', 'header')
+        menu.icon = request.form.get('icon')
+        menu.permission = request.form.get('permission')
+        menu.css_class = request.form.get('css_class')
         
         try:
             db.session.commit()
-            flash('Müşteri yorumu başarıyla güncellendi.', 'success')
-            return redirect(url_for('admin.testimonials_list'))
+            flash('Menü başarıyla güncellendi.', 'success')
+            return redirect(url_for('admin.menus'))
         except Exception as e:
             db.session.rollback()
-            current_app.logger.error(f'Müşteri yorumu güncelleme hatası: {str(e)}')
-            flash('Müşteri yorumu güncellenirken bir hata oluştu.', 'error')
+            flash('Menü güncellenirken bir hata oluştu.', 'danger')
+            current_app.logger.error(f'Menü güncelleme hatası: {str(e)}')
     
-    return render_template('admin/contents/testimonials/edit.html', testimonial=testimonial, stats=stats)
+    parent_menus = Menu.query.filter(Menu.id != id, Menu.parent_id == None).all()
+    return render_template('admin/menus/form.html', menu=menu, parent_menus=parent_menus)
 
-@admin_bp.route('/contents/testimonials/delete/<int:id>', methods=['POST'])
+@admin_bp.route('/menus/<int:id>/delete', methods=['POST'])
 @login_required
 @admin_required
-def testimonials_delete(id):
-    stats = get_admin_stats()
-    testimonial = Testimonial.query.get_or_404(id)
+def menu_delete(id):
+    menu = Menu.query.get_or_404(id)
     
     try:
-        db.session.delete(testimonial)
+        db.session.delete(menu)
         db.session.commit()
-        flash('Müşteri yorumu başarıyla silindi.', 'success')
+        flash('Menü başarıyla silindi.', 'success')
     except Exception as e:
-        current_app.logger.error(f'Müşteri yorumu silme hatası: {str(e)}')
-        flash('Müşteri yorumu silinirken bir hata oluştu.', 'error')
+        db.session.rollback()
+        flash('Menü silinirken bir hata oluştu.', 'danger')
+        current_app.logger.error(f'Menü silme hatası: {str(e)}')
     
-    return redirect(url_for('admin.testimonials_list'))
-
-# İletişim Bilgileri
-@admin_bp.route('/contents/contact/edit', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def contact_edit():
-    stats = get_admin_stats()
-    contact = ContactInfo.query.first()
-    
-    if not contact:
-        contact = ContactInfo()
-        db.session.add(contact)
-        db.session.commit()
-    
-    if request.method == 'POST':
-        contact.address = request.form.get('address')
-        contact.phone = request.form.get('phone')
-        contact.email = request.form.get('email')
-        contact.google_maps_embed = request.form.get('google_maps_embed')
-        contact.working_hours = request.form.get('working_hours')
-        
-        # Sosyal medya bilgilerini güncelle
-        social_media = {}
-        for platform in ['facebook', 'twitter', 'instagram', 'linkedin']:
-            url = request.form.get(f'social_{platform}')
-            if url:
-                social_media[platform] = url
-        contact.social_media = social_media
-        
-        try:
-            db.session.commit()
-            flash('İletişim bilgileri başarıyla güncellendi.', 'success')
-            return redirect(url_for('admin.contents_list'))
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f'İletişim bilgileri güncelleme hatası: {str(e)}')
-            flash('İletişim bilgileri güncellenirken bir hata oluştu.', 'error')
-    
-    return render_template('admin/contents/contact/edit.html', contact=contact, stats=stats)
-
-@admin_bp.route('/settings/theme', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def theme_settings():
-    # İstatistikleri al
-    stats = get_admin_stats()
-    
-    settings = SiteSettings.query.first()
-    if not settings:
-        settings = SiteSettings()
-        db.session.add(settings)
-        db.session.commit()
-
-    if request.method == 'POST':
-        # Navbar ayarları
-        settings.navbar_bg_color = request.form.get('navbar_bg_color')
-        settings.navbar_text_color = request.form.get('navbar_text_color')
-        settings.navbar_active_color = request.form.get('navbar_active_color')
-        settings.navbar_hover_color = request.form.get('navbar_hover_color')
-        settings.navbar_is_fixed = 'navbar_is_fixed' in request.form
-        settings.navbar_is_transparent = 'navbar_is_transparent' in request.form
-
-        # Genel ayarlar
-        settings.body_bg_color = request.form.get('body_bg_color')
-        settings.body_text_color = request.form.get('body_text_color')
-        settings.body_link_color = request.form.get('body_link_color')
-        settings.body_heading_color = request.form.get('body_heading_color')
-        settings.body_font_family = request.form.get('body_font_family')
-        settings.body_font_size = request.form.get('body_font_size')
-        settings.primary_color = request.form.get('primary_color')
-        settings.secondary_color = request.form.get('secondary_color')
-        settings.is_dark_mode = 'is_dark_mode' in request.form
-        settings.enable_animations = 'enable_animations' in request.form
-
-        # Banner ayarları
-        settings.banner_bg_color = request.form.get('banner_bg_color')
-        settings.banner_title_color = request.form.get('banner_title_color')
-        settings.banner_text_color = request.form.get('banner_text_color')
-        settings.banner_button_bg_color = request.form.get('banner_button_bg_color')
-        settings.banner_button_text_color = request.form.get('banner_button_text_color')
-        settings.banner_indicator_color = request.form.get('banner_indicator_color')
-
-        # Hakkımızda ayarları
-        settings.about_bg_color = request.form.get('about_bg_color')
-        settings.about_title_color = request.form.get('about_title_color')
-        settings.about_text_color = request.form.get('about_text_color')
-        settings.about_stats_number_color = request.form.get('about_stats_number_color')
-        settings.about_stats_text_color = request.form.get('about_stats_text_color')
-        settings.about_box_bg_color = request.form.get('about_box_bg_color')
-
-        # Hizmetler ayarları
-        settings.services_bg_color = request.form.get('services_bg_color')
-        settings.services_title_color = request.form.get('services_title_color')
-        settings.services_card_bg_color = request.form.get('services_card_bg_color')
-        settings.services_icon_color = request.form.get('services_icon_color')
-        settings.services_card_title_color = request.form.get('services_card_title_color')
-        settings.services_card_text_color = request.form.get('services_card_text_color')
-
-        # Blog ayarları
-        settings.blog_bg_color = request.form.get('blog_bg_color')
-        settings.blog_title_color = request.form.get('blog_title_color')
-        settings.blog_card_bg_color = request.form.get('blog_card_bg_color')
-        settings.blog_date_color = request.form.get('blog_date_color')
-        settings.blog_post_title_color = request.form.get('blog_post_title_color')
-        settings.blog_excerpt_color = request.form.get('blog_excerpt_color')
-
-        # İletişim ayarları
-        settings.contact_bg_color = request.form.get('contact_bg_color')
-        settings.contact_title_color = request.form.get('contact_title_color')
-        settings.contact_text_color = request.form.get('contact_text_color')
-        settings.contact_form_bg_color = request.form.get('contact_form_bg_color')
-        settings.contact_button_bg_color = request.form.get('contact_button_bg_color')
-        settings.contact_button_text_color = request.form.get('contact_button_text_color')
-
-        # Video ayarları
-        settings.video_bg_color = request.form.get('video_bg_color')
-        settings.video_title_color = request.form.get('video_title_color')
-        settings.video_play_button_color = request.form.get('video_play_button_color')
-        settings.video_overlay_color = request.form.get('video_overlay_color')
-        settings.video_overlay_opacity = request.form.get('video_overlay_opacity')
-
-        # Footer ayarları
-        settings.footer_bg_color = request.form.get('footer_bg_color')
-        settings.footer_text_color = request.form.get('footer_text_color')
-        settings.footer_link_color = request.form.get('footer_link_color')
-
-        # Özel kodlar
-        settings.custom_css = request.form.get('custom_css')
-        settings.custom_js = request.form.get('custom_js')
-
-        db.session.commit()
-        flash('Tema ayarları başarıyla kaydedildi.', 'success')
-        return redirect(url_for('admin.theme_settings'))
-
-    return render_template('admin/settings/theme.html', settings=settings, stats=stats)
-
-@admin_bp.route('/settings/slider', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def slider_settings():
-    # İstatistikleri al
-    stats = get_admin_stats()
-    
-    # Slider ayarlarını al veya oluştur
-    settings = SiteSettings.query.first()
-    if not settings:
-        settings = SiteSettings()
-        db.session.add(settings)
-        db.session.commit()
-    
-    if request.method == 'POST':
-        try:
-            # Slider ayarlarını güncelle
-            settings.slider_height = request.form.get('slider_height', '600')
-            settings.slider_transition_speed = request.form.get('slider_transition_speed', '5000')
-            settings.slider_animation_speed = request.form.get('slider_animation_speed', '600')
-            settings.slider_is_autoplay = bool(request.form.get('slider_is_autoplay'))
-            settings.slider_show_arrows = bool(request.form.get('slider_show_arrows'))
-            settings.slider_show_bullets = bool(request.form.get('slider_show_bullets'))
-            
-            db.session.commit()
-            flash('Slider ayarları başarıyla güncellendi.', 'success')
-            return redirect(url_for('admin.settings'))
-            
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f'Slider ayarları güncelleme hatası: {str(e)}')
-            flash('Slider ayarları güncellenirken bir hata oluştu.', 'error')
-    
-    return render_template('admin/settings/slider.html', settings=settings, stats=stats)
+    return redirect(url_for('admin.menus'))

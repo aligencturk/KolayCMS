@@ -1,11 +1,23 @@
 from flask import render_template, send_from_directory
 from apps import app
-from apps.models import SiteSettings
+from apps.models import SiteSettings, Slider, AboutSection, Service, BlogPost, VideoSection
 
 @app.route('/')
 def index():
     settings = SiteSettings.query.first()
-    return render_template('main/index.html', settings=settings)
+    slides = Slider.query.filter_by(is_active=True).order_by(Slider.order.asc()).all()
+    about = AboutSection.query.filter_by(is_active=True).first()
+    services = Service.query.filter_by(is_active=True).order_by(Service.order.asc()).all()
+    blog_posts = BlogPost.query.filter_by(is_active=True).order_by(BlogPost.created_at.desc()).limit(2).all()
+    video = VideoSection.query.filter_by(is_active=True).first()
+    
+    return render_template('main/index.html',
+                         settings=settings,
+                         slides=slides,
+                         about=about,
+                         services=services,
+                         blog_posts=blog_posts,
+                         video=video)
 
 @app.route('/about')
 def about():

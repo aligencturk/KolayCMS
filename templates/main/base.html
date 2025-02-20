@@ -48,6 +48,11 @@
     <!-- Dinamik Stil -->
     <style>
         :root {
+            /* Slider Ayarları */
+            --slider-height: {{ settings.slider_height|default('600', true) }}px;
+            --slider-transition-speed: {{ settings.slider_transition_speed|default('5000', true) }}ms;
+            --slider-animation-speed: {{ settings.slider_animation_speed|default('600', true) }}ms;
+            
             /* Body */
             --body-bg-color: {{ settings.body_bg_color|default('#ffffff', true) }};
             --body-text-color: {{ settings.body_text_color|default('#212529', true) }};
@@ -227,6 +232,19 @@
         /* Banner/Slider Override */
         .banner_section {
             background-color: var(--banner-bg-color) !important;
+            height: var(--slider-height) !important;
+            overflow: hidden;
+        }
+        
+        .carousel-item {
+            height: var(--slider-height) !important;
+            transition-duration: var(--slider-animation-speed) !important;
+        }
+        
+        .carousel-item img {
+            height: 100%;
+            object-fit: cover;
+            width: 100%;
         }
         
         .banner_taital {
@@ -629,21 +647,82 @@
     </div>
     <!-- search overlay end -->
     
+    <!-- Slider Ayarları -->
+    <div id="sliderSettings" 
+        data-transition-speed="{{ settings.slider_transition_speed|default(5000) }}"
+        data-is-autoplay="{{ settings.slider_is_autoplay|default(true)|string|lower }}"
+        data-show-arrows="{{ settings.slider_show_arrows|default(true)|string|lower }}"
+        data-show-bullets="{{ settings.slider_show_bullets|default(true)|string|lower }}"
+        data-slider-height="{{ settings.slider_height|default(600) }}"
+        data-animation-speed="{{ settings.slider_animation_speed|default(600) }}"
+        style="display: none;">
+    </div>
+
     <!-- Javascript files-->
     <script src="{{ url_for('static', filename='cobsin_template/js/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='cobsin_template/js/popper.min.js') }}"></script>
     <script src="{{ url_for('static', filename='cobsin_template/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='cobsin_template/js/jquery-3.0.0.min.js') }}"></script>
     <script src="{{ url_for('static', filename='cobsin_template/js/plugin.js') }}"></script>
     <!-- sidebar -->
     <script src="{{ url_for('static', filename='cobsin_template/js/jquery.mCustomScrollbar.concat.min.js') }}"></script>
-    <!-- Owl Carousel JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
-    <!-- Magnific Popup JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.min.js"></script>
-    <!-- Fancybox JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
-    <!-- Custom JS -->
     <script src="{{ url_for('static', filename='cobsin_template/js/custom.js') }}"></script>
+    <!-- Owl Carousel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+    <!-- Magnific Popup -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.min.js"></script>
+    <!-- Fancybox -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Slider ayarlarını al
+            var settings = document.getElementById('sliderSettings');
+            var transitionSpeed = parseInt(settings.dataset.transitionSpeed);
+            var isAutoplay = settings.dataset.isAutoplay === 'true';
+            var showArrows = settings.dataset.showArrows === 'true';
+            var showBullets = settings.dataset.showBullets === 'true';
+            var sliderHeight = parseInt(settings.dataset.sliderHeight);
+            var animationSpeed = parseInt(settings.dataset.animationSpeed);
+
+            // Slider'ı başlat
+            var myCarousel = document.querySelector('#myCarousel');
+            if (myCarousel) {
+                var carousel = new bootstrap.Carousel(myCarousel, {
+                    interval: transitionSpeed,
+                    pause: isAutoplay ? false : 'hover'
+                });
+
+                // Ok kontrollerini ayarla
+                if (!showArrows) {
+                    var arrows = myCarousel.querySelectorAll('.carousel-control-prev, .carousel-control-next');
+                    arrows.forEach(function(arrow) {
+                        arrow.style.display = 'none';
+                    });
+                }
+
+                // Bullet kontrollerini ayarla
+                if (!showBullets) {
+                    var indicators = myCarousel.querySelector('.carousel-indicators');
+                    if (indicators) {
+                        indicators.style.display = 'none';
+                    }
+                }
+
+                // Slider yüksekliğini ayarla
+                var bannerSection = document.querySelector('.banner_section');
+                if (bannerSection) {
+                    bannerSection.style.height = sliderHeight + 'px';
+                }
+
+                // Slider animasyon hızını ayarla
+                var carouselItems = myCarousel.querySelectorAll('.carousel-item');
+                carouselItems.forEach(function(item) {
+                    item.style.transitionDuration = animationSpeed + 'ms';
+                });
+            }
+        });
+    </script>
     
     {% block scripts %}{% endblock %}
 </body>

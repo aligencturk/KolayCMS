@@ -1,0 +1,173 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'Menü Düzenle' if menu else 'Yeni Menü' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">{{ 'Menü Düzenle' if menu else 'Yeni Menü' }}</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Panel</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.menus') }}">Menüler</a></li>
+        <li class="breadcrumb-item active">{{ 'Düzenle' if menu else 'Yeni' }}</li>
+    </ol>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-edit me-1"></i>
+            Menü Bilgileri
+        </div>
+        <div class="card-body">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" class="needs-validation" novalidate>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="title" class="form-label">Menü Başlığı *</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="title" 
+                               name="title" 
+                               value="{{ menu.title if menu else '' }}"
+                               required>
+                        <div class="invalid-feedback">
+                            Lütfen menü başlığını giriniz.
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="url" class="form-label">URL *</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="url" 
+                               name="url" 
+                               value="{{ menu.url if menu else '' }}"
+                               required>
+                        <div class="invalid-feedback">
+                            Lütfen URL giriniz.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="menu_type" class="form-label">Menü Tipi</label>
+                        <select class="form-select" id="menu_type" name="menu_type">
+                            <option value="header" {% if menu and menu.menu_type == 'header' %}selected{% endif %}>Header Menü</option>
+                            <option value="footer" {% if menu and menu.menu_type == 'footer' %}selected{% endif %}>Footer Menü</option>
+                            <option value="sidebar" {% if menu and menu.menu_type == 'sidebar' %}selected{% endif %}>Yan Menü</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="icon" class="form-label">İkon (FontAwesome)</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="icon" 
+                               name="icon" 
+                               value="{{ menu.icon if menu else '' }}"
+                               placeholder="Örn: fas fa-home">
+                        <small class="text-muted">FontAwesome ikon sınıfını giriniz</small>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="permission" class="form-label">İzin</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="permission" 
+                               name="permission" 
+                               value="{{ menu.permission if menu else '' }}"
+                               placeholder="Örn: admin_required">
+                        <small class="text-muted">Bu menüyü görmek için gerekli izin</small>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="css_class" class="form-label">CSS Sınıfı</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="css_class" 
+                               name="css_class" 
+                               value="{{ menu.css_class if menu else '' }}"
+                               placeholder="Örn: btn btn-primary">
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="parent_id" class="form-label">Üst Menü</label>
+                        <select class="form-select" id="parent_id" name="parent_id">
+                            <option value="">Ana Menü</option>
+                            {% for parent in parent_menus %}
+                                <option value="{{ parent.id }}" 
+                                        {% if menu and menu.parent_id == parent.id %}selected{% endif %}>
+                                    {{ parent.title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="order" class="form-label">Sıralama</label>
+                        <input type="number" 
+                               class="form-control" 
+                               id="order" 
+                               name="order" 
+                               value="{{ menu.order if menu else 0 }}">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input type="checkbox" 
+                               class="form-check-input" 
+                               id="is_active" 
+                               name="is_active" 
+                               {% if not menu or menu.is_active %}checked{% endif %}>
+                        <label class="form-check-label" for="is_active">Aktif</label>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Kaydet
+                    </button>
+                    <a href="{{ url_for('admin.menus') }}" class="btn btn-secondary">
+                        <i class="fas fa-times me-1"></i> İptal
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Form doğrulama
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+</script>
+{% endblock %} 

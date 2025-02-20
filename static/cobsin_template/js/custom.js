@@ -407,4 +407,38 @@ jQuery(document).ready(function($) {
         });
     });
 
+    // Varsayılan ayarlara dönüş için onay modalı
+    function showResetConfirmation() {
+        const modal = new bootstrap.Modal(document.getElementById('resetSettingsModal'));
+        modal.show();
+    }
+
+    // Varsayılan ayarlara dönüş işlemi
+    function resetToDefault() {
+        // AJAX isteği ile varsayılan ayarlara dön
+        fetch('/admin/settings/reset', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Başarılı mesajı göster
+                alert('Ayarlar başarıyla varsayılana döndürüldü!');
+                // Sayfayı yenile
+                window.location.reload();
+            } else {
+                // Hata mesajı göster
+                alert('Bir hata oluştu: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('Bir hata oluştu!');
+        });
+    }
+
 });

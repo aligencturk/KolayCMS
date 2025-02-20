@@ -9,7 +9,7 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'gizli-anahtar-buraya'
     
     # Veritabanı Yapılandırması
-    SQLALCHEMY_DATABASE_URI = 'mssql+pyodbc://localhost\\SQLEXPRESS/FlaskCMS?driver=ODBC+Driver+17+for+SQL+Server&TrustServerCertificate=yes&Trusted_Connection=yes&fast_executemany=true&pool_pre_ping=true&pool_recycle=3600'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///instance/kolaycms.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_size': 10,
@@ -54,6 +54,7 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///instance/kolaycms.db'
     
 class ProductionConfig(Config):
     DEBUG = False

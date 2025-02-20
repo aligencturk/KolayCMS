@@ -1,2 +1,6 @@
 # Main modülü için __init__.py dosyası 
-from apps.main.views import main_bp 
+from flask import Blueprint
+
+main_bp = Blueprint('main', __name__)
+
+from . import views 

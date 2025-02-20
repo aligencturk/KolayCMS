@@ -24,7 +24,10 @@
         {% endif %}
     {% endwith %}
 
-    <form method="POST" action="{{ url_for('admin.theme_settings') }}">
+    <form method="POST">
+        <!-- CSRF Token -->
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
         <!-- Bölüm Seçici -->
         <div class="card mb-4">
             <div class="card-header">
@@ -484,133 +487,214 @@
             </div>
         </div>
 
-        <div class="text-end mt-3">
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save"></i> Ayarları Kaydet
-            </button>
-            <a href="{{ url_for('admin.settings') }}" class="btn btn-secondary">
-                <i class="fas fa-times"></i> İptal
-            </a>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">Kaydet</button>
+            <button type="button" id="resetThemeButton" class="btn btn-danger float-right">Varsayılan Ayarlara Döndür</button>
         </div>
     </form>
+</div>
+
+<!-- Reset Modal -->
+<div class="modal fade" id="resetThemeModal" tabindex="-1" aria-labelledby="resetThemeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resetThemeModalLabel">Tema Ayarlarını Sıfırla</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Tema ayarlarını varsayılan değerlere döndürmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-danger" id="confirmResetTheme">Evet, Sıfırla</button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
+<!-- Toastr kütüphanesi -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Bölüm değiştirme işlevi
+$(document).ready(function() {
+    // Aktif sekmeyi takip etmek için değişken
+    let activeSection = 'navbar'; // Varsayılan olarak navbar seçili
+
+    // Varsayılan değerler
+    const defaultValues = {
+        navbar: {
+            navbar_bg_color: '#ffffff',
+            navbar_text_color: '#000000',
+            navbar_active_color: '#007bff',
+            navbar_hover_color: '#0056b3',
+            navbar_is_fixed: true,
+            navbar_is_transparent: false
+        },
+        body: {
+            body_bg_color: '#ffffff',
+            body_text_color: '#212529',
+            body_link_color: '#007bff',
+            body_heading_color: '#212529',
+            body_font_family: 'Poppins',
+            body_font_size: '16px',
+            primary_color: '#007bff',
+            secondary_color: '#6c757d',
+            is_dark_mode: false,
+            enable_animations: true
+        },
+        banner: {
+            banner_bg_color: '#f8f9fa',
+            banner_title_color: '#212529',
+            banner_text_color: '#6c757d',
+            banner_button_bg_color: '#007bff',
+            banner_button_text_color: '#ffffff',
+            banner_indicator_color: '#007bff'
+        },
+        about: {
+            about_bg_color: '#ffffff',
+            about_title_color: '#212529',
+            about_text_color: '#6c757d',
+            about_stats_number_color: '#007bff',
+            about_stats_text_color: '#6c757d',
+            about_box_bg_color: '#f8f9fa'
+        },
+        services: {
+            services_bg_color: '#ffffff',
+            services_title_color: '#212529',
+            services_card_bg_color: '#f8f9fa',
+            services_icon_color: '#007bff',
+            services_card_title_color: '#212529',
+            services_card_text_color: '#6c757d'
+        },
+        blog: {
+            blog_bg_color: '#ffffff',
+            blog_title_color: '#212529',
+            blog_card_bg_color: '#f8f9fa',
+            blog_date_color: '#6c757d',
+            blog_post_title_color: '#212529',
+            blog_excerpt_color: '#6c757d'
+        },
+        contact: {
+            contact_bg_color: '#ffffff',
+            contact_title_color: '#212529',
+            contact_text_color: '#6c757d',
+            contact_form_bg_color: '#f8f9fa',
+            contact_button_bg_color: '#007bff',
+            contact_button_text_color: '#ffffff'
+        },
+        video: {
+            video_bg_color: '#ffffff',
+            video_title_color: '#212529',
+            video_play_button_color: '#007bff',
+            video_overlay_color: '#000000',
+            video_overlay_opacity: 50
+        },
+        footer: {
+            footer_bg_color: '#212529',
+            footer_text_color: '#ffffff',
+            footer_link_color: '#007bff'
+        }
+    };
+
+    // Form değerlerini güncelle
+    function updateFormValues(section) {
+        const values = defaultValues[section];
+        if (values) {
+            Object.keys(values).forEach(key => {
+                const element = $(`#${key}`);
+                if (element.length) {
+                    if (element.attr('type') === 'checkbox') {
+                        element.prop('checked', values[key]);
+                    } else {
+                        element.val(values[key]);
+                    }
+                }
+            });
+        }
+    }
+
+    // Bölüm seçimi işlemleri
     const sectionButtons = document.querySelectorAll('.section-btn');
     const sectionContents = document.querySelectorAll('.section-content');
 
     sectionButtons.forEach(button => {
         button.addEventListener('click', function() {
-            // Aktif buton sınıfını kaldır
             sectionButtons.forEach(btn => btn.classList.remove('active'));
-            // Tıklanan butona aktif sınıfını ekle
             this.classList.add('active');
-
-            // Tüm bölümleri gizle
+            activeSection = this.dataset.section;
             sectionContents.forEach(content => content.style.display = 'none');
-            // İlgili bölümü göster
-            document.getElementById(`${this.dataset.section}-section`).style.display = 'block';
+            const selectedSection = document.getElementById(this.dataset.section + '-section');
+            if (selectedSection) {
+                selectedSection.style.display = 'block';
+            }
         });
     });
 
-    // Form değişikliklerini izle
-    const form = document.querySelector('form');
-    let formChanged = false;
-
-    // Renk değişikliklerini izle ve CSS değişkenlerini güncelle
-    const colorInputs = document.querySelectorAll('input[type="color"]');
-    colorInputs.forEach(input => {
-        input.addEventListener('input', function() {
-            formChanged = true;
-            updateCSSVariables();
-        });
-    });
-
-    // CSS değişkenlerini güncelle
-    function updateCSSVariables() {
-        const root = document.documentElement;
-        
-        // Navbar renkleri
-        root.style.setProperty('--navbar-bg-color', document.getElementById('navbar_bg_color').value);
-        root.style.setProperty('--navbar-text-color', document.getElementById('navbar_text_color').value);
-        root.style.setProperty('--navbar-active-color', document.getElementById('navbar_active_color').value);
-        root.style.setProperty('--navbar-hover-color', document.getElementById('navbar_hover_color').value);
-
-        // Genel renkler
-        root.style.setProperty('--body-bg-color', document.getElementById('body_bg_color').value);
-        root.style.setProperty('--body-text-color', document.getElementById('body_text_color').value);
-        root.style.setProperty('--body-link-color', document.getElementById('body_link_color').value);
-        root.style.setProperty('--body-heading-color', document.getElementById('body_heading_color').value);
-
-        // Banner/Slider renkleri
-        root.style.setProperty('--banner-bg-color', document.getElementById('banner_bg_color').value);
-        root.style.setProperty('--banner-title-color', document.getElementById('banner_title_color').value);
-        root.style.setProperty('--banner-text-color', document.getElementById('banner_text_color').value);
-        root.style.setProperty('--banner-button-bg-color', document.getElementById('banner_button_bg_color').value);
-        root.style.setProperty('--banner-button-text-color', document.getElementById('banner_button_text_color').value);
-
-        // Hakkımızda renkleri
-        root.style.setProperty('--about-bg-color', document.getElementById('about_bg_color').value);
-        root.style.setProperty('--about-title-color', document.getElementById('about_title_color').value);
-        root.style.setProperty('--about-text-color', document.getElementById('about_text_color').value);
-        root.style.setProperty('--about-stats-number-color', document.getElementById('about_stats_number_color').value);
-        root.style.setProperty('--about-stats-text-color', document.getElementById('about_stats_text_color').value);
-        root.style.setProperty('--about-box-bg-color', document.getElementById('about_box_bg_color').value);
-
-        // Hizmetler renkleri
-        root.style.setProperty('--services-bg-color', document.getElementById('services_bg_color').value);
-        root.style.setProperty('--services-title-color', document.getElementById('services_title_color').value);
-        root.style.setProperty('--services-card-bg-color', document.getElementById('services_card_bg_color').value);
-        root.style.setProperty('--services-icon-color', document.getElementById('services_icon_color').value);
-        root.style.setProperty('--services-card-title-color', document.getElementById('services_card_title_color').value);
-        root.style.setProperty('--services-card-text-color', document.getElementById('services_card_text_color').value);
-
-        // Blog renkleri
-        root.style.setProperty('--blog-bg-color', document.getElementById('blog_bg_color').value);
-        root.style.setProperty('--blog-title-color', document.getElementById('blog_title_color').value);
-        root.style.setProperty('--blog-card-bg-color', document.getElementById('blog_card_bg_color').value);
-        root.style.setProperty('--blog-date-color', document.getElementById('blog_date_color').value);
-        root.style.setProperty('--blog-post-title-color', document.getElementById('blog_post_title_color').value);
-        root.style.setProperty('--blog-excerpt-color', document.getElementById('blog_excerpt_color').value);
-
-        // İletişim renkleri
-        root.style.setProperty('--contact-bg-color', document.getElementById('contact_bg_color').value);
-        root.style.setProperty('--contact-title-color', document.getElementById('contact_title_color').value);
-        root.style.setProperty('--contact-text-color', document.getElementById('contact_text_color').value);
-        root.style.setProperty('--contact-form-bg-color', document.getElementById('contact_form_bg_color').value);
-        root.style.setProperty('--contact-button-bg-color', document.getElementById('contact_button_bg_color').value);
-        root.style.setProperty('--contact-button-text-color', document.getElementById('contact_button_text_color').value);
-
-        // Video renkleri
-        root.style.setProperty('--video-bg-color', document.getElementById('video_bg_color').value);
-        root.style.setProperty('--video-title-color', document.getElementById('video_title_color').value);
-        root.style.setProperty('--video-play-button-color', document.getElementById('video_play_button_color').value);
-        root.style.setProperty('--video-overlay-color', document.getElementById('video_overlay_color').value);
-
-        // Footer renkleri
-        root.style.setProperty('--footer-bg-color', document.getElementById('footer_bg_color').value);
-        root.style.setProperty('--footer-text-color', document.getElementById('footer_text_color').value);
-        root.style.setProperty('--footer-link-color', document.getElementById('footer_link_color').value);
+    // Sayfa yüklendiğinde ilk bölümü göster
+    const firstSection = document.querySelector('.section-content');
+    if (firstSection) {
+        firstSection.style.display = 'block';
     }
 
-    // Sayfa yüklendiğinde CSS değişkenlerini ayarla
-    updateCSSVariables();
+    // Toastr ayarları
+    toastr.options = {
+        "closeButton": true,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "timeOut": "3000"
+    };
 
-    // Form gönderildiğinde değişiklik bayrağını sıfırla
-    form.addEventListener('submit', function() {
-        formChanged = false;
+    // Reset Modal'ı göster
+    $('#resetThemeButton').on('click', function() {
+        const sectionName = activeSection.charAt(0).toUpperCase() + activeSection.slice(1);
+        $('#resetThemeModalLabel').text(`${sectionName} Ayarlarını Sıfırla`);
+        $('#resetThemeModal .modal-body').text(`${sectionName} bölümünün ayarlarını varsayılan değerlere döndürmek istediğinize emin misiniz? Bu işlem geri alınamaz.`);
+        $('#resetThemeModal').modal('show');
     });
 
-    // Sayfadan ayrılmadan önce uyarı göster
-    window.addEventListener('beforeunload', function(e) {
-        if (formChanged) {
-            e.preventDefault();
-            e.returnValue = '';
-        }
+    // Reset işlemini gerçekleştir
+    $('#confirmResetTheme').on('click', function() {
+        const button = $(this);
+        const sectionName = activeSection.charAt(0).toUpperCase() + activeSection.slice(1);
+        
+        button.prop('disabled', true);
+        button.html('<i class="fas fa-spinner fa-spin"></i> İşleniyor...');
+        
+        $.ajax({
+            url: `/admin/settings/theme/reset/${activeSection}`,
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Form değerlerini güncelle
+                    updateFormValues(activeSection);
+                    
+                    // Modal'ı kapat
+                    $('#resetThemeModal').modal('hide');
+                    
+                    // Başarılı mesajı göster
+                    toastr.success(`${sectionName} bölümü varsayılan ayarlara döndürüldü.`);
+                    
+                    // Formu otomatik submit et
+                    $('form').submit();
+                } else {
+                    toastr.error(response.message || 'Bir hata oluştu.');
+                }
+            },
+            error: function(xhr) {
+                toastr.error('Bir hata oluştu. Lütfen tekrar deneyin.');
+            },
+            complete: function() {
+                button.prop('disabled', false);
+                button.html('Evet, Sıfırla');
+            }
+        });
     });
 });
 </script>

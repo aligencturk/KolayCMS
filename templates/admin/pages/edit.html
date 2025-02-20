@@ -15,7 +15,9 @@
 
     <div class="card">
         <div class="card-body">
-            <form method="POST">
+            <form method="POST" id="editPageForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
                 <div class="mb-3">
                     <label for="title" class="form-label">Başlık</label>
                     <input type="text" class="form-control" id="title" name="title" value="{{ page.title }}" required>
@@ -132,15 +134,31 @@
 {% block scripts %}
 <script src="https://cdn.ckeditor.com/ckeditor5/27.1.0/classic/ckeditor.js"></script>
 <script>
+let editor;
+
 document.addEventListener('DOMContentLoaded', function() {
     ClassicEditor
         .create(document.querySelector('#content'), {
             toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'outdent', 'indent', '|', 'blockQuote', 'insertTable', 'undo', 'redo'],
             language: 'tr'
         })
+        .then(newEditor => {
+            editor = newEditor;
+        })
         .catch(error => {
             console.error(error);
         });
+
+    document.getElementById('editPageForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // CKEditor içeriğini form verisine ekle
+        const content = editor.getData();
+        document.querySelector('#content').value = content;
+        
+        // Formu gönder
+        this.submit();
+    });
 });
 </script>
 {% endblock %} 

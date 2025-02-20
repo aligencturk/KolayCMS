@@ -2,6 +2,7 @@ from app import create_app
 from apps.models import db, Slide, SiteSettings
 import os
 from sqlalchemy import text
+import sqlite3
 
 app = create_app()
 
@@ -58,7 +59,7 @@ with app.app_context():
         print(f"ID: {slide.id}")
         print(f"Başlık: {slide.title}")
         print(f"Açıklama: {slide.description}")
-        print(f"Görsel: {slide.image}")
+        print(f"Görsel: {slide.image_path}")
         print(f"Aktif: {slide.is_active}")
         print("-" * 50)
     
@@ -112,4 +113,24 @@ with app.app_context():
             value = getattr(settings, column.name)
             print(f"{column.name}: {value}")
     else:
-        print("Hiç site ayarı bulunamadı") 
+        print("Hiç site ayarı bulunamadı")
+
+def check_table_schema(table_name):
+    conn = sqlite3.connect('kolaycms.db')
+    cursor = conn.cursor()
+    
+    # Tablo şemasını al
+    cursor.execute(f"PRAGMA table_info({table_name})")
+    columns = cursor.fetchall()
+    
+    print(f"\nTablo: {table_name}")
+    print("Sütunlar:")
+    for col in columns:
+        print(f"  - {col[1]} ({col[2]})")
+    
+    conn.close()
+
+if __name__ == "__main__":
+    tables = ['menus', 'site_settings', 'users', 'pages']
+    for table in tables:
+        check_table_schema(table) 

@@ -2,10 +2,17 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash
 from apps.models import User, db
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField
+from wtforms.validators import DataRequired
 import traceback
 from datetime import datetime
 
 auth_bp = Blueprint('auth', __name__, template_folder='templates')
+
+class LoginForm(FlaskForm):
+    username = StringField('Kullanıcı Adı', validators=[DataRequired()])
+    password = PasswordField('Şifre', validators=[DataRequired()])
 
 @auth_bp.route('/')
 def index():
@@ -23,16 +30,12 @@ def login():
                 return redirect(url_for('admin.index'))
             return redirect(url_for('main.index'))
             
-        if request.method == 'POST':
-            username = request.form.get('username')
-            password = request.form.get('password')
-            remember = request.form.get('remember', False)
+        form = LoginForm()
+        if form.validate_on_submit():
+            username = form.username.data
+            password = form.password.data
             
             current_app.logger.debug(f'Login denemesi: {username}')
-            
-            if not username or not password:
-                flash('Kullanıcı adı ve şifre gereklidir.', 'error')
-                return render_template('auth/login.html')
             
             user = User.query.filter_by(username=username).first()
             
@@ -42,7 +45,7 @@ def login():
                     flash('Hesabınız aktif değil. Lütfen yönetici ile iletişime geçin.', 'error')
                     return redirect(url_for('auth.login'))
                     
-                login_user(user, remember=remember)
+                login_user(user)
                 user.last_login = datetime.now()
                 db.session.commit()
                 
@@ -58,12 +61,12 @@ def login():
             current_app.logger.warning(f'Başarısız giriş denemesi: {username}')
             flash('Kullanıcı adı veya şifre hatalı!', 'error')
             
-        return render_template('auth/login.html')
+        return render_template('auth/login.html', form=form)
         
     except Exception as e:
         current_app.logger.error(f'Login hatası: {str(e)}')
         flash('Bir hata oluştu. Lütfen tekrar deneyin.', 'error')
-        return render_template('auth/login.html')
+        return render_template('auth/login.html', form=form)
 
 @auth_bp.route('/logout')
 @login_required

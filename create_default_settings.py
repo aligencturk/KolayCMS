@@ -13,7 +13,6 @@ with app.app_context():
         settings = SiteSettings(
             site_title='KolayCMS',
             site_description='Modern ve Kolay Yönetilebilir İçerik Yönetim Sistemi',
-            meta_keywords='cms, içerik yönetim sistemi, web sitesi',
             
             # Tema Ayarları
             primary_color='#007bff',

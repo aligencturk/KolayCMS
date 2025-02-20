@@ -303,21 +303,22 @@ class OrderItem(db.Model):
     
     product = db.relationship('Product')
 
-class Slide(db.Model):
-    __tablename__ = 'slides'
+class Slider(db.Model):
+    __tablename__ = 'sliders'
     
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
-    image_path = db.Column(db.String(500), nullable=True)
-    button1_text = db.Column(db.String(100))
-    button1_url = db.Column(db.String(200))
-    button2_text = db.Column(db.String(100))
-    button2_url = db.Column(db.String(200))
+    image_path = db.Column(db.String(500))
+    button_text = db.Column(db.String(100))
+    button_url = db.Column(db.String(200))
     order = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.now)
-    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Slider {self.title}>'
 
 class AboutSection(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -372,4 +373,30 @@ class VideoSection(db.Model):
     thumbnail = db.Column(db.String(200))
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow) 
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class VideoSection(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200))
+    url = db.Column(db.String(200))
+    button_text = db.Column(db.String(50))
+    button_url = db.Column(db.String(200))
+    thumbnail = db.Column(db.String(200))
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class Slider(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200))
+    description = db.Column(db.Text)
+    image_path = db.Column(db.String(200))
+    button_text = db.Column(db.String(50))
+    button_url = db.Column(db.String(200))
+    order = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Slider {self.title}>' 

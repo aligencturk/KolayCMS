@@ -253,55 +253,63 @@
 
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-3 col-lg-2 d-none d-md-block sidebar">
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'admin.index' %}active{% endif %}" 
-                           href="{{ url_for('admin.index') }}" data-toggle="tooltip" title="Genel site istatistiklerini ve özeti görüntüleyin">
-                            <i class="fas fa-tachometer-alt"></i> Gösterge Paneli
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'users' in request.endpoint %}active{% endif %}" 
-                           href="{{ url_for('admin.users_list') }}" data-toggle="tooltip" title="Kullanıcıları yönetin ve yetkilendirin">
-                            <i class="fas fa-users"></i> Kullanıcılar
-                            {% if stats and stats.pending_users %}<span class="badge badge-pill badge-warning">{{ stats.pending_users }}</span>{% endif %}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'pages' in request.endpoint %}active{% endif %}" 
-                           href="{{ url_for('admin.pages_list') }}" data-toggle="tooltip" title="Sayfa içeriklerini düzenleyin">
-                            <i class="fas fa-file-alt"></i> Sayfalar
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'contents' in request.endpoint %}active{% endif %}" 
-                           href="{{ url_for('admin.contents_list') }}" data-toggle="tooltip" title="Blog yazıları ve içerikleri yönetin">
-                            <i class="fas fa-newspaper"></i> İçerikler
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'products' in request.endpoint %}active{% endif %}" 
-                           href="{{ url_for('admin.products_list') }}" data-toggle="tooltip" title="Ürün kataloğunu yönetin">
-                            <i class="fas fa-box"></i> Ürünler
-                            {% if stats.low_stock %}<span class="badge badge-pill badge-danger">{{ stats.low_stock }}</span>{% endif %}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'orders' in request.endpoint %}active{% endif %}" 
-                           href="{{ url_for('admin.orders_list') }}" data-toggle="tooltip" title="Siparişleri takip edin">
-                            <i class="fas fa-shopping-cart"></i> Siparişler
-                            {% if stats.new_orders %}<span class="badge badge-pill badge-success">{{ stats.new_orders }}</span>{% endif %}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'settings' in request.endpoint %}active{% endif %}" 
-                           href="{{ url_for('admin.settings') }}" data-toggle="tooltip" title="Sistem ayarlarını yapılandırın">
-                            <i class="fas fa-cog"></i> Ayarlar
-                        </a>
-                    </li>
-                </ul>
-            </div>
+            <nav class="col-md-2 d-none d-md-block sidebar">
+                <div class="sidebar-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin.index' %}active{% endif %}" 
+                               href="{{ url_for('admin.index') }}">
+                                <i class="fas fa-tachometer-alt"></i> Panel
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin.pages_list' %}active{% endif %}" 
+                               href="{{ url_for('admin.pages_list') }}">
+                                <i class="fas fa-file-alt"></i> Sayfalar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin.menus' %}active{% endif %}" 
+                               href="{{ url_for('admin.menus') }}">
+                                <i class="fas fa-bars"></i> Menüler
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'users' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('admin.users_list') }}" data-toggle="tooltip" title="Kullanıcıları yönetin ve yetkilendirin">
+                                <i class="fas fa-users"></i> Kullanıcılar
+                                {% if stats and stats.pending_users %}<span class="badge badge-pill badge-warning">{{ stats.pending_users }}</span>{% endif %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'contents' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('admin.contents_list') }}" data-toggle="tooltip" title="Blog yazıları ve içerikleri yönetin">
+                                <i class="fas fa-newspaper"></i> İçerikler
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'products' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('admin.products_list') }}" data-toggle="tooltip" title="Ürün kataloğunu yönetin">
+                                <i class="fas fa-box"></i> Ürünler
+                                {% if stats.low_stock %}<span class="badge badge-pill badge-danger">{{ stats.low_stock }}</span>{% endif %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'orders' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('admin.orders_list') }}" data-toggle="tooltip" title="Siparişleri takip edin">
+                                <i class="fas fa-shopping-cart"></i> Siparişler
+                                {% if stats.new_orders %}<span class="badge badge-pill badge-success">{{ stats.new_orders }}</span>{% endif %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'settings' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('admin.settings') }}" data-toggle="tooltip" title="Sistem ayarlarını yapılandırın">
+                                <i class="fas fa-cog"></i> Ayarlar
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
             
             <main class="col-md-9 ml-sm-auto col-lg-10 px-md-4 content">
                 {% with messages = get_flashed_messages(with_categories=true) %}

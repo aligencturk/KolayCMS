@@ -1,5 +1,6 @@
 from flask import Flask, url_for, render_template
 from apps.extensions import db, login_manager, migrate, babel
+from flask_wtf.csrf import CSRFProtect
 from apps.models import User, SiteSettings, Page, Widget, Menu, Content, ActivityLog, Theme, Product, Category, Order
 import logging
 from logging.handlers import RotatingFileHandler
@@ -13,6 +14,10 @@ def create_app():
                 static_folder='static',
                 static_url_path='/static',
                 template_folder='templates')
+    
+    # CSRF koruması ekle
+    csrf = CSRFProtect()
+    csrf.init_app(app)
     
     # Debug ayarları
     app.config['DEBUG'] = False

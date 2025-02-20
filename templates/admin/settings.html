@@ -23,18 +23,13 @@
     <div class="row mb-4">
         <!-- Tema Ayarları Kartı -->
         <div class="col-xl-3 col-md-6">
-            <div class="card bg-primary text-white h-100">
+            <div class="card bg-primary text-white mb-4">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="h5">Tema Ayarları</div>
-                            <div class="small">Tema renkleri, yazı tipleri ve diğer görsel ayarlar</div>
-                        </div>
-                        <i class="fas fa-palette fa-2x"></i>
-                    </div>
+                    <h5 class="card-title"><i class="fas fa-paint-brush"></i> Tema Ayarları</h5>
+                    <p class="card-text">Site teması ve görünüm ayarlarını düzenleyin.</p>
                 </div>
                 <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a class="small text-white stretched-link" href="{{ url_for('admin.theme_settings') }}">Detayları Görüntüle</a>
+                    <a class="small text-white stretched-link" href="{{ url_for('admin.theme_settings') }}">Düzenle</a>
                     <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                 </div>
             </div>
@@ -42,18 +37,13 @@
 
         <!-- Slider Ayarları Kartı -->
         <div class="col-xl-3 col-md-6">
-            <div class="card bg-success text-white h-100">
+            <div class="card bg-success text-white mb-4">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="h5">Slider Ayarları</div>
-                            <div class="small">Slider görünümü ve davranış ayarları</div>
-                        </div>
-                        <i class="fas fa-images fa-2x"></i>
-                    </div>
+                    <h5 class="card-title"><i class="fas fa-images"></i> Slider Ayarları</h5>
+                    <p class="card-text">Slider görünüm ve davranış ayarlarını düzenleyin.</p>
                 </div>
                 <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a class="small text-white stretched-link" href="{{ url_for('admin.slider_settings') }}">Detayları Görüntüle</a>
+                    <a class="small text-white stretched-link" href="{{ url_for('admin.slider_settings') }}">Düzenle</a>
                     <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                 </div>
             </div>
@@ -61,9 +51,14 @@
     </div>
 
     <div class="card mb-4">
-        <div class="card-header">
-            <i class="fas fa-cogs me-1"></i>
-            Genel Ayarlar
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-cogs me-1"></i>
+                Genel Ayarlar
+            </div>
+            <button type="button" class="btn btn-warning" onclick="showResetConfirmation()">
+                <i class="fas fa-undo me-1"></i> Varsayılan Ayarlara Dön
+            </button>
         </div>
         <div class="card-body">
             <form method="POST" action="{{ url_for('admin.settings') }}" enctype="multipart/form-data">
@@ -76,10 +71,9 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-floating mb-3">
-                            <textarea class="form-control" id="site_description" name="site_description" 
-                                      style="height: 100px">{{ settings.site_description }}</textarea>
-                            <label for="site_description">Site Açıklaması</label>
+                        <div class="mb-3">
+                            <label for="site_description" class="form-label">Site Açıklaması</label>
+                            <textarea class="form-control" id="site_description" name="site_description" rows="3">{{ settings.site_description }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -149,20 +143,20 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-check form-switch mt-3">
-                            <input class="form-check-input" type="checkbox" id="is_dark_mode" name="is_dark_mode"
-                                   {% if settings.is_dark_mode %}checked{% endif %}>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="is_dark_mode" name="is_dark_mode" {% if settings.is_dark_mode %}checked{% endif %}>
                             <label class="form-check-label" for="is_dark_mode">Karanlık Mod</label>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-4">
+                <!-- Kaydet ve Sıfırla Butonları -->
+                <div class="card-footer">
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-1"></i> Ayarları Kaydet
+                        <i class="fas fa-save me-1"></i> Kaydet
                     </button>
-                    <button type="reset" class="btn btn-secondary ms-2">
-                        <i class="fas fa-undo me-1"></i> Sıfırla
+                    <button type="button" id="resetSettingsButton" class="btn btn-danger float-end">
+                        <i class="fas fa-undo me-1"></i> Varsayılan Ayarlara Döndür
                     </button>
                 </div>
             </form>
@@ -170,28 +164,63 @@
     </div>
 </div>
 
-{% block extra_js %}
+<!-- Reset Modal -->
+<div class="modal fade" id="resetSettingsModal" tabindex="-1" aria-labelledby="resetSettingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resetSettingsModalLabel">Ayarları Sıfırla</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Site ayarlarını varsayılan değerlere döndürmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-danger" id="confirmResetSettings">Evet, Sıfırla</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Form değişikliklerini izle
-    const form = document.querySelector('form');
-    let formChanged = false;
+    // Reset Modal
+    var resetModal = document.getElementById('resetSettingsModal');
+    var myModal = new bootstrap.Modal(resetModal);
 
-    form.addEventListener('change', function() {
-        formChanged = true;
+    // Reset butonuna tıklandığında
+    document.getElementById('resetSettingsButton').addEventListener('click', function(e) {
+        e.preventDefault();
+        myModal.show();
     });
 
-    // Sayfadan ayrılmadan önce uyarı göster
-    window.addEventListener('beforeunload', function(e) {
-        if (formChanged) {
-            e.preventDefault();
-            e.returnValue = '';
-        }
-    });
-
-    // Form gönderildiğinde değişiklik bayrağını sıfırla
-    form.addEventListener('submit', function() {
-        formChanged = false;
+    // Onay butonuna tıklandığında
+    document.getElementById('confirmResetSettings').addEventListener('click', function() {
+        fetch("{{ url_for('admin.settings_reset') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                response.json().then(data => {
+                    alert(data.message || 'Bir hata oluştu. Lütfen tekrar deneyin.');
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+        })
+        .finally(() => {
+            myModal.hide();
+        });
     });
 });
 </script>
