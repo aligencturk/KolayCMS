@@ -107,14 +107,21 @@ class ContactInfo(db.Model):
     __tablename__ = 'contact_info'
     
     id = db.Column(db.Integer, primary_key=True)
-    address = db.Column(db.Text)
+    page_id = db.Column(db.Integer, db.ForeignKey('pages.id', ondelete='CASCADE', name='fk_contact_info_page'), unique=True)
+    address = db.Column(db.String(500))
     phone = db.Column(db.String(20))
-    email = db.Column(db.String(100))
+    email = db.Column(db.String(120))
     google_maps_embed = db.Column(db.Text)
-    working_hours = db.Column(db.Text)
-    social_media = db.Column(db.JSON)  # {"facebook": "url", "twitter": "url", ...}
-    created_at = db.Column(db.DateTime, default=datetime.now)
-    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    working_hours = db.Column(db.String(200))
+    facebook = db.Column(db.String(200))
+    twitter = db.Column(db.String(200))
+    instagram = db.Column(db.String(200))
+    linkedin = db.Column(db.String(200))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __str__(self):
+        return f"Contact Info for Page {self.page_id}"
 
 class VideoSection(db.Model):
     __tablename__ = 'video_sections'

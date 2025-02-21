@@ -1,5 +1,6 @@
 from datetime import datetime
 from apps.extensions import db
+from apps.models.content_types import ContactInfo
 
 class Page(db.Model):
     __tablename__ = 'pages'
@@ -12,6 +13,9 @@ class Page(db.Model):
     is_published = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    
+    # İlişkiler
+    contact_info = db.relationship('ContactInfo', backref='page', uselist=False, cascade='all, delete-orphan')
     
     def __str__(self):
         return self.title

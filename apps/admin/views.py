@@ -9,6 +9,9 @@ import os
 import shutil
 from apps.forms import ThemeSettingsForm
 from flask_wtf.csrf import generate_csrf
+from flask_wtf import FlaskForm
+from wtforms import StringField, TextAreaField, BooleanField
+from wtforms.validators import DataRequired
 
 def admin_required(f):
     def decorated_function(*args, **kwargs):
@@ -192,55 +195,84 @@ def pages_create():
     stats = get_admin_stats()
     return render_template('admin/pages/create.html', stats=stats)
 
+class PageForm(FlaskForm):
+    title = StringField('Başlık', validators=[DataRequired()])
+    menu_title = StringField('Menü Başlığı')
+    slug = StringField('SEO URL', validators=[DataRequired()])
+    content = TextAreaField('İçerik')
+    meta_description = StringField('Meta Açıklama')
+    meta_keywords = StringField('Meta Anahtar Kelimeler')
+    is_published = BooleanField('Yayınla')
+
 @admin_bp.route('/pages/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def pages_edit(id):
+    if not current_user.role == 'admin':
+        flash('Bu sayfaya erişim için admin yetkisi gereklidir.', 'error')
+        return redirect(url_for('auth.login'))
+        
     page = Page.query.get_or_404(id)
-    stats = get_admin_stats()
-
-    if request.method == 'POST':
+    form = PageForm(obj=page)
+    
+    if request.method == 'POST' and form.validate_on_submit():
         try:
-            # Form verilerini al
-            page.title = request.form.get('title')
-            page.menu_title = request.form.get('menu_title')
-            page.slug = request.form.get('slug')
-            page.content = request.form.get('content')
-            page.meta_description = request.form.get('meta_description')
-            page.meta_keywords = request.form.get('meta_keywords')
-            page.is_published = True if request.form.get('is_published') else False
-            page.updated_at = datetime.now()
-
-            # İletişim bilgilerini güncelle
+            # Form verilerini logla
+            current_app.logger.info(f'Gelen form verileri: {request.form}')
+            
+            # Temel sayfa bilgilerini güncelle
+            form.populate_obj(page)
+            
+            # İletişim sayfası ise iletişim bilgilerini güncelle
             if page.slug == 'contact':
+                current_app.logger.info('İletişim sayfası güncelleniyor...')
+                
                 if not page.contact_info:
+                    current_app.logger.info('Yeni ContactInfo oluşturuluyor...')
                     page.contact_info = ContactInfo()
                 
-                # Form verilerini doğrudan al
+                # İletişim bilgilerini güncelle
                 contact_info = page.contact_info
-                contact_info.address = request.form.get('contact_info[address]')
-                contact_info.phone = request.form.get('contact_info[phone]')
-                contact_info.email = request.form.get('contact_info[email]')
-                contact_info.working_hours = request.form.get('contact_info[working_hours]')
-                contact_info.google_maps_embed = request.form.get('contact_info[google_maps]')
-                contact_info.facebook = request.form.get('contact_info[facebook]')
-                contact_info.twitter = request.form.get('contact_info[twitter]')
-                contact_info.instagram = request.form.get('contact_info[instagram]')
-                contact_info.linkedin = request.form.get('contact_info[linkedin]')
-
-            # Veritabanına kaydet
+                contact_info.address = request.form.get('contact_info.address', '')
+                contact_info.phone = request.form.get('contact_info.phone', '')
+                contact_info.email = request.form.get('contact_info.email', '')
+                contact_info.working_hours = request.form.get('contact_info.working_hours', '')
+                contact_info.google_maps_embed = request.form.get('contact_info.google_maps', '')
+                
+                # Sosyal medya bilgilerini güncelle
+                contact_info.facebook = request.form.get('contact_info.facebook', '')
+                contact_info.twitter = request.form.get('contact_info.twitter', '')
+                contact_info.instagram = request.form.get('contact_info.instagram', '')
+                contact_info.linkedin = request.form.get('contact_info.linkedin', '')
+                
+                current_app.logger.info(f'Güncellenmiş contact_info: {contact_info.__dict__}')
+                
+                # ContactInfo'yu veritabanına ekle
+                if contact_info not in db.session:
+                    current_app.logger.info('ContactInfo session\'a ekleniyor...')
+                    db.session.add(contact_info)
+            
+            current_app.logger.info('Değişiklikler kaydediliyor...')
             db.session.commit()
             
-            flash('Sayfa başarıyla güncellendi!', 'success')
+            flash('Sayfa başarıyla güncellendi.', 'success')
             return redirect(url_for('admin.pages_list'))
-            
         except Exception as e:
-            current_app.logger.error(f'Sayfa güncelleme hatası: {str(e)}')
             db.session.rollback()
-            flash('Sayfa güncellenirken bir hata oluştu!', 'error')
-            return render_template('admin/pages/edit.html', page=page, stats=stats)
-
-    return render_template('admin/pages/edit.html', page=page, stats=stats)
+            # Detaylı hata mesajını logla
+            import traceback
+            current_app.logger.error(f'Sayfa güncellenirken hata: {str(e)}')
+            current_app.logger.error(f'Hata detayı: {traceback.format_exc()}')
+            flash(f'Sayfa güncellenirken bir hata oluştu: {str(e)}', 'error')
+    
+    # Sayfa istatistiklerini al
+    stats = {
+        'created_at': page.created_at,
+        'updated_at': page.updated_at if hasattr(page, 'updated_at') else None,
+        'view_count': page.view_count if hasattr(page, 'view_count') else 0
+    }
+    
+    return render_template('admin/pages/edit.html', page=page, form=form, stats=stats)
 
 @admin_bp.route('/pages/delete/<int:id>', methods=['POST'])
 @login_required

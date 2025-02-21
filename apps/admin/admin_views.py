@@ -2,6 +2,9 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import BaseView, expose, Admin, AdminIndexView
+from flask_wtf import FlaskForm
+from wtforms import StringField, TextAreaField, BooleanField
+from wtforms.validators import DataRequired
 from app import db
 from models import (
     User, SiteSettings, Page, Widget, Menu, Content,
@@ -182,4 +185,47 @@ class DashboardView(BaseView):
             total_widgets=total_widgets,
             total_users=total_users,
             recent_activities=recent_activities
-        ) 
+        )
+
+class PageForm(FlaskForm):
+    title = StringField('Başlık', validators=[DataRequired()])
+    menu_title = StringField('Menü Başlığı')
+    slug = StringField('SEO URL', validators=[DataRequired()])
+    content = TextAreaField('İçerik')
+    meta_description = StringField('Meta Açıklama')
+    meta_keywords = StringField('Meta Anahtar Kelimeler')
+    is_published = BooleanField('Yayınla')
+
+@admin_bp.route('/pages/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def page_edit(id):
+    if not current_user.role == 'admin':
+        flash('Bu sayfaya erişim için admin yetkisi gereklidir.', 'error')
+        return redirect(url_for('auth.login'))
+        
+    page = Page.query.get_or_404(id)
+    
+    if request.method == 'GET':
+        form = PageForm(obj=page)
+    else:
+        form = PageForm()
+        
+    if form.validate_on_submit():
+        try:
+            page.title = form.title.data
+            page.menu_title = form.menu_title.data
+            page.slug = form.slug.data
+            page.content = form.content.data
+            page.meta_description = form.meta_description.data
+            page.meta_keywords = form.meta_keywords.data
+            page.is_published = form.is_published.data
+            
+            db.session.commit()
+            flash('Sayfa başarıyla güncellendi.', 'success')
+            return redirect(url_for('admin.pages_list'))
+        except Exception as e:
+            db.session.rollback()
+            flash('Sayfa güncellenirken bir hata oluştu.', 'error')
+            current_app.logger.error(f'Sayfa güncellenirken hata: {str(e)}')
+    
+    return render_template('admin/pages/edit.html', page=page, form=form) 
