@@ -30,8 +30,9 @@
                 
                 <div class="mb-3">
                     <label for="content" class="form-label">İçerik</label>
-                    <div id="editor"></div>
-                    <input type="hidden" name="content" id="content">
+                    <div id="toolbar-container"></div>
+                    <div id="editor-container"></div>
+                    <textarea id="content" name="content" style="display: none;"></textarea>
                 </div>
                 
                 <div class="mb-3 form-check">
@@ -49,18 +50,55 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.ckeditor.com/ckeditor5/27.1.0/classic/ckeditor.js"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/decoupled-document/ckeditor.js"></script>
 <script>
 let editor;
 
 document.addEventListener('DOMContentLoaded', function() {
-    ClassicEditor
-        .create(document.querySelector('#editor'), {
-            toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'outdent', 'indent', '|', 'blockQuote', 'insertTable', 'undo', 'redo'],
-            language: 'tr'
+    DecoupledEditor
+        .create(document.querySelector('#editor-container'), {
+            toolbar: {
+                items: [
+                    'heading',
+                    '|',
+                    'bold',
+                    'italic',
+                    'underline',
+                    'strikethrough',
+                    '|',
+                    'fontSize',
+                    'fontFamily',
+                    'fontColor',
+                    'fontBackgroundColor',
+                    '|',
+                    'alignment',
+                    'outdent',
+                    'indent',
+                    '|',
+                    'bulletedList',
+                    'numberedList',
+                    '|',
+                    'link',
+                    'blockQuote',
+                    'insertTable',
+                    'mediaEmbed',
+                    'horizontalLine',
+                    '|',
+                    'undo',
+                    'redo'
+                ],
+                shouldNotGroupWhenFull: true
+            },
+            language: 'tr',
+            table: {
+                contentToolbar: [ 'tableColumn', 'tableRow', 'mergeTableCells', 'tableCellProperties', 'tableProperties' ]
+            }
         })
         .then(newEditor => {
             editor = newEditor;
+            
+            // Toolbar'ı ayrı bir container'a ekle
+            document.querySelector('#toolbar-container').appendChild(editor.ui.view.toolbar.element);
         })
         .catch(error => {
             console.error(error);
@@ -69,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('createPageForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // CKEditor içeriğini gizli alana aktar
+        // CKEditor içeriğini textarea'ya aktar
         document.getElementById('content').value = editor.getData();
         
         // Formu gönder
@@ -86,4 +124,34 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<style>
+#toolbar-container {
+    padding: 1rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+}
+
+#editor-container {
+    min-height: 400px;
+    border: 1px solid #dee2e6;
+    border-radius: 0 0 4px 4px;
+}
+
+.ck-editor__editable {
+    min-height: 400px;
+    padding: 1rem !important;
+}
+
+.ck.ck-toolbar {
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+.ck.ck-editor__main {
+    height: 100%;
+}
+</style>
 {% endblock %} 

@@ -70,6 +70,18 @@
                     </div>
                     
                     <div class="col-md-6">
+                        <label for="permission" class="form-label">Yetki</label>
+                        <select class="form-select" id="permission" name="permission">
+                            {% for value, label in permission_choices %}
+                            <option value="{{ value }}" {% if menu and menu.permission == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Bu menüyü kimlerin görebileceğini belirler</small>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
                         <label for="icon" class="form-label">İkon (FontAwesome)</label>
                         <input type="text" 
                                class="form-control" 
@@ -79,19 +91,6 @@
                                placeholder="Örn: fas fa-home">
                         <small class="text-muted">FontAwesome ikon sınıfını giriniz</small>
                     </div>
-                </div>
-                
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="permission" class="form-label">İzin</label>
-                        <input type="text" 
-                               class="form-control" 
-                               id="permission" 
-                               name="permission" 
-                               value="{{ menu.permission if menu else '' }}"
-                               placeholder="Örn: admin_required">
-                        <small class="text-muted">Bu menüyü görmek için gerekli izin</small>
-                    </div>
                     
                     <div class="col-md-6">
                         <label for="css_class" class="form-label">CSS Sınıfı</label>
@@ -100,7 +99,8 @@
                                id="css_class" 
                                name="css_class" 
                                value="{{ menu.css_class if menu else '' }}"
-                               placeholder="Örn: btn btn-primary">
+                               placeholder="Örn: primary-menu">
+                        <small class="text-muted">Özel CSS sınıfı (opsiyonel)</small>
                     </div>
                 </div>
                 

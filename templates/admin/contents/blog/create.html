@@ -37,7 +37,9 @@
 
     <div class="card">
         <div class="card-body">
-            <form method="POST" action="{{ url_for('admin.blog_create') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ url_for('admin.blog_create') }}" enctype="multipart/form-data" id="blogForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                
                 <div class="mb-3">
                     <label for="title" class="form-label">Başlık</label>
                     <input type="text" class="form-control" id="title" name="title" required>
@@ -51,7 +53,8 @@
                 
                 <div class="mb-3">
                     <label for="content" class="form-label">İçerik</label>
-                    <textarea class="form-control" id="content" name="content" rows="10" required></textarea>
+                    <div id="editor"></div>
+                    <textarea id="content" name="content" style="display: none;"></textarea>
                 </div>
 
                 <div class="mb-3">
@@ -93,55 +96,71 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/decoupled-document/ckeditor.js"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const contentTextarea = document.querySelector('#content');
-        const editorContainer = document.createElement('div');
-        editorContainer.className = 'editor-container';
-        
-        const toolbarContainer = document.createElement('div');
-        toolbarContainer.className = 'toolbar-container';
-        
-        const editorContent = document.createElement('div');
-        editorContent.className = 'editor-content';
-        
-        editorContainer.appendChild(toolbarContainer);
-        editorContainer.appendChild(editorContent);
-        
-        contentTextarea.parentNode.insertBefore(editorContainer, contentTextarea);
-        
-        DecoupledEditor
-            .create(editorContent, {
-                removePlugins: ['Markdown'],
-                toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 
-                         'outdent', 'indent', '|', 'blockQuote', 'insertTable', 'mediaEmbed', 'undo', 'redo']
-            })
-            .then(editor => {
-                toolbarContainer.appendChild(editor.ui.view.toolbar.element);
-                
-                // Form gönderilmeden önce içeriği textarea'ya aktar
-                const form = contentTextarea.closest('form');
-                form.addEventListener('submit', () => {
-                    contentTextarea.value = editor.getData();
-                });
-                
-                console.log('CKEditor başarıyla yüklendi');
-            })
-            .catch(error => {
-                console.error('CKEditor yüklenirken hata oluştu:', error);
-                contentTextarea.style.display = 'block';
-                editorContainer.remove();
-            });
+let editor;
 
-        // Başlıktan otomatik slug oluştur
-        document.getElementById('title').addEventListener('input', function() {
-            let slug = this.value
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/(^-|-$)/g, '');
-            document.getElementById('slug').value = slug;
+document.addEventListener('DOMContentLoaded', function() {
+    ClassicEditor
+        .create(document.querySelector('#editor'), {
+            toolbar: {
+                items: [
+                    'heading',
+                    '|',
+                    'bold',
+                    'italic',
+                    'underline',
+                    'strikethrough',
+                    '|',
+                    'fontSize',
+                    'fontColor',
+                    '|',
+                    'alignment',
+                    'outdent',
+                    'indent',
+                    '|',
+                    'bulletedList',
+                    'numberedList',
+                    '|',
+                    'link',
+                    'blockQuote',
+                    'insertTable',
+                    'mediaEmbed',
+                    '|',
+                    'undo',
+                    'redo'
+                ]
+            },
+            language: 'tr'
+        })
+        .then(newEditor => {
+            editor = newEditor;
+        })
+        .catch(error => {
+            console.error('CKEditor yüklenirken hata oluştu:', error);
         });
+
+    // Form gönderilmeden önce CKEditor içeriğini gizli textarea'ya aktar
+    document.getElementById('blogForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        document.getElementById('content').value = editor.getData();
+        this.submit();
     });
+
+    // Başlıktan otomatik slug oluştur
+    document.getElementById('title').addEventListener('input', function() {
+        let slug = this.value
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+        document.getElementById('slug').value = slug;
+    });
+});
 </script>
+
+<style>
+.ck-editor__editable {
+    min-height: 400px;
+}
+</style>
 {% endblock %} 

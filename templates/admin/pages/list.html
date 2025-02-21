@@ -1,6 +1,9 @@
 {% extends 'admin/master.html' %}
 
 {% block content %}
+<!-- CSRF Token Meta Tag -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col">
@@ -103,23 +106,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Silme onayı
     document.getElementById('confirmDelete').addEventListener('click', function() {
         if (currentPageId) {
+            const token = '{{ csrf_token() }}';
             fetch(`/admin/pages/delete/${currentPageId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+                    'X-CSRFToken': token
+                },
+                credentials: 'include'
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
+            .then(response => response.json().then(data => ({ ok: response.ok, data })))
+            .then(({ ok, data }) => {
+                if (ok && data.success) {
                     currentRow.remove();
-                    toastr.success('Sayfa başarıyla silindi.');
+                    toastr.success(data.message);
                 } else {
                     toastr.error(data.message || 'Sayfa silinirken bir hata oluştu.');
                 }
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error:', error);
-                toastr.error('Bir hata oluştu.');
+                toastr.error('Sayfa silinirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
                 deleteModal.hide();
             });
         }

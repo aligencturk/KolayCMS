@@ -1,8 +1,8 @@
-"""initial migration
+"""Initial migration
 
-Revision ID: 1fcbcfa9a20d
+Revision ID: 13cfc99c8ccb
 Revises: 
-Create Date: 2025-02-20 17:40:25.713859
+Create Date: 2025-02-21 12:41:50.908933
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '1fcbcfa9a20d'
+revision = '13cfc99c8ccb'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -60,7 +60,7 @@ def upgrade():
     op.create_table('menus',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(length=100), nullable=False),
-    sa.Column('url', sa.String(length=200), nullable=True),
+    sa.Column('url', sa.String(length=200), nullable=False),
     sa.Column('order', sa.Integer(), nullable=True),
     sa.Column('parent_id', sa.Integer(), nullable=True),
     sa.Column('menu_type', sa.String(length=20), nullable=True),
@@ -70,7 +70,7 @@ def upgrade():
     sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['parent_id'], ['menus.id'], name='fk_menu_parent', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['parent_id'], ['menus.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('pages',
@@ -78,6 +78,7 @@ def upgrade():
     sa.Column('title', sa.String(length=200), nullable=False),
     sa.Column('slug', sa.String(length=200), nullable=False),
     sa.Column('content', sa.Text(), nullable=True),
+    sa.Column('template', sa.String(length=50), nullable=True),
     sa.Column('is_published', sa.Boolean(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
@@ -315,18 +316,21 @@ def upgrade():
     op.create_table('blog_posts',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(length=200), nullable=False),
-    sa.Column('slug', sa.String(length=200), nullable=True),
+    sa.Column('slug', sa.String(length=200), nullable=False),
     sa.Column('content', sa.Text(), nullable=True),
     sa.Column('excerpt', sa.Text(), nullable=True),
-    sa.Column('featured_image', sa.String(length=200), nullable=True),
-    sa.Column('author_id', sa.Integer(), nullable=True),
-    sa.Column('is_published', sa.Boolean(), nullable=True),
-    sa.Column('published_at', sa.DateTime(), nullable=True),
+    sa.Column('featured_image', sa.String(length=255), nullable=True),
     sa.Column('meta_title', sa.String(length=200), nullable=True),
     sa.Column('meta_description', sa.Text(), nullable=True),
+    sa.Column('is_published', sa.Boolean(), nullable=True),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
+    sa.Column('author_id', sa.Integer(), nullable=True),
+    sa.Column('category_id', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['author_id'], ['users.id'], ),
+    sa.Column('published_at', sa.DateTime(), nullable=True),
+    sa.ForeignKeyConstraint(['author_id'], ['users.id'], name='fk_blog_post_author'),
+    sa.ForeignKeyConstraint(['category_id'], ['categories.id'], name='fk_blog_post_category'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('slug')
     )

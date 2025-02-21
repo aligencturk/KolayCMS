@@ -8,6 +8,7 @@ class Page(db.Model):
     title = db.Column(db.String(200), nullable=False)
     slug = db.Column(db.String(200), unique=True, nullable=False)
     content = db.Column(db.Text, nullable=True)
+    template = db.Column(db.String(50), default='default')  # Şablon tipi: default, full-width, sidebar, landing
     is_published = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)

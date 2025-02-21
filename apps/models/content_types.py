@@ -116,35 +116,6 @@ class ContactInfo(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
-class BlogPost(db.Model):
-    __tablename__ = 'blog_posts'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    slug = db.Column(db.String(200), unique=True)
-    content = db.Column(db.Text)
-    excerpt = db.Column(db.Text)
-    featured_image = db.Column(db.String(200))
-    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    is_published = db.Column(db.Boolean, default=False)
-    published_at = db.Column(db.DateTime)
-    meta_title = db.Column(db.String(200))
-    meta_description = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.now)
-    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
-    
-    # İlişkiler
-    author = db.relationship('User', backref='blog_posts')
-    
-    def __str__(self):
-        return self.title
-    
-    def save(self):
-        if not self.slug:
-            self.slug = slugify(self.title)
-        db.session.add(self)
-        db.session.commit()
-
 class VideoSection(db.Model):
     __tablename__ = 'video_sections'
     

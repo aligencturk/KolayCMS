@@ -1,4 +1,4 @@
-from flask import Flask, url_for, render_template
+from flask import Flask, url_for, render_template, request
 from apps.extensions import db, login_manager, migrate, babel
 from flask_wtf.csrf import CSRFProtect
 from apps.models import User, SiteSettings, Page, Widget, Menu, Content, ActivityLog, Theme, Product, Category, Order
@@ -18,6 +18,12 @@ def create_app():
     # CSRF koruması ekle
     csrf = CSRFProtect()
     csrf.init_app(app)
+    
+    # CSRF ayarları
+    app.config['WTF_CSRF_ENABLED'] = True
+    app.config['WTF_CSRF_TIME_LIMIT'] = 3600  # 1 saat
+    app.config['WTF_CSRF_SSL_STRICT'] = False  # Geliştirme ortamı için SSL kontrolünü devre dışı bırak
+    app.config['WTF_CSRF_SECRET_KEY'] = 'your-csrf-secret-key'  # CSRF için özel anahtar
     
     # Debug ayarları
     app.config['DEBUG'] = False

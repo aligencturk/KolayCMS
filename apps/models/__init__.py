@@ -2,6 +2,11 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from apps.extensions import db
+from .blog import BlogPost
+from .content_types import (
+    Slide, AboutSection, Service, VideoSection,
+    Project, TeamMember, Testimonial, ContactInfo
+)
 
 # Kullanıcı modeli
 class User(UserMixin, db.Model):
@@ -180,5 +185,4 @@ from .widget import Widget
 from .menu import Menu
 from .theme import Theme
 from .shop import Product, Category
-from .order import Order
-from .content_types import Slide, AboutSection, Service, BlogPost, VideoSection, Project, TeamMember, Testimonial, ContactInfo 
+from .order import Order 

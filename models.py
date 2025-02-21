@@ -58,6 +58,7 @@ class Page(db.Model):
     __tablename__ = 'pages'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
+    menu_title = db.Column(db.String(100))  # Menüde görünecek başlık
     slug = db.Column(db.String(100), unique=True, nullable=False)
     content = db.Column(db.Text)
     meta_description = db.Column(db.String(160))

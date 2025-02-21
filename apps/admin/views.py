@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 import os
 import shutil
 from apps.forms import ThemeSettingsForm
+from flask_wtf.csrf import generate_csrf
 
 def admin_required(f):
     def decorated_function(*args, **kwargs):
@@ -202,6 +203,7 @@ def pages_edit(id):
         try:
             # Form verilerini al
             page.title = request.form.get('title')
+            page.menu_title = request.form.get('menu_title')
             page.slug = request.form.get('slug')
             page.content = request.form.get('content')
             page.meta_description = request.form.get('meta_description')
@@ -209,38 +211,25 @@ def pages_edit(id):
             page.is_published = True if request.form.get('is_published') else False
             page.updated_at = datetime.now()
 
+            # İletişim bilgilerini güncelle
             if page.slug == 'contact':
                 if not page.contact_info:
-                    contact_info = ContactInfo(
-                        address=request.form.get('address', ''),
-                        phone=request.form.get('phone', ''),
-                        email=request.form.get('email', ''),
-                        google_maps_embed=request.form.get('google_maps_embed', ''),
-                        working_hours=request.form.get('working_hours', ''),
-                        facebook=request.form.get('facebook', ''),
-                        twitter=request.form.get('twitter', ''),
-                        instagram=request.form.get('instagram', ''),
-                        linkedin=request.form.get('linkedin', '')
-                    )
-                    db.session.add(contact_info)
-                    db.session.flush()  # ID'yi almak için flush
-                    page.contact_info_id = contact_info.id
-                else:
-                    page.contact_info.address = request.form.get('address', '')
-                    page.contact_info.phone = request.form.get('phone', '')
-                    page.contact_info.email = request.form.get('email', '')
-                    page.contact_info.google_maps_embed = request.form.get('google_maps_embed', '')
-                    page.contact_info.working_hours = request.form.get('working_hours', '')
-                    page.contact_info.facebook = request.form.get('facebook', '')
-                    page.contact_info.twitter = request.form.get('twitter', '')
-                    page.contact_info.instagram = request.form.get('instagram', '')
-                    page.contact_info.linkedin = request.form.get('linkedin', '')
+                    page.contact_info = ContactInfo()
+                
+                # Form verilerini doğrudan al
+                contact_info = page.contact_info
+                contact_info.address = request.form.get('contact_info[address]')
+                contact_info.phone = request.form.get('contact_info[phone]')
+                contact_info.email = request.form.get('contact_info[email]')
+                contact_info.working_hours = request.form.get('contact_info[working_hours]')
+                contact_info.google_maps_embed = request.form.get('contact_info[google_maps]')
+                contact_info.facebook = request.form.get('contact_info[facebook]')
+                contact_info.twitter = request.form.get('contact_info[twitter]')
+                contact_info.instagram = request.form.get('contact_info[instagram]')
+                contact_info.linkedin = request.form.get('contact_info[linkedin]')
 
-            # Değişiklikleri kaydet
+            # Veritabanına kaydet
             db.session.commit()
-            
-            # Önbelleği temizle
-            db.session.expire_all()
             
             flash('Sayfa başarıyla güncellendi!', 'success')
             return redirect(url_for('admin.pages_list'))
@@ -261,27 +250,28 @@ def pages_delete(id):
         page = Page.query.get_or_404(id)
         
         # Varsayılan sayfaları silmeyi engelle
-        if page.slug in ['', 'about', 'contact', 'blog', 'services']:
+        if page.slug in ['home', 'about', 'contact', 'blog', 'services']:
             return jsonify({
                 'success': False,
                 'message': 'Varsayılan sayfalar silinemez.'
             }), 400
         
         # Sayfanın iletişim bilgilerini sil
-        if page.contact_info:
+        if hasattr(page, 'contact_info') and page.contact_info:
             db.session.delete(page.contact_info)
             
+        # Sayfayı sil
         db.session.delete(page)
+        
+        # Değişiklikleri kaydet
         db.session.commit()
         
         # Aktivite logu oluştur
-        activity = ActivityLog(
-            user_id=current_user.id,
+        log_activity(
             action=f'Sayfa silindi: {page.title}',
-            details=f'Sayfa ID: {page.id}'
+            status='success',
+            details=f'Sayfa ID: {id}'
         )
-        db.session.add(activity)
-        db.session.commit()
         
         return jsonify({
             'success': True,
@@ -291,6 +281,11 @@ def pages_delete(id):
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f'Sayfa silme hatası: {str(e)}')
+        log_activity(
+            action=f'Sayfa silme hatası',
+            status='error',
+            details=f'Sayfa ID: {id}, Hata: {str(e)}'
+        )
         return jsonify({
             'success': False,
             'message': 'Sayfa silinirken bir hata oluştu.'
@@ -591,6 +586,11 @@ def contents_list():
 @admin_required
 def blog_create():
     stats = get_admin_stats()
+    csrf_token = generate_csrf()
+    
+    if request.method == 'GET':
+        return render_template('admin/contents/blog/create.html', stats=stats, csrf_token=csrf_token)
+    
     if request.method == 'POST':
         title = request.form.get('title')
         content = request.form.get('content')
@@ -634,7 +634,8 @@ def blog_create():
             db.session.rollback()
             current_app.logger.error(f'Blog oluşturma hatası: {str(e)}')
             flash('Blog yazısı oluşturulurken bir hata oluştu.', 'error')
-            
+            return render_template('admin/contents/blog/create.html', stats=stats, csrf_token=generate_csrf())
+    
     return render_template('admin/contents/blog/create.html', stats=stats)
 
 @admin_bp.route('/contents/blog/edit/<int:id>', methods=['GET', 'POST'])
@@ -673,14 +674,54 @@ def blog_edit(id):
 @admin_required
 def blog_delete(id):
     try:
+        # Blog yazısını bul
         blog_post = BlogPost.query.get_or_404(id)
+        if not blog_post:
+            return jsonify({
+                'success': False,
+                'message': 'Blog yazısı bulunamadı.'
+            }), 404
+
+        title = blog_post.title
+
+        # Öne çıkan görseli sil
+        if blog_post.featured_image:
+            try:
+                image_path = os.path.join(current_app.root_path, 'static', blog_post.featured_image.lstrip('/'))
+                if os.path.exists(image_path):
+                    os.remove(image_path)
+            except Exception as e:
+                current_app.logger.error(f'Blog görseli silinirken hata: {str(e)}')
+
+        # Blog yazısını sil
         db.session.delete(blog_post)
         db.session.commit()
-        return jsonify({'success': True, 'message': 'Blog yazısı başarıyla silindi.'})
+
+        # Aktivite logu oluştur
+        log_activity(
+            action=f'Blog yazısı silindi: {title}',
+            status='success',
+            details=f'Blog ID: {id}'
+        )
+
+        return jsonify({
+            'success': True,
+            'message': 'Blog yazısı başarıyla silindi.'
+        })
+
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f'Blog silme hatası: {str(e)}')
-        return jsonify({'success': False, 'message': 'Blog yazısı silinirken bir hata oluştu.'}), 500
+        error_msg = str(e)
+        current_app.logger.error(f'Blog silme hatası: {error_msg}')
+        log_activity(
+            action=f'Blog silme hatası',
+            status='error',
+            details=f'Blog ID: {id}, Hata: {error_msg}'
+        )
+        return jsonify({
+            'success': False,
+            'message': 'Blog yazısı silinirken bir hata oluştu.'
+        }), 500
 
 @admin_bp.route('/contents/slide/create', methods=['GET', 'POST'])
 @login_required
@@ -1934,29 +1975,90 @@ def theme_settings_reset_all():
 @admin_required
 def menus():
     try:
-        # Tüm menüleri sıralı bir şekilde getir
-        menus = Menu.query.order_by(Menu.order.asc()).all()
+        # Eğer hiç menü yoksa varsayılan menüleri ekle
+        if Menu.query.count() == 0:
+            default_menus = [
+                {
+                    'title': 'Ana Sayfa',
+                    'url': '/',
+                    'order': 1,
+                    'menu_type': 'header',
+                    'is_active': True
+                },
+                {
+                    'title': 'Hakkımızda',
+                    'url': '/about',
+                    'order': 2,
+                    'menu_type': 'header',
+                    'is_active': True
+                },
+                {
+                    'title': 'Hizmetler',
+                    'url': '/services',
+                    'order': 3,
+                    'menu_type': 'header',
+                    'is_active': True
+                },
+                {
+                    'title': 'Blog',
+                    'url': '/blog',
+                    'order': 4,
+                    'menu_type': 'header',
+                    'is_active': True
+                },
+                {
+                    'title': 'İletişim',
+                    'url': '/contact',
+                    'order': 5,
+                    'menu_type': 'header',
+                    'is_active': True
+                }
+            ]
+            
+            for menu_data in default_menus:
+                menu = Menu(**menu_data)
+                db.session.add(menu)
+            
+            try:
+                db.session.commit()
+                flash('Varsayılan menüler başarıyla oluşturuldu.', 'success')
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(f'Varsayılan menü oluşturma hatası: {str(e)}')
+        
+        # İstatistikleri getir
         stats = get_admin_stats()
         
-        # Aktivite logu oluştur
-        activity = ActivityLog(
-            user_id=current_user.id,
-            action='Menü listesi görüntülendi',
-            status='info'
-        )
-        db.session.add(activity)
-        db.session.commit()
+        # Tüm menüleri sıralı bir şekilde getir
+        menus = Menu.query.order_by(Menu.order.asc()).all()
         
+        # Template'i render et
         return render_template('admin/menus/index.html', menus=menus, stats=stats)
+        
     except Exception as e:
+        # Hata detaylarını logla
         current_app.logger.error(f'Menü listeleme hatası: {str(e)}')
-        flash('Menüler listelenirken bir hata oluştu.', 'danger')
+        # Kullanıcıya hata mesajı göster
+        flash('Menüler listelenirken bir hata oluştu: ' + str(e), 'danger')
+        # Ana sayfaya yönlendir
         return redirect(url_for('admin.index'))
 
 @admin_bp.route('/menus/create', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def menu_create():
+    # İstatistikleri getir
+    stats = get_admin_stats()
+    
+    # Yetki seçenekleri
+    permission_choices = [
+        ('', 'Herkes'),
+        ('admin', 'Sadece Admin'),
+        ('editor', 'Editör ve Admin'),
+        ('user', 'Üyeler'),
+        ('guest', 'Ziyaretçiler')
+    ]
+    
     if request.method == 'POST':
         title = request.form.get('title')
         url = request.form.get('url')
@@ -1991,12 +2093,27 @@ def menu_create():
             current_app.logger.error(f'Menü oluşturma hatası: {str(e)}')
     
     parent_menus = Menu.query.filter_by(parent_id=None).all()
-    return render_template('admin/menus/form.html', parent_menus=parent_menus)
+    return render_template('admin/menus/form.html', 
+                         parent_menus=parent_menus, 
+                         stats=stats,
+                         permission_choices=permission_choices)
 
 @admin_bp.route('/menus/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def menu_edit(id):
+    # İstatistikleri getir
+    stats = get_admin_stats()
+    
+    # Yetki seçenekleri
+    permission_choices = [
+        ('', 'Herkes'),
+        ('admin', 'Sadece Admin'),
+        ('editor', 'Editör ve Admin'),
+        ('user', 'Üyeler'),
+        ('guest', 'Ziyaretçiler')
+    ]
+    
     menu = Menu.query.get_or_404(id)
     
     if request.method == 'POST':
@@ -2020,7 +2137,11 @@ def menu_edit(id):
             current_app.logger.error(f'Menü güncelleme hatası: {str(e)}')
     
     parent_menus = Menu.query.filter(Menu.id != id, Menu.parent_id == None).all()
-    return render_template('admin/menus/form.html', menu=menu, parent_menus=parent_menus)
+    return render_template('admin/menus/form.html', 
+                         menu=menu, 
+                         parent_menus=parent_menus, 
+                         stats=stats,
+                         permission_choices=permission_choices)
 
 @admin_bp.route('/menus/<int:id>/delete', methods=['POST'])
 @login_required

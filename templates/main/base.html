@@ -555,11 +555,24 @@
                     </button>
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul class="navbar-nav ms-auto">
-                            {% for menu in menus %}
+                            {% for menu in header_menus %}
                             <li class="nav-item">
-                                <a class="nav-link {% if menu.url == request.path %}active{% endif %}" href="{{ menu.url }}">
+                                <a class="nav-link {% if request.path == menu.url %}active{% endif %}" href="{{ menu.url }}">
+                                    {% if menu.icon %}<i class="{{ menu.icon }}"></i> {% endif %}
                                     {{ menu.title }}
                                 </a>
+                                {% if menu.children %}
+                                <ul class="dropdown-menu">
+                                    {% for child in menu.children %}
+                                    <li>
+                                        <a class="dropdown-item {% if request.path == child.url %}active{% endif %}" href="{{ child.url }}">
+                                            {% if child.icon %}<i class="{{ child.icon }}"></i> {% endif %}
+                                            {{ child.title }}
+                                        </a>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
                             </li>
                             {% endfor %}
                         </ul>
@@ -576,33 +589,47 @@
     <!--footer section start -->
     <div class="footer_section layout_padding">
         <div class="container">
-            {% if settings and settings.footer_text %}
-            <div class="footer_text">{{ settings.footer_text|safe }}</div>
-            {% endif %}
-            <div class="footer_section_2">
-                <div class="row">
-                    <div class="col-lg-4">
-                        <h2 class="footer_taital">Hakkımızda</h2>
-                        <p class="footer_text">{{ settings.site_description if settings }}</p>
+            <div class="row">
+                <div class="col-lg-3 col-sm-6">
+                    <h4 class="footer_heading">Hakkımızda</h4>
+                    <p class="footer_text">{{ settings.footer_about if settings else '' }}</p>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <h4 class="footer_heading">Hızlı Bağlantılar</h4>
+                    <div class="footer_menu">
+                        <ul>
+                            {% for menu in footer_menus %}
+                            <li>
+                                <a href="{{ menu.url }}" class="footer_link">
+                                    {% if menu.icon %}<i class="{{ menu.icon }}"></i> {% endif %}
+                                    {{ menu.title }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
                     </div>
-                    <div class="col-lg-4">
-                        <h2 class="footer_taital">Hızlı Bağlantılar</h2>
-                        <div class="footer_links">
-                            <ul>
-                                <li><a href="{{ url_for('main.index') }}">Ana Sayfa</a></li>
-                                <li><a href="{{ url_for('main.about') }}">Hakkımızda</a></li>
-                                <li><a href="{{ url_for('main.services') }}">Hizmetler</a></li>
-                                <li><a href="{{ url_for('main.blog') }}">Blog</a></li>
-                                <li><a href="{{ url_for('main.contact') }}">İletişim</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-lg-4">
-                        <h2 class="footer_taital">İletişim</h2>
-                        {% if contact_info %}
-                        <div class="location_text"><i class="fa fa-map-marker" aria-hidden="true"></i> {{ contact_info.address }}</div>
-                        <div class="location_text"><i class="fa fa-phone" aria-hidden="true"></i> {{ contact_info.phone }}</div>
-                        <div class="location_text"><i class="fa fa-envelope" aria-hidden="true"></i> {{ contact_info.email }}</div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <h4 class="footer_heading">İletişim</h4>
+                    <p class="footer_text">
+                        {% if settings %}
+                        <i class="fas fa-map-marker-alt"></i> {{ settings.address }}<br>
+                        <i class="fas fa-phone"></i> {{ settings.phone }}<br>
+                        <i class="fas fa-envelope"></i> {{ settings.email }}
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <h4 class="footer_heading">Sosyal Medya</h4>
+                    <div class="social_icon">
+                        {% if settings and settings.facebook_url %}
+                        <a href="{{ settings.facebook_url }}" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                        {% endif %}
+                        {% if settings and settings.twitter_url %}
+                        <a href="{{ settings.twitter_url }}" target="_blank"><i class="fab fa-twitter"></i></a>
+                        {% endif %}
+                        {% if settings and settings.instagram_url %}
+                        <a href="{{ settings.instagram_url }}" target="_blank"><i class="fab fa-instagram"></i></a>
                         {% endif %}
                     </div>
                 </div>

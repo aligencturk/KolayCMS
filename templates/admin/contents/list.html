@@ -58,14 +58,16 @@
                             </td>
                             <td>
                                 <div class="btn-group">
-                                    <a href="{{ url_for('admin.blog_edit', id=post.id) }}" class="btn btn-sm btn-info">
+                                    <a href="{{ url_for('admin.blog_edit', id=post.id) }}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="Düzenle">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <form action="{{ url_for('admin.blog_delete', id=post.id) }}" method="POST" class="d-inline delete-form">
-                                        <button type="submit" class="btn btn-sm btn-danger delete-btn">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
+                                    <button type="button" class="btn btn-sm btn-danger delete-blog" 
+                                            data-id="{{ post.id }}"
+                                            data-title="{{ post.title }}"
+                                            data-bs-toggle="tooltip" 
+                                            title="Sil">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -124,9 +126,7 @@
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     <button type="button" class="btn btn-sm btn-danger" 
-                                            data-slide-id="{{ slide.id }}"
-                                            data-slide-title="{{ slide.title }}"
-                                            onclick="deleteSlide(this.dataset.slideId, this.dataset.slideTitle)">
+                                            onclick="deleteSlide('{{ slide.id }}', '{{ slide.title }}')">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -159,6 +159,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
                 <form id="deleteBlogForm" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-danger">Sil</button>
                 </form>
             </div>
@@ -181,6 +182,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
                 <form id="deleteSlideForm" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-danger">Sil</button>
                 </form>
             </div>
@@ -191,12 +193,70 @@
 
 {% block scripts %}
 <script>
-function deleteBlogPost(id, title) {
-    const modal = new bootstrap.Modal(document.getElementById('deleteBlogModal'));
-    document.getElementById('deleteBlogTitle').textContent = title;
-    document.getElementById('deleteBlogForm').action = "{{ url_for('admin.blog_delete', id=0) }}".replace('0', id);
-    modal.show();
-}
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.delete-blog').forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const title = this.dataset.title;
+            
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: `"${title}" başlıklı blog yazısını silmek istediğinizden emin misiniz?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Evet, sil!',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData();
+                    const csrfToken = '{{ csrf_token() }}';
+                    formData.append('csrf_token', csrfToken);
+                    
+                    fetch(`/admin/contents/blog/delete/${id}`, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin'
+                    })
+                    .then(async response => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            throw new Error(data.message || 'Silme işlemi başarısız oldu');
+                        }
+                        return data;
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Başarılı!',
+                                text: 'Blog yazısı başarıyla silindi.',
+                                icon: 'success',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            throw new Error(data.message || 'Silme işlemi başarısız oldu');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Blog silme hatası:', error);
+                        Swal.fire({
+                            title: 'Hata!',
+                            text: error.message || 'Blog yazısı silinirken bir hata oluştu.',
+                            icon: 'error'
+                        });
+                    });
+                }
+            });
+        });
+    });
+});
 
 function deleteSlide(id, title) {
     const modal = new bootstrap.Modal(document.getElementById('deleteSlideModal'));
@@ -204,37 +264,5 @@ function deleteSlide(id, title) {
     document.getElementById('deleteSlideForm').action = "{{ url_for('admin.slide_delete', id=0) }}".replace('0', id);
     modal.show();
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    const deleteForms = document.querySelectorAll('.delete-form');
-    
-    deleteForms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            if (confirm('Bu blog yazısını silmek istediğinizden emin misiniz?')) {
-                fetch(form.action, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        form.closest('tr').remove();
-                        toastr.success('Blog yazısı başarıyla silindi.');
-                    } else {
-                        toastr.error('Blog yazısı silinirken bir hata oluştu.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    toastr.error('Bir hata oluştu.');
-                });
-            }
-        });
-    });
-});
 </script>
 {% endblock %} 

@@ -47,21 +47,56 @@ def utility_processor():
     
     contact_info = ContactInfo.query.first()
     
-    # Menü öğelerini getir
-    menus = [
-        {'title': 'Ana Sayfa', 'url': url_for('main.index')},
-        {'title': 'Hakkımızda', 'url': url_for('main.about')},
-        {'title': 'Hizmetler', 'url': url_for('main.services')},
-        {'title': 'Blog', 'url': url_for('main.blog')},
-        {'title': 'İletişim', 'url': url_for('main.contact')}
-    ]
-    
     return {
         'now': datetime.now(),
         'settings': settings,
-        'contact_info': contact_info,
-        'menus': menus
+        'contact_info': contact_info
     }
+
+@main_bp.context_processor
+def inject_menu_data():
+    """Her template'e menü verilerini enjekte et"""
+    try:
+        # Kullanıcı rolünü belirle
+        if current_user.is_authenticated:
+            user_role = current_user.role
+        else:
+            user_role = 'guest'
+            
+        # Header menülerini getir
+        header_menus = Menu.query.filter(
+            Menu.menu_type == 'header',
+            Menu.is_active == True,
+            Menu.parent_id == None,
+            (Menu.permission == '') |  # Herkes görebilir
+            (Menu.permission == user_role) |  # Kullanıcının rolüne özel
+            (Menu.permission == 'user' if user_role != 'guest' else False) |  # Tüm üyeler
+            (Menu.permission == 'editor' if user_role in ['editor', 'admin'] else False) |  # Editör ve admin
+            (Menu.permission == 'admin' if user_role == 'admin' else False)  # Sadece admin
+        ).order_by(Menu.order.asc()).all()
+        
+        # Footer menülerini getir
+        footer_menus = Menu.query.filter(
+            Menu.menu_type == 'footer',
+            Menu.is_active == True,
+            Menu.parent_id == None,
+            (Menu.permission == '') |  # Herkes görebilir
+            (Menu.permission == user_role) |  # Kullanıcının rolüne özel
+            (Menu.permission == 'user' if user_role != 'guest' else False) |  # Tüm üyeler
+            (Menu.permission == 'editor' if user_role in ['editor', 'admin'] else False) |  # Editör ve admin
+            (Menu.permission == 'admin' if user_role == 'admin' else False)  # Sadece admin
+        ).order_by(Menu.order.asc()).all()
+        
+        return {
+            'header_menus': header_menus,
+            'footer_menus': footer_menus
+        }
+    except Exception as e:
+        current_app.logger.error(f'Menü yükleme hatası: {str(e)}')
+        return {
+            'header_menus': [],
+            'footer_menus': []
+        }
 
 @main_bp.route('/')
 def index():
@@ -159,4 +194,10 @@ def services():
 @main_bp.route('/events')
 @login_required
 def events():
-    return render_template('main/events.html') 
+    return render_template('main/events.html')
+
+@main_bp.route('/career')
+def career():
+    page = Page.query.filter_by(slug='career', is_published=True).first_or_404()
+    template = get_template(page)
+    return render_template(template, page=page) 
