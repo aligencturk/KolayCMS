@@ -4,10 +4,11 @@
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <h1 class="h3 mb-4">Gösterge Paneli</h1>
-        </div>
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Gösterge Paneli</h1>
+        <a href="{{ url_for('admin.content_pages_list') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-download fa-sm text-white-50 me-1"></i> Rapor Oluştur
+        </a>
     </div>
     
     <div class="row">
@@ -81,10 +82,75 @@
     </div>
 
     <div class="row">
-        <div class="col-12">
+        <!-- Site Ziyaret Grafiği -->
+        <div class="col-xl-8 col-lg-7">
             <div class="card shadow mb-4">
-                <div class="card-header py-3">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Site Ziyaretleri</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownMenuLink">
+                            <li><a class="dropdown-item" href="#">Bu Hafta</a></li>
+                            <li><a class="dropdown-item" href="#">Bu Ay</a></li>
+                            <li><a class="dropdown-item" href="#">Bu Yıl</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">Tüm Zamanlar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <div class="d-flex justify-content-center align-items-center" style="height: 320px;">
+                            <div class="text-center text-muted">
+                                <i class="fas fa-chart-line fa-3x mb-3"></i>
+                                <p>Ziyaret verisi henüz bulunmuyor.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pasta Grafik -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">İçerik Dağılımı</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink2" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownMenuLink2">
+                            <li><a class="dropdown-item" href="#">Detayları Görüntüle</a></li>
+                            <li><a class="dropdown-item" href="#">Rapor Oluştur</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <div class="d-flex justify-content-center align-items-center" style="height: 240px;">
+                            <div class="text-center text-muted">
+                                <i class="fas fa-chart-pie fa-3x mb-3"></i>
+                                <p>İçerik dağılımı verisi henüz bulunmuyor.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Son Aktiviteler -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">Son Aktiviteler</h6>
+                    <a href="{{ url_for('admin.logs') }}" class="btn btn-sm btn-primary">
+                        Tümünü Görüntüle
+                    </a>
                 </div>
                 <div class="card-body">
                     {% if recent_activities %}
@@ -100,7 +166,14 @@
                             <tbody>
                                 {% for activity in recent_activities %}
                                 <tr>
-                                    <td>{{ activity.user.username }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <span>{{ activity.user.username }}</span>
+                                        </div>
+                                    </td>
                                     <td>{{ activity.action }}</td>
                                     <td>{{ activity.timestamp.strftime('%d.%m.%Y %H:%M') }}</td>
                                 </tr>
@@ -109,8 +182,85 @@
                         </table>
                     </div>
                     {% else %}
-                    <p class="text-center text-muted">Henüz aktivite kaydı bulunmuyor.</p>
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-history fa-3x mb-3"></i>
+                        <p class="mb-0">Henüz aktivite kaydı bulunmuyor.</p>
+                        <p class="small">Sistem üzerinde yaptığınız işlemler burada görüntülenecektir.</p>
+                    </div>
                     {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Hızlı Eylemler -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Hızlı Erişim</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <a href="{{ url_for('admin.page_create') }}" class="btn btn-block btn-light border d-flex flex-column align-items-center py-3 h-100">
+                                <i class="fas fa-file-alt fa-2x text-primary mb-2"></i>
+                                <span>Yeni Sayfa</span>
+                            </a>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <a href="{{ url_for('admin.content_pages_list') }}" class="btn btn-block btn-light border d-flex flex-column align-items-center py-3 h-100">
+                                <i class="fas fa-image fa-2x text-success mb-2"></i>
+                                <span>İçerik Ekle</span>
+                            </a>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <a href="{{ url_for('admin.content_pages_list') }}" class="btn btn-block btn-light border d-flex flex-column align-items-center py-3 h-100">
+                                <i class="fas fa-shopping-cart fa-2x text-warning mb-2"></i>
+                                <span>Ürün Ekle</span>
+                            </a>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <a href="{{ url_for('admin.content_pages_list') }}" class="btn btn-block btn-light border d-flex flex-column align-items-center py-3 h-100">
+                                <i class="fas fa-tags fa-2x text-info mb-2"></i>
+                                <span>Kategori</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sistem Durumu -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Sistem Durumu</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Disk Kullanımı</span>
+                            <span>70%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 70%;" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Veritabanı Boyutu</span>
+                            <span>45%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: 45%;" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Önbellek</span>
+                            <span>30%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: 30%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

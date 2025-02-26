@@ -438,4 +438,677 @@
 
 }
 
+/* CobSin Tema - Responsive CSS Dosyası */
+
+/* Büyük Masaüstü Ekranlar (1200px ve üzeri) */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1170px;
+    }
+}
+
+/* Orta Masaüstü Ekranlar (992px - 1199px) */
+@media (min-width: 992px) and (max-width: 1199px) {
+    .container {
+        max-width: 960px;
+    }
+    
+    .slide-image {
+        height: 500px;
+    }
+    
+    .slide-content h2 {
+        font-size: 2.2rem;
+    }
+    
+    .section-title {
+        font-size: 2.2rem;
+    }
+    
+    .about-content {
+        gap: 30px;
+    }
+    
+    .service-card {
+        padding: 25px;
+    }
+}
+
+/* Tablet Ekranlar (768px - 991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .container {
+        max-width: 720px;
+    }
+    
+    .header-content {
+        padding: 0 15px;
+    }
+    
+    .logo h1 {
+        font-size: 1.5rem;
+    }
+    
+    .nav-item {
+        margin-left: 20px;
+    }
+    
+    .slide-image {
+        height: 450px;
+    }
+    
+    .slide-content {
+        max-width: 500px;
+        padding: 25px;
+    }
+    
+    .slide-content h2 {
+        font-size: 2rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .about-content {
+        flex-direction: column;
+        gap: 40px;
+    }
+    
+    .about-image, .about-text {
+        flex: none;
+        width: 100%;
+    }
+    
+    .services-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .contact-container {
+        flex-direction: column;
+        gap: 50px;
+    }
+    
+    .contact-info, .contact-form {
+        flex: none;
+        width: 100%;
+    }
+    
+    .footer-content {
+        gap: 30px;
+    }
+    
+    .footer-info {
+        flex: 100%;
+    }
+    
+    .footer-links, .footer-contact {
+        flex: 1;
+    }
+}
+
+/* Mobil Ekranlar (576px - 767px) */
+@media (min-width: 576px) and (max-width: 767px) {
+    .container {
+        max-width: 540px;
+    }
+    
+    .header {
+        height: auto;
+        padding: 15px 0;
+    }
+    
+    .header-content {
+        padding: 0 15px;
+    }
+    
+    .logo h1 {
+        font-size: 1.4rem;
+    }
+    
+    .mobile-menu-toggle {
+        display: flex;
+    }
+    
+    .main-nav {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: #fff;
+        padding: 20px;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        display: none;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .main-nav.show {
+        display: flex;
+    }
+    
+    .nav-list {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .nav-item {
+        margin: 0;
+        width: 100%;
+        border-bottom: 1px solid #f1f1f1;
+    }
+    
+    .nav-link {
+        padding: 12px 0;
+        display: block;
+    }
+    
+    .dropdown {
+        position: static;
+        width: 100%;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        box-shadow: none;
+        padding: 0;
+        display: none;
+    }
+    
+    .dropdown.show {
+        display: block;
+    }
+    
+    .dropdown li {
+        padding: 0;
+    }
+    
+    .dropdown a {
+        padding: 10px 20px;
+    }
+    
+    .slider-section {
+        margin-top: 0;
+    }
+    
+    .slide-image {
+        height: 400px;
+    }
+    
+    .slide-content {
+        max-width: 400px;
+        padding: 20px;
+        margin-left: 20px;
+    }
+    
+    .slide-content h2 {
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+    }
+    
+    .slide-content p {
+        font-size: 1rem;
+        margin-bottom: 15px;
+    }
+    
+    .slider-prev, .slider-next {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+    }
+    
+    .section-subtitle {
+        font-size: 1rem;
+    }
+    
+    .about-content {
+        flex-direction: column;
+        gap: 30px;
+    }
+    
+    .about-image, .about-text {
+        flex: none;
+        width: 100%;
+    }
+    
+    .about-features {
+        flex-direction: column;
+    }
+    
+    .feature {
+        flex: none;
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    
+    .services-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .contact-container {
+        flex-direction: column;
+        gap: 40px;
+    }
+    
+    .contact-info, .contact-form {
+        flex: none;
+        width: 100%;
+    }
+    
+    .footer-content {
+        flex-direction: column;
+        gap: 30px;
+    }
+    
+    .footer-info, .footer-links, .footer-contact {
+        flex: none;
+        width: 100%;
+    }
+}
+
+/* Küçük Mobil Ekranlar (575px ve altı) */
+@media (max-width: 575px) {
+    .container {
+        width: 100%;
+        padding: 0 15px;
+    }
+    
+    .header {
+        height: auto;
+        padding: 15px 0;
+    }
+    
+    .header-content {
+        padding: 0 15px;
+    }
+    
+    .logo h1 {
+        font-size: 1.3rem;
+    }
+    
+    .mobile-menu-toggle {
+        display: flex;
+    }
+    
+    .main-nav {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: #fff;
+        padding: 15px;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        display: none;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .main-nav.show {
+        display: flex;
+    }
+    
+    .nav-list {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .nav-item {
+        margin: 0;
+        width: 100%;
+        border-bottom: 1px solid #f1f1f1;
+    }
+    
+    .nav-link {
+        padding: 12px 0;
+        display: block;
+    }
+    
+    .dropdown {
+        position: static;
+        width: 100%;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        box-shadow: none;
+        padding: 0;
+        display: none;
+    }
+    
+    .dropdown.show {
+        display: block;
+    }
+    
+    .dropdown li {
+        padding: 0;
+    }
+    
+    .dropdown a {
+        padding: 10px 15px;
+    }
+    
+    .slider-section {
+        margin-top: 0;
+    }
+    
+    .slide-image {
+        height: 350px;
+    }
+    
+    .slide-content {
+        max-width: 300px;
+        padding: 15px;
+        margin-left: 15px;
+    }
+    
+    .slide-content h2 {
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+    }
+    
+    .slide-content p {
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+    
+    .slider-prev, .slider-next {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+    
+    .slider-prev {
+        margin-left: 10px;
+    }
+    
+    .slider-next {
+        margin-right: 10px;
+    }
+    
+    .dot {
+        width: 10px;
+        height: 10px;
+    }
+    
+    .section-header {
+        margin-bottom: 30px;
+    }
+    
+    .section-title {
+        font-size: 1.6rem;
+    }
+    
+    .section-subtitle {
+        font-size: 0.9rem;
+    }
+    
+    .about-section, .services-section, .contact-section {
+        padding: 50px 0;
+    }
+    
+    .about-content {
+        flex-direction: column;
+        gap: 25px;
+    }
+    
+    .about-image, .about-text {
+        flex: none;
+        width: 100%;
+    }
+    
+    .about-features {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .feature {
+        flex: none;
+        width: 100%;
+    }
+    
+    .services-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .service-card {
+        padding: 20px;
+    }
+    
+    .contact-container {
+        flex-direction: column;
+        gap: 30px;
+    }
+    
+    .contact-info, .contact-form {
+        flex: none;
+        width: 100%;
+    }
+    
+    .info-item {
+        margin-bottom: 20px;
+    }
+    
+    .form-group input, .form-group textarea {
+        padding: 10px;
+    }
+    
+    .google-map {
+        height: 300px;
+    }
+    
+    .footer {
+        padding: 50px 0 0;
+    }
+    
+    .footer-content {
+        flex-direction: column;
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .footer-info, .footer-links, .footer-contact {
+        flex: none;
+        width: 100%;
+    }
+    
+    .footer h4 {
+        margin-bottom: 20px;
+    }
+    
+    .footer-bottom {
+        padding: 15px 0;
+    }
+    
+    .scroll-top {
+        width: 40px;
+        height: 40px;
+        bottom: 20px;
+        right: 20px;
+    }
+}
+
+/* CobSin Tema - Responsive CSS Dosyası */
+
+/* Tablet ve Küçük Ekranlar */
+@media screen and (max-width: 992px) {
+    /* Header */
+    .mobile-menu-toggle {
+        display: flex;
+    }
+    
+    .main-nav {
+        position: fixed;
+        top: var(--header-height);
+        left: -100%;
+        width: 80%;
+        max-width: 300px;
+        height: calc(100vh - var(--header-height));
+        background-color: white;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        z-index: 1000;
+    }
+    
+    .main-nav.active {
+        left: 0;
+    }
+    
+    .nav-list {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 20px;
+    }
+    
+    .nav-item {
+        margin: 10px 0;
+        width: 100%;
+    }
+    
+    .nav-link {
+        width: 100%;
+        padding: 10px 0;
+    }
+    
+    .dropdown {
+        position: static;
+        display: none;
+        width: 100%;
+        box-shadow: none;
+        padding-left: 20px;
+    }
+    
+    .has-dropdown.active .dropdown {
+        display: block;
+    }
+    
+    /* Slider */
+    .slide {
+        height: 500px;
+    }
+    
+    .slide-content h2 {
+        font-size: 2.5rem;
+    }
+    
+    /* Hakkımızda */
+    .about-content {
+        flex-direction: column;
+    }
+    
+    .about-image, .about-text {
+        width: 100%;
+    }
+    
+    /* Hizmetler */
+    .services-container {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+    
+    /* İletişim */
+    .contact-container {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Footer */
+    .footer-content {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+
+/* Mobil Ekranlar */
+@media screen and (max-width: 768px) {
+    /* Genel */
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    /* Slider */
+    .slide {
+        height: 400px;
+    }
+    
+    .slide-content h2 {
+        font-size: 2rem;
+    }
+    
+    .slide-content p {
+        font-size: 1rem;
+    }
+    
+    .slider-controls {
+        display: none;
+    }
+    
+    /* Hakkımızda */
+    .about-features {
+        flex-direction: column;
+    }
+    
+    .feature {
+        flex: 1 0 100%;
+    }
+    
+    /* Hizmetler */
+    .services-container {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Footer */
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+}
+
+/* Çok Küçük Ekranlar */
+@media screen and (max-width: 480px) {
+    /* Header */
+    .logo h1 {
+        font-size: 1.5rem;
+    }
+    
+    /* Slider */
+    .slide {
+        height: 350px;
+    }
+    
+    .slide-content h2 {
+        font-size: 1.8rem;
+    }
+    
+    .slide-content p {
+        font-size: 0.9rem;
+    }
+    
+    .btn {
+        padding: 8px 20px;
+        font-size: 0.9rem;
+    }
+    
+    /* Bölüm Başlıkları */
+    .section-title {
+        font-size: 1.8rem;
+    }
+    
+    .section-subtitle {
+        font-size: 1rem;
+    }
+    
+    /* İletişim */
+    .form-group input, .form-group textarea {
+        padding: 10px;
+    }
+    
+    .map-container {
+        height: 300px;
+    }
+}
+
 

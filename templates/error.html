@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hata - {{ settings.site_title }}</title>
+    
+    <!-- Favicon -->
+    {% if settings.favicon_url %}
+    <link rel="icon" href="{{ settings.favicon_url }}" type="image/x-icon">
+    {% endif %}
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f8f9fc;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .error-container {
+            max-width: 800px;
+            margin: 100px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .error-icon {
+            font-size: 80px;
+            color: #e74a3b;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #4e73df;
+        }
+        .error-message {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+        .error-details {
+            background-color: #f8f9fc;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: left;
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #4e73df;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #2e59d9;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h1>{{ error_title|default('Bir Hata Oluştu') }}</h1>
+        <div class="error-message">
+            {{ error_message|default('Sayfa yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.') }}
+        </div>
+        
+        {% if error_details and debug %}
+        <div class="error-details">
+            <h3>Hata Detayları:</h3>
+            <pre>{{ error_details }}</pre>
+        </div>
+        {% endif %}
+        
+        <a href="/" class="btn">Ana Sayfaya Dön</a>
+    </div>
+</body>
+</html> 

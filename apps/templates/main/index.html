@@ -1,0 +1,227 @@
+{% extends "main/master.html" %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/responsive.css') }}">
+<style>
+:root {
+    --slider-height: {{ settings.slider_height|default('600') }}px;
+    --animation-speed: {{ settings.slider_animation_speed|default('600') }}ms;
+    --button-bg-color: {{ settings.banner_button_bg_color|default('#f7941d') }};
+    --button-text-color: {{ settings.banner_button_text_color|default('#ffffff') }};
+    --button-hover-bg-color: {{ settings.banner_button_hover_bg_color|default('#ffffff') }};
+    --button-hover-text-color: {{ settings.banner_button_hover_text_color|default('#f7941d') }};
+}
+
+.carousel-item {
+    height: var(--slider-height);
+    background-size: cover;
+    background-position: center;
+}
+
+.carousel-item-bg {
+    background-size: cover;
+    background-position: center;
+    height: 100%;
+    width: 100%;
+}
+
+.banner_main {
+    padding: 90px 0;
+    text-align: center;
+    color: #fff;
+}
+
+.banner_taital {
+    font-size: 60px;
+    font-weight: bold;
+    margin-bottom: 30px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.banner_text {
+    font-size: 20px;
+    margin-bottom: 40px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.btn_main .contact_bt {
+    display: inline-block;
+}
+
+.contact_bt a {
+    display: inline-block;
+    padding: 15px 45px;
+    background-color: var(--button-bg-color, #007bff);
+    color: var(--button-text-color, #ffffff);
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.contact_bt a:hover {
+    background-color: var(--button-hover-bg-color, #0056b3);
+    color: var(--button-hover-text-color, #ffffff);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Slider Section -->
+{% if slides %}
+<div class="banner_section">
+    <div class="container-fluid p-0">
+        <div id="myCarousel" class="carousel slide" 
+            data-bs-ride="carousel"
+            data-bs-interval="{{ settings.slider_transition_speed|default('5000') }}">
+            
+            <!-- Indicators -->
+            {% if settings.slider_show_bullets|default(true) %}
+            <div class="carousel-indicators">
+                {% for slide in slides %}
+                <button type="button" 
+                        data-bs-target="#myCarousel" 
+                        data-bs-slide-to="{{ loop.index0 }}" 
+                        {% if loop.first %}class="active" aria-current="true"{% endif %} 
+                        aria-label="Slide {{ loop.index }}">
+                </button>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Slides -->
+            <div class="carousel-inner">
+                {% for slide in slides %}
+                <div class="carousel-item {% if loop.first %}active{% endif %}">
+                    <div class="carousel-item-bg" style="background-image: url('{{ slide.image_path }}');">
+                        <div class="container">
+                            <div class="banner_main">
+                                <h1 class="banner_taital">{{ slide.title }}</h1>
+                                <p class="banner_text">{{ slide.description }}</p>
+                                {% if slide.button_text and slide.button_url %}
+                                <div class="btn_main">
+                                    <div class="contact_bt">
+                                        <a href="{{ slide.button_url }}">{{ slide.button_text }}</a>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Controls -->
+            {% if settings.slider_show_arrows|default(true) %}
+            <button class="carousel-control-prev" type="button" data-bs-target="#myCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Önceki</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#myCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Sonraki</span>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- About Section -->
+{% if about %}
+<div class="about_section layout_padding">
+    <div class="container">
+        <h1 class="about_taital">{{ about.title }}</h1>
+        <p class="about_text">{{ about.subtitle }}</p>
+        <div class="about_section_2">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="about_image">
+                        {% if about.image_path %}
+                        <img src="{{ about.image_path }}" alt="{{ about.title }}" class="img-fluid">
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="about_taital_main">
+                        <p class="lorem_text">{{ about.content|safe }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Services Section -->
+{% if services %}
+<div class="services_section layout_padding">
+    <div class="container">
+        <h1 class="services_taital">Hizmetlerimiz</h1>
+        <p class="services_text">Size nasıl yardımcı olabiliriz?</p>
+        <div class="services_section_2">
+            <div class="row">
+                {% for service in services %}
+                <div class="col-md-4">
+                    <div class="service_box">
+                        <div class="service_icon">
+                            <i class="{{ service.icon }} fa-3x"></i>
+                        </div>
+                        <h4 class="service_text">{{ service.title }}</h4>
+                        <p class="service_desc">{{ service.description }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Blog Section -->
+{% if blog_posts %}
+<div class="blog_section layout_padding">
+    <div class="container">
+        <h1 class="blog_taital">Son Blog Yazıları</h1>
+        <div class="blog_section_2">
+            <div class="row">
+                {% for post in blog_posts %}
+                <div class="col-md-6">
+                    <div class="blog_box">
+                        {% if post.featured_image %}
+                        <div class="blog_img">
+                            <img src="{{ post.featured_image }}" alt="{{ post.title }}" class="img-fluid">
+                        </div>
+                        {% endif %}
+                        <h4 class="date_text">{{ post.published_at.strftime('%d.%m.%Y') if post.published_at }}</h4>
+                        <h4 class="blog_text">{{ post.title }}</h4>
+                        <p class="blog_desc">{{ post.excerpt }}</p>
+                        <div class="read_more">
+                            <a href="{{ url_for('main.blog_detail', slug=post.slug) }}">Devamını Oku</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Page Content -->
+{% if page and page.content %}
+<div class="page_content layout_padding">
+    <div class="container">
+        {{ page.content|safe }}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='cobsin_template/js/custom.js') }}"></script>
+{% endblock %} 

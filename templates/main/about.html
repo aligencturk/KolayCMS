@@ -1,343 +1,98 @@
 {% extends "main/base.html" %}
 
+{% block title %}{{ site_settings.site_title }} - Hakkımızda{% endblock %}
+
 {% block content %}
 <!-- about section start -->
 <div class="about_section layout_padding">
-    <div class="container">
-        <h1 class="about_taital">{{ about.title }}</h1>
-        <p class="about_text">{{ about.subtitle }}</p>
-        <div class="about_section_2">
-            <div class="row">
-                <div class="col-lg-6">
-                    <div class="about_image">
-                        {% if about.image %}
-                        <img src="{{ about.image }}" alt="{{ about.title }}" class="img-fluid">
-                        {% else %}
-                        <img src="{{ url_for('static', filename='cobsin_template/images/about-img.png') }}" alt="About Us">
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="about_taital_main">
-                        <div class="about_content">{{ about.content|safe }}</div>
-                        {% if about.button_text and about.button_url %}
-                        <div class="read_bt"><a href="{{ about.button_url }}">{{ about.button_text }}</a></div>
-                        {% endif %}
-                    </div>
-                </div>
+   <div class="container">
+      <div class="row">
+         <div class="col-md-6">
+            <div class="about_img"><img src="{{ url_for('static', filename='cobsin_template/images/about-img.png') }}"></div>
+         </div>
+         <div class="col-md-6">
+            <h1 class="about_taital">Hakkımızda</h1>
+            <p class="about_text">{{ page.title }}</p>
+            <div class="about_content">
+               {{ page.content|safe }}
             </div>
-        </div>
-    </div>
+            {% if about_section and about_section.stats_items %}
+               <div class="stats_section mt-4">
+                  <div class="row">
+                     {% set stats = about_section.stats_items|tojson|fromjson %}
+                     {% for stat in stats %}
+                        <div class="col-md-4 mb-3">
+                           <div class="stat_box text-center">
+                              <h2 class="stat_number">{{ stat.number }}</h2>
+                              <p class="stat_text">{{ stat.text }}</p>
+                           </div>
+                        </div>
+                     {% endfor %}
+                  </div>
+               </div>
+            {% endif %}
+         </div>
+      </div>
+   </div>
 </div>
 <!-- about section end -->
-
-<!-- İstatistikler -->
-{% if about.stats_items %}
-<div class="stats_section layout_padding">
-    <div class="container">
-        <div class="row">
-            {% for stat in about.stats_items %}
-            <div class="col-md-3 text-center">
-                <div class="stat_box">
-                    <h2 class="stat_number">{{ stat.number }}</h2>
-                    <p class="stat_text">{{ stat.text }}</p>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- testimonial section start -->
-<div class="testimonial_section layout_padding">
-    <div class="container">
-        <h1 class="testimonial_taital">Testimonial</h1>
-        <p class="testimonial_text">It is a long established fact that a reader will be distracted by the readable content of a page when</p>
-        <div class="testimonial_section_2">
-            <div id="my_carousel" class="carousel slide" data-ride="carousel">
-                <div class="carousel-inner">
-                    <div class="carousel-item active">
-                        <div class="testimonial_box">
-                            <div class="jonimo_taital_main">
-                                <h4 class="jonimo_text">Jonimo</h4>
-                                <div class="quick_icon"><img src="{{ url_for('static', filename='cobsin_template/images/quick-icon.png') }}"></div>
-                                <div class="quick_icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/quick-icon1.png') }}"></div>
-                            </div>
-                            <p class="dummy_text">There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there</p>
-                        </div>
-                    </div>
-                    <div class="carousel-item">
-                        <div class="testimonial_box">
-                            <div class="jonimo_taital_main">
-                                <h4 class="jonimo_text">Mark Duo</h4>
-                                <div class="quick_icon"><img src="{{ url_for('static', filename='cobsin_template/images/quick-icon.png') }}"></div>
-                                <div class="quick_icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/quick-icon1.png') }}"></div>
-                            </div>
-                            <p class="dummy_text">There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there</p>
-                        </div>
-                    </div>
-                    <div class="carousel-item">
-                        <div class="testimonial_box">
-                            <div class="jonimo_taital_main">
-                                <h4 class="jonimo_text">John Smith</h4>
-                                <div class="quick_icon"><img src="{{ url_for('static', filename='cobsin_template/images/quick-icon.png') }}"></div>
-                                <div class="quick_icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/quick-icon1.png') }}"></div>
-                            </div>
-                            <p class="dummy_text">There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there</p>
-                        </div>
-                    </div>
-                </div>
-                <ol class="carousel-indicators">
-                    <li data-target="#my_carousel" data-slide-to="0" class="active"></li>
-                    <li data-target="#my_carousel" data-slide-to="1"></li>
-                    <li data-target="#my_carousel" data-slide-to="2"></li>
-                </ol>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- testimonial section end -->
 {% endblock %}
 
 {% block scripts %}
 <style>
-/* Hakkımızda Stilleri */
 .about_section {
-    width: 100%;
-    float: left;
-    padding-bottom: 90px;
-    background-color: var(--about-bg-color) !important;
+   padding: 90px 0;
+}
+
+.about_img img {
+   width: 100%;
+   border-radius: 10px;
+   box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
 .about_taital {
-    width: 100%;
-    float: left;
-    font-size: 40px;
-    font-weight: bold;
-    font-family: 'Roboto', sans-serif;
-    color: var(--about-title-color) !important;
-    position: relative;
+   font-size: 40px;
+   font-weight: bold;
+   color: #252525;
+   margin-bottom: 10px;
 }
 
 .about_text {
-    width: 100%;
-    float: left;
-    font-size: 16px;
-    margin: 0px;
-    font-weight: 500;
-    font-family: 'Roboto', sans-serif;
-    color: var(--about-text-color) !important;
-}
-
-.about_section_2 {
-    width: 100%;
-    float: left;
-    padding-top: 70px;
-    padding-bottom: 90px;
-    background-color: var(--about-box-bg-color) !important;
-}
-
-.about_image {
-    width: 100%;
-    float: left;
-    padding-left: 22px;
-    padding-top: 37px;
-    position: relative;
-}
-
-.about_image::after {
-    content: '';
-    position: absolute;
-    width: 100px;
-    height: 390px;
-    background-color: var(--about-accent-color, #13a25d);
-    left: 0px;
-    right: initial;
-    top: 0;
-    z-index: -1;
+   font-size: 18px;
+   color: #13a25d;
+   margin-bottom: 20px;
 }
 
 .about_content {
-    width: 100%;
-    float: left;
-    font-size: 16px;
-    margin: 0px;
-    font-family: 'Roboto', sans-serif;
-    color: var(--about-text-color) !important;
-}
-
-.about_taital_main {
-    width: 100%;
-    float: left;
-    padding-top: 172px;
-}
-
-.read_bt {
-    width: 170px;
-    float: right;
-    padding-top: 64px;
-}
-
-.read_bt a {
-    width: 100%;
-    float: left;
-    font-size: 16px;
-    text-align: center;
-    padding: 10px 0px;
-    font-family: 'Roboto', sans-serif;
-    text-decoration: none;
-    background-color: var(--about-button-bg-color, var(--primary-color)) !important;
-    color: var(--about-button-text-color, #ffffff) !important;
-    border-radius: 5px;
-    transition: all 0.3s ease;
-}
-
-.read_bt a:hover {
-    background-color: var(--about-button-hover-bg-color, var(--secondary-color)) !important;
-    color: var(--about-button-hover-text-color, #ffffff) !important;
-}
-
-/* İstatistik Stilleri */
-.stats_section {
-    width: 100%;
-    float: left;
-    padding: 60px 0;
-    background-color: var(--about-stats-bg-color, var(--about-box-bg-color)) !important;
+   font-size: 16px;
+   line-height: 1.8;
+   color: #555555;
+   margin-bottom: 30px;
 }
 
 .stat_box {
-    padding: 20px;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.stat_number {
-    font-size: 2.5rem;
-    font-weight: bold;
-    margin-bottom: 10px;
-    color: var(--about-stats-number-color) !important;
-}
-
-.stat_text {
-    font-size: 1.1rem;
-    color: var(--about-stats-text-color) !important;
+   background-color: #f8f9fa;
+   border-radius: 10px;
+   padding: 20px;
+   transition: all 0.3s ease;
 }
 
 .stat_box:hover {
-    transform: translateY(-5px);
+   transform: translateY(-5px);
+   box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
 
-/* Testimonial Stilleri */
-.testimonial_section {
-    width: 100%;
-    float: left;
-    padding-bottom: 180px;
+.stat_number {
+   font-size: 36px;
+   font-weight: bold;
+   color: #13a25d;
+   margin-bottom: 10px;
 }
 
-.testimonial_taital {
-    width: 100%;
-    float: left;
-    font-size: 40px;
-    color: #2c2420;
-    text-align: center;
-    font-weight: bold;
-    font-family: 'Roboto', sans-serif;
-}
-
-.testimonial_text {
-    width: 100%;
-    float: left;
-    font-size: 16px;
-    color: #2c2420;
-    text-align: center;
-    margin: 0px;
-    font-family: 'Roboto', sans-serif;
-}
-
-.testimonial_section_2 {
-    width: 100%;
-    float: left;
-    padding-top: 40px;
-}
-
-.testimonial_box {
-    width: 100%;
-    background-color: #ffffff;
-    padding: 55px 30px 100px 30px;
-    box-shadow: 0px 2px 12px 10px #f3f2f2;
-}
-
-.jonimo_text {
-    width: 100%;
-    font-size: 20px;
-    text-transform: uppercase;
-    color: #13a25d;
-    font-weight: bold;
-    font-family: 'Roboto', sans-serif;
-}
-
-.dummy_text {
-    width: 100%;
-    font-size: 16px;
-    color: #000;
-    margin: 0px;
-    padding-top: 20px;
-    font-family: 'Roboto', sans-serif;
-}
-
-.jonimo_taital_main {
-    width: 100%;
-    display: flex;
-    border-bottom: 1px solid #363636;
-}
-
-.quick_icon {
-    float: right;
-}
-
-.quick_icon_1 {
-    display: none;
-}
-
-.testimonial_box:hover {
-    background-color: #13a25d;
-}
-
-.testimonial_box:hover .dummy_text {
-    color: #ffffff;
-}
-
-.testimonial_box:hover .jonimo_text {
-    color: #ffffff;
-}
-
-.testimonial_box:hover .quick_icon_1 {
-    display: block;
-}
-
-.testimonial_box:hover .quick_icon {
-    display: none;
-}
-
-.testimonial_box:hover .jonimo_taital_main {
-    border-bottom: 1px solid #ffffff;
-}
-
-#my_carousel .carousel-indicators {
-    bottom: -100px;
-}
-
-#my_carousel .carousel-indicators li {
-    width: 20px;
-    height: 20px;
-    border-radius: 100px;
-    background-color: #0a0a0a;
-}
-
-#my_carousel .carousel-indicators .active {
-    width: 50px;
-    background-color: #13a25d;
+.stat_text {
+   font-size: 16px;
+   color: #555555;
+   margin: 0;
 }
 </style>
 {% endblock %}

@@ -1,0 +1,157 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Yeni Sayfa Oluştur</h2>
+        </div>
+        <div class="col text-end">
+            <a href="{{ url_for('admin.content_pages_list') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.pages_create') }}" id="createPageForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="mb-3">
+                    <label for="title" class="form-label">Başlık</label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="slug" class="form-label">SEO URL (Boş bırakılırsa otomatik oluşturulur)</label>
+                    <input type="text" class="form-control" id="slug" name="slug">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="content" class="form-label">İçerik</label>
+                    <div id="toolbar-container"></div>
+                    <div id="editor-container"></div>
+                    <textarea id="content" name="content" style="display: none;"></textarea>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_published" name="is_published" value="1" checked>
+                    <label class="form-check-label" for="is_published">Yayınla</label>
+                </div>
+                
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/decoupled-document/ckeditor.js"></script>
+<script>
+let editor;
+
+document.addEventListener('DOMContentLoaded', function() {
+    DecoupledEditor
+        .create(document.querySelector('#editor-container'), {
+            toolbar: {
+                items: [
+                    'heading',
+                    '|',
+                    'bold',
+                    'italic',
+                    'underline',
+                    'strikethrough',
+                    '|',
+                    'fontSize',
+                    'fontFamily',
+                    'fontColor',
+                    'fontBackgroundColor',
+                    '|',
+                    'alignment',
+                    'outdent',
+                    'indent',
+                    '|',
+                    'bulletedList',
+                    'numberedList',
+                    '|',
+                    'link',
+                    'blockQuote',
+                    'insertTable',
+                    'mediaEmbed',
+                    'horizontalLine',
+                    '|',
+                    'undo',
+                    'redo'
+                ],
+                shouldNotGroupWhenFull: true
+            },
+            language: 'tr',
+            table: {
+                contentToolbar: [ 'tableColumn', 'tableRow', 'mergeTableCells', 'tableCellProperties', 'tableProperties' ]
+            }
+        })
+        .then(newEditor => {
+            editor = newEditor;
+            
+            // Toolbar'ı ayrı bir container'a ekle
+            document.querySelector('#toolbar-container').appendChild(editor.ui.view.toolbar.element);
+        })
+        .catch(error => {
+            console.error(error);
+        });
+
+    document.getElementById('createPageForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // CKEditor içeriğini textarea'ya aktar
+        document.getElementById('content').value = editor.getData();
+        
+        // Formu gönder
+        this.submit();
+    });
+
+    // Başlıktan otomatik slug oluştur
+    document.getElementById('title').addEventListener('input', function() {
+        let slug = this.value
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+        document.getElementById('slug').value = slug;
+    });
+});
+</script>
+
+<style>
+#toolbar-container {
+    padding: 1rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+}
+
+#editor-container {
+    min-height: 400px;
+    border: 1px solid #dee2e6;
+    border-radius: 0 0 4px 4px;
+}
+
+.ck-editor__editable {
+    min-height: 400px;
+    padding: 1rem !important;
+}
+
+.ck.ck-toolbar {
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+.ck.ck-editor__main {
+    height: 100%;
+}
+</style>
+{% endblock %} 

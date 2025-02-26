@@ -1,0 +1,339 @@
+{% extends "themes/cobsin/base.html" %}
+
+{% block title %}Hakkımızda - {{ site_title }}{% endblock %}
+{% block description %}{{ site_title }} hakkında bilgi edinin. Misyonumuz, vizyonumuz ve değerlerimiz ile tanışın.{% endblock %}
+
+{% block page_title %}Hakkımızda{% endblock %}
+
+{% block content %}
+<!-- About Hero Section -->
+<section class="about-hero-section py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 animate-on-scroll">
+                <div class="about-hero-content">
+                    <h1 class="section-title">Hakkımızda</h1>
+                    <p class="lead">KolayCMS, web sitesi oluşturma ve yönetme sürecini herkes için erişilebilir kılma vizyonuyla doğdu.</p>
+                    <p>Teknik bilgi gerektirmeden, kullanıcı dostu bir arayüzle profesyonel web siteleri oluşturmanızı sağlıyoruz. Misyonumuz, işletmelerin ve bireylerin dijital varlıklarını kolayca yönetebilmelerini sağlamak ve web teknolojilerini herkes için erişilebilir kılmaktır.</p>
+                </div>
+            </div>
+            <div class="col-lg-6 animate-on-scroll">
+                <div class="about-hero-image">
+                    <img src="{{ url_for('static', filename='themes/cobsin/images/about-hero.jpg') }}" alt="Hakkımızda" class="img-fluid rounded shadow">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Our Story Section -->
+<section class="our-story-section py-5 bg-light">
+    <div class="container">
+        <div class="section-header text-center mb-5 animate-on-scroll">
+            <h2 class="section-title">Hikayemiz</h2>
+            <p class="section-subtitle">KolayCMS'in yolculuğu</p>
+        </div>
+        <div class="row">
+            <div class="col-lg-8 mx-auto animate-on-scroll">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-badge">
+                            <span>2018</span>
+                        </div>
+                        <div class="timeline-content">
+                            <h3>Başlangıç</h3>
+                            <p>KolayCMS fikri, web sitesi oluşturma sürecinin karmaşıklığını azaltmak ve herkes için erişilebilir kılmak amacıyla ortaya çıktı.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-badge">
+                            <span>2019</span>
+                        </div>
+                        <div class="timeline-content">
+                            <h3>İlk Versiyon</h3>
+                            <p>KolayCMS'in ilk versiyonu yayınlandı ve kullanıcılardan olumlu geri bildirimler aldı. Temel özellikler ve kullanıcı dostu arayüz büyük beğeni topladı.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-badge">
+                            <span>2020</span>
+                        </div>
+                        <div class="timeline-content">
+                            <h3>Büyüme</h3>
+                            <p>Artan kullanıcı talebiyle birlikte ekibimiz büyüdü ve daha fazla özellik ekleyerek platformumuzu geliştirdik. E-ticaret entegrasyonu ve gelişmiş SEO özellikleri eklendi.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-badge">
+                            <span>2021</span>
+                        </div>
+                        <div class="timeline-content">
+                            <h3>Uluslararası Genişleme</h3>
+                            <p>KolayCMS, uluslararası pazarlara açıldı ve çoklu dil desteği eklendi. Kullanıcı sayımız hızla artmaya devam etti.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-badge">
+                            <span>2022</span>
+                        </div>
+                        <div class="timeline-content">
+                            <h3>Yeni Nesil CMS</h3>
+                            <p>Tamamen yenilenmiş arayüz ve gelişmiş özelliklerle KolayCMS 2.0 versiyonunu piyasaya sürdük. Yapay zeka destekli içerik önerileri ve otomatik SEO optimizasyonu gibi yenilikçi özellikler eklendi.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-badge">
+                            <span>2023</span>
+                        </div>
+                        <div class="timeline-content">
+                            <h3>Bugün</h3>
+                            <p>Bugün, KolayCMS olarak 50'den fazla ülkede binlerce kullanıcıya hizmet veriyoruz ve sürekli olarak platformumuzu geliştirmeye devam ediyoruz.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mission & Vision Section -->
+<section class="mission-vision-section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 mb-4 animate-on-scroll">
+                <div class="mission-card">
+                    <div class="mission-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h2 class="mission-title">Misyonumuz</h2>
+                    <p class="mission-text">Web sitesi oluşturma ve yönetme sürecini demokratikleştirmek, teknik bilgi gerektirmeden herkesin profesyonel web siteleri oluşturabilmesini sağlamak.</p>
+                    <p class="mission-text">Kullanıcılarımıza en iyi deneyimi sunmak için sürekli olarak platformumuzu geliştirmek ve yenilikçi çözümler üretmek.</p>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4 animate-on-scroll">
+                <div class="vision-card">
+                    <div class="vision-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <h2 class="vision-title">Vizyonumuz</h2>
+                    <p class="vision-text">Web teknolojilerinde lider olmak ve içerik yönetim sistemleri alanında global standartları belirlemek.</p>
+                    <p class="vision-text">Herkesin dijital dünyada var olabilmesini sağlayarak, bilginin ve fırsatların daha adil bir şekilde dağılmasına katkıda bulunmak.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Values Section -->
+<section class="values-section py-5 bg-light">
+    <div class="container">
+        <div class="section-header text-center mb-5 animate-on-scroll">
+            <h2 class="section-title">Değerlerimiz</h2>
+            <p class="section-subtitle">Bizi biz yapan temel değerler</p>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-4 animate-on-scroll">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="value-title">Kullanıcı Odaklılık</h3>
+                    <p class="value-text">Kullanıcılarımızın ihtiyaçlarını ve geri bildirimlerini her zaman ön planda tutuyoruz. Platformumuzu geliştirirken kullanıcı deneyimini sürekli iyileştirmeyi hedefliyoruz.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4 animate-on-scroll">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h3 class="value-title">Yenilikçilik</h3>
+                    <p class="value-text">Teknolojik gelişmeleri yakından takip ediyor ve platformumuza sürekli olarak yeni özellikler ekliyoruz. Yenilikçi çözümlerle kullanıcılarımıza en iyi deneyimi sunmayı amaçlıyoruz.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4 animate-on-scroll">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="value-title">Güvenilirlik</h3>
+                    <p class="value-text">Kullanıcılarımızın verilerinin güvenliği bizim için en önemli önceliktir. Güçlü güvenlik önlemleriyle kullanıcılarımızın verilerini koruyoruz.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4 animate-on-scroll">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h3 class="value-title">İşbirliği</h3>
+                    <p class="value-text">Kullanıcılarımız, ekibimiz ve iş ortaklarımızla işbirliği içinde çalışarak daha iyi sonuçlar elde ediyoruz. Açık iletişim ve işbirliği, başarımızın temel taşlarıdır.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4 animate-on-scroll">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h3 class="value-title">Tutku</h3>
+                    <p class="value-text">İşimizi tutkuyla yapıyor ve kullanıcılarımıza en iyi hizmeti sunmak için çalışıyoruz. Bu tutku, her gün daha iyisini yapmak için bizi motive ediyor.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4 animate-on-scroll">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <h3 class="value-title">Dürüstlük</h3>
+                    <p class="value-text">Tüm iş süreçlerimizde dürüstlük ve şeffaflık ilkelerini benimsiyoruz. Kullanıcılarımıza ve iş ortaklarımıza karşı her zaman açık ve dürüst davranıyoruz.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Team Section -->
+<section class="team-section py-5">
+    <div class="container">
+        <div class="section-header text-center mb-5 animate-on-scroll">
+            <h2 class="section-title">Ekibimiz</h2>
+            <p class="section-subtitle">KolayCMS'i oluşturan harika insanlarla tanışın</p>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-4 animate-on-scroll">
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="{{ url_for('static', filename='themes/cobsin/images/team-1.jpg') }}" alt="Ahmet Yılmaz" class="img-fluid">
+                    </div>
+                    <div class="team-content">
+                        <h3 class="team-name">Ahmet Yılmaz</h3>
+                        <p class="team-position">Kurucu & CEO</p>
+                        <p class="team-bio">10 yılı aşkın yazılım geliştirme deneyimiyle KolayCMS'i kurdu. Kullanıcı deneyimi ve web teknolojileri konusunda uzman.</p>
+                        <div class="team-social">
+                            <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4 animate-on-scroll">
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="{{ url_for('static', filename='themes/cobsin/images/team-2.jpg') }}" alt="Ayşe Demir" class="img-fluid">
+                    </div>
+                    <div class="team-content">
+                        <h3 class="team-name">Ayşe Demir</h3>
+                        <p class="team-position">CTO</p>
+                        <p class="team-bio">Yazılım mimarisi ve bulut teknolojileri konusunda uzman. KolayCMS'in teknik altyapısından sorumlu.</p>
+                        <div class="team-social">
+                            <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4 animate-on-scroll">
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="{{ url_for('static', filename='themes/cobsin/images/team-3.jpg') }}" alt="Mehmet Kaya" class="img-fluid">
+                    </div>
+                    <div class="team-content">
+                        <h3 class="team-name">Mehmet Kaya</h3>
+                        <p class="team-position">Tasarım Direktörü</p>
+                        <p class="team-bio">Kullanıcı arayüzü ve deneyimi konusunda uzman. KolayCMS'in görsel tasarımından ve kullanıcı deneyiminden sorumlu.</p>
+                        <div class="team-social">
+                            <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-dribbble"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testimonials-section py-5 bg-light">
+    <div class="container">
+        <div class="section-header text-center mb-5 animate-on-scroll">
+            <h2 class="section-title">Müşteri Yorumları</h2>
+            <p class="section-subtitle">Kullanıcılarımızın KolayCMS hakkında söyledikleri</p>
+        </div>
+        <div class="testimonial-carousel animate-on-scroll">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="testimonial-item">
+                        <div class="testimonial-content">
+                            <p>"KolayCMS ile web sitemizi oluşturmak inanılmaz derecede kolay oldu. Teknik bilgim olmamasına rağmen profesyonel bir site oluşturabildim."</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="{{ url_for('static', filename='themes/cobsin/images/testimonial-1.jpg') }}" alt="Ahmet Yılmaz" class="testimonial-avatar">
+                            <div class="testimonial-info">
+                                <h4 class="testimonial-name">Ahmet Yılmaz</h4>
+                                <p class="testimonial-position">Küçük İşletme Sahibi</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="testimonial-item">
+                        <div class="testimonial-content">
+                            <p>"Kullanıcı dostu arayüzü ve güçlü özellikleriyle KolayCMS, web sitemizi yönetmemizi çok kolaylaştırdı. Kesinlikle tavsiye ederim!"</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="{{ url_for('static', filename='themes/cobsin/images/testimonial-2.jpg') }}" alt="Ayşe Demir" class="testimonial-avatar">
+                            <div class="testimonial-info">
+                                <h4 class="testimonial-name">Ayşe Demir</h4>
+                                <p class="testimonial-position">Pazarlama Uzmanı</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="testimonial-item">
+                        <div class="testimonial-content">
+                            <p>"KolayCMS'in sunduğu şablonlar ve özelleştirme seçenekleri sayesinde markamızı tam olarak yansıtan bir web sitesi oluşturabildik."</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="{{ url_for('static', filename='themes/cobsin/images/testimonial-3.jpg') }}" alt="Mehmet Kaya" class="testimonial-avatar">
+                            <div class="testimonial-info">
+                                <h4 class="testimonial-name">Mehmet Kaya</h4>
+                                <p class="testimonial-position">Tasarım Ajansı Sahibi</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-controls text-center mt-4">
+                <button class="btn btn-outline-primary carousel-prev me-2"><i class="fas fa-arrow-left"></i></button>
+                <button class="btn btn-outline-primary carousel-next"><i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section py-5 bg-primary text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 animate-on-scroll">
+                <h2 class="cta-title">Hemen Başlayın</h2>
+                <p class="cta-text">KolayCMS ile web sitenizi oluşturmaya başlamak için hemen kayıt olun. Ücretsiz deneme sürümüyle tüm özellikleri keşfedin.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end animate-on-scroll">
+                <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">Ücretsiz Kayıt Olun</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize testimonial carousel
+        initTestimonialCarousel();
+    });
+</script>
+{% endblock %} 

@@ -9,11 +9,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1">
     <!-- site metas -->
-    {% block meta %}
-    <title>{% block title %}{% endblock %} - {{ settings.site_name if settings else 'KolayCMS' }}</title>
-    <meta name="keywords" content="{% block meta_keywords %}{{ settings.site_keywords if settings }}{% endblock %}">
-    <meta name="description" content="{% block meta_description %}{{ settings.site_description if settings }}{% endblock %}">
-    {% endblock %}
+    <title>{% block title %}{{ site_settings.site_title }}{% endblock %}</title>
+    <meta name="keywords" content="{{ site_settings.meta_keywords }}">
+    <meta name="description" content="{{ site_settings.site_description }}">
+    <meta name="author" content="">
     <!-- bootstrap css -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='cobsin_template/css/bootstrap.min.css') }}">
     <!-- style css -->
@@ -29,728 +28,141 @@
     <!-- fonts -->
     <link href="https://fonts.googleapis.com/css?family=Poppins:400,700|Roboto:400,700&display=swap" rel="stylesheet">
     <!-- owl stylesheets --> 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
-    <!-- Magnific Popup CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/magnific-popup.min.css">
-    <!-- Fancybox CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css">
-    
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- Dinamik Stil -->
-    <style>
-        :root {
-            /* Slider Ayarları */
-            --slider-height: {{ settings.slider_height|default('600', true) }}px;
-            --slider-transition-speed: {{ settings.slider_transition_speed|default('5000', true) }}ms;
-            --slider-animation-speed: {{ settings.slider_animation_speed|default('600', true) }}ms;
-            
-            /* Body */
-            --body-bg-color: {{ settings.body_bg_color|default('#ffffff', true) }};
-            --body-text-color: {{ settings.body_text_color|default('#212529', true) }};
-            --body-link-color: {{ settings.body_link_color|default('#007bff', true) }};
-            --body-font-family: {{ settings.body_font_family|default('Poppins', true) }};
-            --body-font-size: {{ settings.body_font_size|default('14px', true) }};
-            
-            /* Navbar */
-            --navbar-bg-color: {{ settings.navbar_bg_color|default('#ffffff', true) }};
-            --navbar-text-color: {{ settings.navbar_text_color|default('#000000', true) }};
-            --navbar-active-color: {{ settings.navbar_active_color|default('#007bff', true) }};
-            --navbar-hover-color: {{ settings.navbar_hover_color|default('#0056b3', true) }};
-            
-            /* Banner */
-            --banner-bg-color: {{ settings.banner_bg_color|default('#f8f9fa', true) }};
-            --banner-title-color: {{ settings.banner_title_color|default('#212529', true) }};
-            --banner-text-color: {{ settings.banner_text_color|default('#6c757d', true) }};
-            --banner-button-bg-color: {{ settings.banner_button_bg_color|default('#007bff', true) }};
-            --banner-button-text-color: {{ settings.banner_button_text_color|default('#ffffff', true) }};
-            --banner-button-hover-bg-color: {{ settings.banner_button_hover_bg_color|default('#0056b3', true) }};
-            --banner-button-hover-text-color: {{ settings.banner_button_hover_text_color|default('#ffffff', true) }};
-            --banner-indicator-color: {{ settings.banner_indicator_color|default('#007bff', true) }};
-            --banner-arrow-color: {{ settings.banner_arrow_color|default('#007bff', true) }};
-            
-            /* About */
-            --about-bg-color: {{ settings.about_bg_color|default('#ffffff', true) }};
-            --about-title-color: {{ settings.about_title_color|default('#212529', true) }};
-            --about-subtitle-color: {{ settings.about_subtitle_color|default('#6c757d', true) }};
-            --about-text-color: {{ settings.about_text_color|default('#212529', true) }};
-            --about-stats-number-color: {{ settings.about_stats_number_color|default('#007bff', true) }};
-            --about-stats-text-color: {{ settings.about_stats_text_color|default('#6c757d', true) }};
-            --about-box-bg-color: {{ settings.about_box_bg_color|default('#f8f9fa', true) }};
-            --about-box-border-color: {{ settings.about_box_border_color|default('#dee2e6', true) }};
-            
-            /* Services */
-            --services-bg-color: {{ settings.services_bg_color|default('#f8f9fa', true) }};
-            --services-title-color: {{ settings.services_title_color|default('#212529', true) }};
-            --services-subtitle-color: {{ settings.services_subtitle_color|default('#6c757d', true) }};
-            --services-card-bg-color: {{ settings.services_card_bg_color|default('#ffffff', true) }};
-            --services-card-border-color: {{ settings.services_card_border_color|default('#dee2e6', true) }};
-            --services-icon-color: {{ settings.services_icon_color|default('#007bff', true) }};
-            --services-icon-bg-color: {{ settings.services_icon_bg_color|default('#e7f5ff', true) }};
-            --services-card-title-color: {{ settings.services_card_title_color|default('#212529', true) }};
-            --services-card-text-color: {{ settings.services_card_text_color|default('#6c757d', true) }};
-            --services-card-hover-shadow: {{ settings.services_card_hover_shadow|default('0 0.5rem 1rem rgba(0, 0, 0, 0.15)', true) }};
-            
-            /* Blog */
-            --blog-bg-color: {{ settings.blog_bg_color|default('#ffffff', true) }};
-            --blog-title-color: {{ settings.blog_title_color|default('#212529', true) }};
-            --blog-subtitle-color: {{ settings.blog_subtitle_color|default('#6c757d', true) }};
-            --blog-card-bg-color: {{ settings.blog_card_bg_color|default('#ffffff', true) }};
-            --blog-card-border-color: {{ settings.blog_card_border_color|default('#dee2e6', true) }};
-            --blog-date-color: {{ settings.blog_date_color|default('#6c757d', true) }};
-            --blog-post-title-color: {{ settings.blog_post_title_color|default('#212529', true) }};
-            --blog-excerpt-color: {{ settings.blog_excerpt_color|default('#6c757d', true) }};
-            --blog-card-hover-shadow: {{ settings.blog_card_hover_shadow|default('0 0.5rem 1rem rgba(0, 0, 0, 0.15)', true) }};
-            
-            /* Contact */
-            --contact-bg-color: {{ settings.contact_bg_color|default('#f8f9fa', true) }};
-            --contact-title-color: {{ settings.contact_title_color|default('#212529', true) }};
-            --contact-subtitle-color: {{ settings.contact_subtitle_color|default('#6c757d', true) }};
-            --contact-text-color: {{ settings.contact_text_color|default('#212529', true) }};
-            --contact-info-bg-color: {{ settings.contact_info_bg_color|default('#ffffff', true) }};
-            --contact-info-border-color: {{ settings.contact_info_border_color|default('#dee2e6', true) }};
-            --contact-info-icon-color: {{ settings.contact_info_icon_color|default('#007bff', true) }};
-            --contact-form-bg-color: {{ settings.contact_form_bg_color|default('#ffffff', true) }};
-            --contact-form-border-color: {{ settings.contact_form_border_color|default('#dee2e6', true) }};
-            --contact-input-bg-color: {{ settings.contact_input_bg_color|default('#ffffff', true) }};
-            --contact-input-text-color: {{ settings.contact_input_text_color|default('#495057', true) }};
-            --contact-input-border-color: {{ settings.contact_input_border_color|default('#ced4da', true) }};
-            --contact-button-bg-color: {{ settings.contact_button_bg_color|default('#007bff', true) }};
-            --contact-button-text-color: {{ settings.contact_button_text_color|default('#ffffff', true) }};
-            --contact-button-hover-bg-color: {{ settings.contact_button_hover_bg_color|default('#0056b3', true) }};
-            --contact-button-hover-text-color: {{ settings.contact_button_hover_text_color|default('#ffffff', true) }};
-            
-            /* Video */
-            --video-bg-color: {{ settings.video_bg_color|default('#000000', true) }};
-            --video-overlay-color: {{ settings.video_overlay_color|default('rgba(0, 0, 0, 0.5)', true) }};
-            --video-title-color: {{ settings.video_title_color|default('#ffffff', true) }};
-            --video-subtitle-color: {{ settings.video_subtitle_color|default('#ffffff', true) }};
-            --video-play-button-color: {{ settings.video_play_button_color|default('#ffffff', true) }};
-            --video-play-button-bg-color: {{ settings.video_play_button_bg_color|default('rgba(0, 123, 255, 0.8)', true) }};
-            --video-play-button-hover-color: {{ settings.video_play_button_hover_color|default('#ffffff', true) }};
-            --video-play-button-hover-bg-color: {{ settings.video_play_button_hover_bg_color|default('rgba(0, 86, 179, 0.9)', true) }};
-            
-            /* Footer */
-            --footer-bg-color: {{ settings.footer_bg_color|default('#343a40', true) }};
-            --footer-text-color: {{ settings.footer_text_color|default('#ffffff', true) }};
-            --footer-link-color: {{ settings.footer_link_color|default('#ffffff', true) }};
-        }
-        
-        /* Cobsin Tema Override */
-        .header_section {
-            padding: 0 !important;
-            background: none !important;
-        }
-        
-        .header_bg {
-            background: none !important;
-            padding: 0 !important;
-        }
-        
-        .navbar {
-            background-color: var(--navbar-bg-color) !important;
-            background-image: none !important;
-            padding: 15px 0 !important;
-        }
-        
-        .navbar-nav .nav-link {
-            color: var(--navbar-text-color) !important;
-            font-size: 16px;
-            padding: 10px 15px !important;
-        }
-        
-        .navbar-nav .nav-link:hover {
-            color: var(--navbar-hover-color) !important;
-        }
-        
-        .navbar-nav .nav-link.active {
-            color: var(--navbar-active-color) !important;
-            font-weight: 600;
-        }
-        
-        .navbar-brand img {
-            max-height: 40px;
-            width: auto;
-        }
-        
-        .navbar-toggler {
-            border-color: var(--navbar-text-color) !important;
-        }
-        
-        .navbar-toggler-icon {
-            background-image: none !important;
-            position: relative;
-        }
-        
-        .navbar-toggler-icon::before {
-            content: '\f0c9';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: var(--navbar-text-color) !important;
-        }
-        
-        /* Footer Override */
-        .footer_section {
-            background-color: var(--footer-bg-color) !important;
-            color: var(--footer-text-color) !important;
-        }
-        
-        .footer_section a {
-            color: var(--footer-link-color) !important;
-        }
-        
-        /* Diğer Genel Stiller */
-        body {
-            font-family: var(--body-font-family), sans-serif !important;
-            font-size: var(--body-font-size) !important;
-            background-color: var(--body-bg-color) !important;
-            color: var(--body-text-color) !important;
-        }
-        
-        a {
-            color: var(--body-link-color) !important;
-            text-decoration: none;
-        }
-        
-        a:hover {
-            opacity: 0.8;
-            text-decoration: none;
-        }
-        
-        /* Banner/Slider Override */
-        .banner_section {
-            background-color: var(--banner-bg-color) !important;
-            height: var(--slider-height) !important;
-            overflow: hidden;
-        }
-        
-        .carousel-item {
-            height: var(--slider-height) !important;
-            transition-duration: var(--slider-animation-speed) !important;
-        }
-        
-        .carousel-item img {
-            height: 100%;
-            object-fit: cover;
-            width: 100%;
-        }
-        
-        .banner_taital {
-            color: var(--banner-title-color) !important;
-        }
-        
-        .banner_text {
-            color: var(--banner-text-color) !important;
-        }
-        
-        .contact_bt a {
-            background-color: var(--banner-button-bg-color) !important;
-            color: var(--banner-button-text-color) !important;
-        }
-        
-        .contact_bt a:hover {
-            background-color: var(--banner-button-hover-bg-color) !important;
-            color: var(--banner-button-hover-text-color) !important;
-        }
-        
-        .carousel-indicators button {
-            background-color: var(--banner-indicator-color) !important;
-        }
-        
-        .carousel-control-prev-icon,
-        .carousel-control-next-icon {
-            filter: none !important;
-            background-color: var(--banner-arrow-color) !important;
-        }
-        
-        /* Hakkımızda Override */
-        .about_section {
-            background-color: var(--about-bg-color) !important;
-            padding: 90px 0 !important;
-        }
-        
-        .about_taital {
-            color: var(--about-title-color) !important;
-            font-size: 40px;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-        
-        .about_text {
-            color: var(--about-subtitle-color) !important;
-            font-size: 16px;
-            margin-bottom: 40px;
-        }
-        
-        .lorem_text {
-            color: var(--about-text-color) !important;
-            font-size: 16px;
-            line-height: 1.8;
-        }
-        
-        .about_bt .stat_item {
-            background-color: var(--about-box-bg-color) !important;
-            border: 1px solid var(--about-box-border-color) !important;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 10px;
-            text-align: center;
-        }
-        
-        .about_bt .stat_item h2 {
-            color: var(--about-stats-number-color) !important;
-            font-size: 36px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        
-        .about_bt .stat_item p {
-            color: var(--about-stats-text-color) !important;
-            font-size: 16px;
-            margin: 0;
-        }
-        
-        /* Hizmetler Override */
-        .services_section {
-            background-color: var(--services-bg-color) !important;
-            padding: 90px 0 !important;
-        }
-        
-        .services_section .services_taital {
-            color: var(--services-title-color) !important;
-            font-size: 40px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .services_section .about_text {
-            color: var(--services-subtitle-color) !important;
-            font-size: 16px;
-            margin-bottom: 50px;
-            text-align: center;
-        }
-        
-        .icon_box {
-            background-color: var(--services-card-bg-color) !important;
-            border: 1px solid var(--services-card-border-color) !important;
-            border-radius: 10px;
-            padding: 30px;
-            margin-bottom: 30px;
-            transition: all 0.3s ease;
-        }
-        
-        .icon_box:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px var(--services-card-hover-shadow) !important;
-        }
-        
-        .icon_1 {
-            background-color: var(--services-icon-bg-color) !important;
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-        }
-        
-        .icon_1 i {
-            color: var(--services-icon-color) !important;
-            font-size: 36px;
-        }
-        
-        .selection_text {
-            color: var(--services-card-title-color) !important;
-            font-size: 24px;
-            font-weight: 600;
-            margin: 20px 0;
-            text-align: center;
-        }
-        
-        .ipsum_text {
-            color: var(--services-card-text-color) !important;
-            font-size: 16px;
-            line-height: 1.6;
-            text-align: center;
-            margin: 0;
-        }
-        
-        /* Blog Override */
-        .blog_section {
-            background-color: var(--blog-bg-color) !important;
-            padding: 90px 0 !important;
-        }
-        
-        .blog_section .blog_taital {
-            color: var(--blog-title-color) !important;
-            font-size: 40px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .blog_section .about_text {
-            color: var(--blog-subtitle-color) !important;
-            font-size: 16px;
-            margin-bottom: 50px;
-            text-align: center;
-        }
-        
-        .blog_box {
-            background-color: var(--blog-card-bg-color) !important;
-            border: 1px solid var(--blog-card-border-color) !important;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 30px;
-            transition: all 0.3s ease;
-        }
-        
-        .blog_box:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px var(--blog-card-hover-shadow) !important;
-        }
-        
-        .date_text {
-            color: var(--blog-date-color) !important;
-            font-size: 14px;
-            margin: 15px 0 10px;
-            padding: 0 20px;
-        }
-        
-        .prep_text {
-            color: var(--blog-post-title-color) !important;
-            font-size: 24px;
-            font-weight: 600;
-            margin: 0 0 15px;
-            padding: 0 20px;
-            line-height: 1.4;
-        }
-        
-        .lorem_blog_text {
-            color: var(--blog-excerpt-color) !important;
-            font-size: 16px;
-            line-height: 1.6;
-            margin: 0 0 20px;
-            padding: 0 20px;
-        }
-        
-        /* Video Override */
-        .events_section {
-            background-color: var(--video-bg-color) !important;
-            padding: 90px 0 !important;
-            position: relative;
-        }
-        
-        .events_section .events_taital {
-            color: var(--video-title-color) !important;
-            font-size: 40px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-align: center;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .events_section .about_text {
-            color: var(--video-subtitle-color) !important;
-            font-size: 16px;
-            margin-bottom: 50px;
-            text-align: center;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .events_bg {
-            position: relative;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        
-        .events_bg::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: var(--video-overlay-color) !important;
-            z-index: 1;
-        }
-        
-        .play_icon {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 400px;
-        }
-        
-        .play_icon a {
-            width: 80px;
-            height: 80px;
-            background-color: var(--video-play-button-bg-color) !important;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-        
-        .play_icon a img {
-            filter: brightness(0) invert(1);
-            width: 30px;
-            height: 30px;
-        }
-        
-        .play_icon a:hover {
-            background-color: var(--video-play-button-hover-bg-color) !important;
-            transform: scale(1.1);
-        }
-    </style>
-    
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    {% block styles %}{% endblock %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/owl.carousel.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/owl.theme.default.min.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" media="screen">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup/1.1.0/magnific-popup.min.css">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Navbar Ayarları -->
-    {% set navbar_classes = ['navbar'] %}
-    {% if settings and settings.navbar_is_fixed %}
-        {% set _ = navbar_classes.append('fixed-top') %}
-    {% endif %}
-    {% if settings and settings.navbar_is_transparent %}
-        {% set _ = navbar_classes.append('transparent') %}
-    {% endif %}
-    
     <!--header section start -->
     <div class="header_section">
-        <div class="header_bg">
-            <div class="container">
-                <nav class="{{ navbar_classes|join(' ') }} navbar-expand-lg navbar-light">
-                    <a class="navbar-brand" href="{{ url_for('main.index') }}">
-                        {% if settings and settings.logo_path %}
-                        <img src="{{ url_for('static', filename=settings.logo_path) }}" alt="{{ settings.site_name }}" height="30">
-                        {% else %}
-                        <img src="{{ url_for('static', filename='cobsin_template/images/logo.png') }}" alt="Logo">
-                        {% endif %}
-                    </a>
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul class="navbar-nav ms-auto">
-                            {% for menu in header_menus %}
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.path == menu.url %}active{% endif %}" href="{{ menu.url }}">
-                                    {% if menu.icon %}<i class="{{ menu.icon }}"></i> {% endif %}
-                                    {{ menu.title }}
-                                </a>
-                                {% if menu.children %}
-                                <ul class="dropdown-menu">
-                                    {% for child in menu.children %}
-                                    <li>
-                                        <a class="dropdown-item {% if request.path == child.url %}active{% endif %}" href="{{ child.url }}">
-                                            {% if child.icon %}<i class="{{ child.icon }}"></i> {% endif %}
-                                            {{ child.title }}
-                                        </a>
-                                    </li>
-                                    {% endfor %}
-                                </ul>
-                                {% endif %}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </nav>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="logo">
+                <a href="{{ url_for('main.index') }}">
+                    {% if site_settings.logo_url %}
+                    <img src="{{ site_settings.logo_url }}" alt="{{ site_settings.site_title }}">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='cobsin_template/images/logo.png') }}">
+                    {% endif %}
+                </a>
             </div>
-        </div>
-        {% block banner %}{% endblock %}
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item {% if request.path == url_for('main.index') %}active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('main.index') }}">Ana Sayfa</a>
+                    </li>
+                    <li class="nav-item {% if request.path == url_for('main.services') %}active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('main.services') }}">Hizmetlerimiz</a>
+                    </li>
+                    <li class="nav-item {% if request.path == url_for('main.blog') or '/blog/' in request.path %}active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('main.blog') }}">Blog</a>
+                    </li>
+                    <li class="nav-item {% if request.path == url_for('main.about') %}active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('main.about') }}">Hakkımızda</a>
+                    </li>
+                    <li class="nav-item {% if request.path == url_for('main.contact') %}active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('main.contact') }}">İletişim</a>
+                    </li>
+                </ul>
+                <form class="form-inline my-2 my-lg-0">
+                    <div class="search_icon"><img src="{{ url_for('static', filename='cobsin_template/images/search-icon.png') }}"></div>
+                </form>
+            </div>
+        </nav>
     </div>
     <!--header section end -->
     
     {% block content %}{% endblock %}
     
-    <!--footer section start -->
-    <div class="footer_section layout_padding">
+    <!-- footer section start -->
+    <div class="footer_section layout_padding margin_top90">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-sm-6">
-                    <h4 class="footer_heading">Hakkımızda</h4>
-                    <p class="footer_text">{{ settings.footer_about if settings else '' }}</p>
-                </div>
-                <div class="col-lg-3 col-sm-6">
-                    <h4 class="footer_heading">Hızlı Bağlantılar</h4>
-                    <div class="footer_menu">
-                        <ul>
-                            {% for menu in footer_menus %}
-                            <li>
-                                <a href="{{ menu.url }}" class="footer_link">
-                                    {% if menu.icon %}<i class="{{ menu.icon }}"></i> {% endif %}
-                                    {{ menu.title }}
-                                </a>
-                            </li>
-                            {% endfor %}
-                        </ul>
+            <div class="location_main">
+                {% if contact_info %}
+                    {% if contact_info.address %}
+                    <div class="location_text"><img src="{{ url_for('static', filename='cobsin_template/images/map-icon.png') }}"><span class="padding_left_10"><a href="#">{{ contact_info.address }}</a></span></div>
+                    {% endif %}
+                    {% if contact_info.phone %}
+                    <div class="location_text center"><img src="{{ url_for('static', filename='cobsin_template/images/call-icon.png') }}"><span class="padding_left_10"><a href="tel:{{ contact_info.phone }}">{{ contact_info.phone }}</a></span></div>
+                    {% endif %}
+                    {% if contact_info.email %}
+                    <div class="location_text right"><img src="{{ url_for('static', filename='cobsin_template/images/mail-icon.png') }}"><span class="padding_left_10"><a href="mailto:{{ contact_info.email }}">{{ contact_info.email }}</a></span></div>
+                    {% endif %}
+                {% else %}
+                    <div class="location_text"><img src="{{ url_for('static', filename='cobsin_template/images/map-icon.png') }}"><span class="padding_left_10"><a href="#">İstanbul, Türkiye</a></span></div>
+                    <div class="location_text center"><img src="{{ url_for('static', filename='cobsin_template/images/call-icon.png') }}"><span class="padding_left_10"><a href="tel:+902121234567">+90 212 123 45 67</a></span></div>
+                    <div class="location_text right"><img src="{{ url_for('static', filename='cobsin_template/images/mail-icon.png') }}"><span class="padding_left_10"><a href="mailto:info@cobsin.com">info@cobsin.com</a></span></div>
+                {% endif %}
+            </div>
+            <div class="footer_section_2">
+                <div class="row">
+                    <div class="col-lg-4">
+                        <h2 class="footer_taital">Hakkımızda</h2>
+                        <p class="footer_text">
+                            {% if site_settings.site_description %}
+                                {{ site_settings.site_description }}
+                            {% else %}
+                                Modern ve profesyonel web sitesi teması ile işletmenizi en iyi şekilde tanıtın.
+                            {% endif %}
+                        </p>
                     </div>
-                </div>
-                <div class="col-lg-3 col-sm-6">
-                    <h4 class="footer_heading">İletişim</h4>
-                    <p class="footer_text">
-                        {% if settings %}
-                        <i class="fas fa-map-marker-alt"></i> {{ settings.address }}<br>
-                        <i class="fas fa-phone"></i> {{ settings.phone }}<br>
-                        <i class="fas fa-envelope"></i> {{ settings.email }}
-                        {% endif %}
-                    </p>
-                </div>
-                <div class="col-lg-3 col-sm-6">
-                    <h4 class="footer_heading">Sosyal Medya</h4>
-                    <div class="social_icon">
-                        {% if settings and settings.facebook_url %}
-                        <a href="{{ settings.facebook_url }}" target="_blank"><i class="fab fa-facebook-f"></i></a>
-                        {% endif %}
-                        {% if settings and settings.twitter_url %}
-                        <a href="{{ settings.twitter_url }}" target="_blank"><i class="fab fa-twitter"></i></a>
-                        {% endif %}
-                        {% if settings and settings.instagram_url %}
-                        <a href="{{ settings.instagram_url }}" target="_blank"><i class="fab fa-instagram"></i></a>
-                        {% endif %}
+                    <div class="col-lg-4">
+                        <h2 class="footer_taital">Hızlı Bağlantılar</h2>
+                        <div class="footer_menu">
+                            <ul>
+                                <li><a href="{{ url_for('main.index') }}">Ana Sayfa</a></li>
+                                <li><a href="{{ url_for('main.about') }}">Hakkımızda</a></li>
+                                <li><a href="{{ url_for('main.services') }}">Hizmetlerimiz</a></li>
+                                <li><a href="{{ url_for('main.blog') }}">Blog</a></li>
+                                <li><a href="{{ url_for('main.contact') }}">İletişim</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <h2 class="footer_taital">Sosyal Medya</h2>
+                        <div class="social_icon">
+                            <ul>
+                                {% if contact_info and contact_info.facebook %}
+                                <li><a href="{{ contact_info.facebook }}"><img src="{{ url_for('static', filename='cobsin_template/images/fb-icon.png') }}"></a></li>
+                                {% endif %}
+                                {% if contact_info and contact_info.twitter %}
+                                <li><a href="{{ contact_info.twitter }}"><img src="{{ url_for('static', filename='cobsin_template/images/twitter-icon.png') }}"></a></li>
+                                {% endif %}
+                                {% if contact_info and contact_info.linkedin %}
+                                <li><a href="{{ contact_info.linkedin }}"><img src="{{ url_for('static', filename='cobsin_template/images/linkedin-icon.png') }}"></a></li>
+                                {% endif %}
+                                {% if contact_info and contact_info.instagram %}
+                                <li><a href="{{ contact_info.instagram }}"><img src="{{ url_for('static', filename='cobsin_template/images/instagram-icon.png') }}"></a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <!--footer section end -->
-    
+    <!-- footer section end -->
     <!-- copyright section start -->
     <div class="copyright_section">
         <div class="container">
-            <p class="copyright_text">© {{ now.year }} Tüm Hakları Saklıdır. 
-                {% if settings and settings.site_name %}
-                {{ settings.site_name }}
-                {% else %}
-                KolayCMS
-                {% endif %}
-            </p>
+            <p class="copyright_text">&copy; {{ now.year }} {{ site_settings.site_title }}. Tüm hakları saklıdır.</p>
         </div>
     </div>
     <!-- copyright section end -->
-    
-    <!-- search overlay start -->
-    <div class="search-overlay">
-        <div class="d-table">
-            <div class="d-table-cell">
-                <div class="search-overlay-layer"></div>
-                <div class="search-overlay-layer"></div>
-                <div class="search-overlay-layer"></div>
-                <div class="search-overlay-close">
-                    <span class="search-overlay-close-line"></span>
-                    <span class="search-overlay-close-line"></span>
-                </div>
-                <div class="search-overlay-form">
-                    <form>
-                        <input type="text" class="input-search" placeholder="Aramak istediğiniz kelimeyi yazın...">
-                        <button type="submit"><i class="fa fa-search"></i></button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- search overlay end -->
-    
-    <!-- Slider Ayarları -->
-    <div id="sliderSettings" 
-        data-transition-speed="{{ settings.slider_transition_speed|default(5000) }}"
-        data-is-autoplay="{{ settings.slider_is_autoplay|default(true)|string|lower }}"
-        data-show-arrows="{{ settings.slider_show_arrows|default(true)|string|lower }}"
-        data-show-bullets="{{ settings.slider_show_bullets|default(true)|string|lower }}"
-        data-slider-height="{{ settings.slider_height|default(600) }}"
-        data-animation-speed="{{ settings.slider_animation_speed|default(600) }}"
-        style="display: none;">
-    </div>
-
     <!-- Javascript files-->
     <script src="{{ url_for('static', filename='cobsin_template/js/jquery.min.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup/1.1.0/jquery.magnific-popup.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
     <script src="{{ url_for('static', filename='cobsin_template/js/popper.min.js') }}"></script>
     <script src="{{ url_for('static', filename='cobsin_template/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='cobsin_template/js/jquery-3.0.0.min.js') }}"></script>
     <script src="{{ url_for('static', filename='cobsin_template/js/plugin.js') }}"></script>
-    <!-- sidebar -->
     <script src="{{ url_for('static', filename='cobsin_template/js/jquery.mCustomScrollbar.concat.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='cobsin_template/js/owl.carousel.min.js') }}"></script>
     <script src="{{ url_for('static', filename='cobsin_template/js/custom.js') }}"></script>
-    <!-- Owl Carousel -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
-    <!-- Magnific Popup -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.min.js"></script>
-    <!-- Fancybox -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Slider ayarlarını al
-            var settings = document.getElementById('sliderSettings');
-            var transitionSpeed = parseInt(settings.dataset.transitionSpeed);
-            var isAutoplay = settings.dataset.isAutoplay === 'true';
-            var showArrows = settings.dataset.showArrows === 'true';
-            var showBullets = settings.dataset.showBullets === 'true';
-            var sliderHeight = parseInt(settings.dataset.sliderHeight);
-            var animationSpeed = parseInt(settings.dataset.animationSpeed);
-
-            // Slider'ı başlat
-            var myCarousel = document.querySelector('#myCarousel');
-            if (myCarousel) {
-                var carousel = new bootstrap.Carousel(myCarousel, {
-                    interval: transitionSpeed,
-                    pause: isAutoplay ? false : 'hover'
-                });
-
-                // Ok kontrollerini ayarla
-                if (!showArrows) {
-                    var arrows = myCarousel.querySelectorAll('.carousel-control-prev, .carousel-control-next');
-                    arrows.forEach(function(arrow) {
-                        arrow.style.display = 'none';
-                    });
-                }
-
-                // Bullet kontrollerini ayarla
-                if (!showBullets) {
-                    var indicators = myCarousel.querySelector('.carousel-indicators');
-                    if (indicators) {
-                        indicators.style.display = 'none';
-                    }
-                }
-
-                // Slider yüksekliğini ayarla
-                var bannerSection = document.querySelector('.banner_section');
-                if (bannerSection) {
-                    bannerSection.style.height = sliderHeight + 'px';
-                }
-
-                // Slider animasyon hızını ayarla
-                var carouselItems = myCarousel.querySelectorAll('.carousel-item');
-                carouselItems.forEach(function(item) {
-                    item.style.transitionDuration = animationSpeed + 'ms';
-                });
-            }
-        });
-    </script>
-    
     {% block scripts %}{% endblock %}
 </body>
 </html> 

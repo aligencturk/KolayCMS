@@ -1,0 +1,231 @@
+{% extends "admin/master.html" %}
+
+{% block title %}Yedekleme ve Geri Yükleme - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-database"></i> Yedekleme ve Geri Yükleme
+        </h1>
+        <a href="{{ url_for('admin.settings') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Ayarlar Menüsüne Dön
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Veritabanı Yedekleme</h6>
+                </div>
+                <div class="card-body">
+                    {% include 'admin/partials/messages.html' %}
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Veritabanınızı düzenli olarak yedeklemeniz önerilir. Yedekleme işlemi, tüm içeriğinizi ve ayarlarınızı kaydeder.
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('admin.settings_backup_create') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="mb-3">
+                            <label for="backup_name" class="form-label">Yedek Adı</label>
+                            <input type="text" class="form-control" id="backup_name" name="backup_name" 
+                                   value="yedek_{{ now().strftime('%Y%m%d_%H%M%S') }}" required>
+                            <div class="form-text">
+                                Yedeğinizi tanımlamak için bir isim girin
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="include_uploads" name="include_uploads" checked>
+                                <label class="form-check-label" for="include_uploads">
+                                    Yüklenen dosyaları da yedekle
+                                </label>
+                                <div class="form-text">
+                                    Resimler, belgeler ve diğer yüklenen dosyaları da yedekleme dahil eder
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-download"></i> Yedek Oluştur
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Mevcut Yedekler</h6>
+                </div>
+                <div class="card-body">
+                    {% if backups and backups|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Yedek Adı</th>
+                                    <th>Oluşturma Tarihi</th>
+                                    <th>Boyut</th>
+                                    <th>İçerik</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for backup in backups %}
+                                <tr>
+                                    <td>{{ backup.name }}</td>
+                                    <td>{{ backup.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                    <td>{{ backup.size }}</td>
+                                    <td>
+                                        {% if backup.includes_uploads %}
+                                        <span class="badge bg-info">Veritabanı + Dosyalar</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Sadece Veritabanı</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('admin.settings_backup_download', id=backup.id) }}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-download"></i> İndir
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#restoreModal{{ backup.id }}">
+                                                <i class="fas fa-undo"></i> Geri Yükle
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ backup.id }}">
+                                                <i class="fas fa-trash"></i> Sil
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Geri Yükleme Modal -->
+                                        <div class="modal fade" id="restoreModal{{ backup.id }}" tabindex="-1" aria-labelledby="restoreModalLabel{{ backup.id }}" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="restoreModalLabel{{ backup.id }}">Yedeği Geri Yükle</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="alert alert-warning">
+                                                            <i class="fas fa-exclamation-triangle"></i> <strong>Uyarı!</strong> Bu işlem mevcut veritabanınızın üzerine yazacak ve tüm değişiklikleriniz kaybolacaktır.
+                                                        </div>
+                                                        <p>{{ backup.name }} yedeğini geri yüklemek istediğinizden emin misiniz?</p>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                                                        <form method="POST" action="{{ url_for('admin.settings_backup_restore', id=backup.id) }}">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <button type="submit" class="btn btn-warning">Geri Yükle</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Silme Modal -->
+                                        <div class="modal fade" id="deleteModal{{ backup.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ backup.id }}" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="deleteModalLabel{{ backup.id }}">Yedeği Sil</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p>{{ backup.name }} yedeğini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.</p>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                                                        <form method="POST" action="{{ url_for('admin.settings_backup_delete', id=backup.id) }}">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <button type="submit" class="btn btn-danger">Sil</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Henüz hiç yedek oluşturulmamış.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Yedek Yükleme</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> <strong>Uyarı!</strong> Yedek yükleme işlemi mevcut veritabanınızın üzerine yazacaktır. Bu işlemi yapmadan önce mevcut verilerinizi yedeklemeniz önerilir.
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('admin.settings_backup_upload') }}" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="mb-3">
+                            <label for="backup_file" class="form-label">Yedek Dosyası</label>
+                            <input type="file" class="form-control" id="backup_file" name="backup_file" accept=".zip,.sql,.db" required>
+                            <div class="form-text">
+                                Yüklenecek yedek dosyasını seçin (.zip, .sql veya .db uzantılı)
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="confirm_restore" name="confirm_restore" required>
+                                <label class="form-check-label" for="confirm_restore">
+                                    Bu işlemin mevcut veritabanımın üzerine yazacağını ve geri alınamayacağını anlıyorum
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-upload"></i> Yedeği Yükle ve Geri Yükle
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Form gönderildiğinde kullanıcıya bilgi ver
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function() {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                const originalText = submitBtn.innerHTML;
+                submitBtn.dataset.originalText = originalText;
+                
+                if (this.action.includes('backup_create')) {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Yedek Oluşturuluyor...';
+                } else if (this.action.includes('backup_restore')) {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Geri Yükleniyor...';
+                } else if (this.action.includes('backup_upload')) {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Yükleniyor...';
+                }
+                
+                submitBtn.disabled = true;
+            }
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,52 @@
+{% extends "main/master.html" %}
+
+{% block title %}{{ page.title }}{% endblock %}
+
+{% block content %}
+<!-- About Section -->
+<section class="about-section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="about-content">
+                    <h2 class="section-title">{{ about_section.title }}</h2>
+                    <h4 class="section-subtitle">{{ about_section.subtitle }}</h4>
+                    <div class="content">
+                        {{ about_section.content | safe }}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                {% if about_section.image_path %}
+                <div class="about-image">
+                    <img src="{{ about_section.image_path }}" alt="{{ about_section.title }}" class="img-fluid">
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Stats Section -->
+        {% if about_section.stats_items %}
+        <div class="stats-section mt-5">
+            <div class="row">
+                {% for stat in about_section.stats_items | tojson | safe | from_json %}
+                <div class="col-md-4">
+                    <div class="stat-item text-center">
+                        <h3 class="stat-number">{{ stat.number }}</h3>
+                        <p class="stat-text">{{ stat.text }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Page Content -->
+<section class="page-content py-5">
+    <div class="container">
+        {{ page.content | safe }}
+    </div>
+</section>
+{% endblock %} 

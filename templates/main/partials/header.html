@@ -1,0 +1,44 @@
+<!-- CobSin Tema - Header Bölümü -->
+<header class="header">
+    <div class="container">
+        <div class="header-content">
+            <div class="logo">
+                <a href="{{ url_for('main.index') }}">
+                    {% if site_settings.logo_url %}
+                    <img src="{{ site_settings.logo_url }}" alt="{{ site_settings.site_title }}">
+                    {% else %}
+                    <h1>{{ site_settings.site_title }}</h1>
+                    {% endif %}
+                </a>
+            </div>
+            
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            
+            <nav class="main-nav">
+                <ul class="nav-list">
+                    {% for menu_item in header_menus %}
+                    <li class="nav-item {% if menu_item.children %}has-dropdown{% endif %}">
+                        <a href="{{ menu_item.url }}" class="nav-link {% if request.path == menu_item.url %}active{% endif %}">
+                            {{ menu_item.title }}
+                        </a>
+                        
+                        {% if menu_item.children %}
+                        <ul class="dropdown-menu">
+                            {% for child in menu_item.children %}
+                            <li>
+                                <a href="{{ child.url }}" class="dropdown-item {% if request.path == child.url %}active{% endif %}">
+                                    {{ child.title }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header> 

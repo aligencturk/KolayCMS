@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Şablon Önizleme | KolayCMS</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    
+    <!-- Tema CSS'i -->
+    <style id="dynamic-styles"></style>
+    {% if css %}
+        <script>
+            (function() {
+                const cssContentStr = '{{ css | tojson | safe }}';
+                const cssContent = JSON.parse(cssContentStr);
+                
+                window.addEventListener('DOMContentLoaded', (event) => {
+                    const styleSheet = document.getElementById('dynamic-styles');
+                    for (const [section, content] of Object.entries(cssContent)) {
+                        styleSheet.textContent += content;
+                    }
+                });
+            })();
+        </script>
+    {% endif %}
+</head>
+<body>
+    <!-- Header -->
+    {% if template.header %}
+        {{ template.header | safe }}
+    {% endif %}
+    
+    <!-- Banner/Slider -->
+    {% if template.banner %}
+        {{ template.banner | safe }}
+    {% endif %}
+    
+    <!-- Hakkımızda -->
+    {% if template.about %}
+        {{ template.about | safe }}
+    {% endif %}
+    
+    <!-- Hizmetler -->
+    {% if template.services %}
+        {{ template.services | safe }}
+    {% endif %}
+    
+    <!-- Projeler -->
+    {% if template.projects %}
+        {{ template.projects | safe }}
+    {% endif %}
+    
+    <!-- Ekip -->
+    {% if template.team %}
+        {{ template.team | safe }}
+    {% endif %}
+    
+    <!-- Müşteri Yorumları -->
+    {% if template.testimonials %}
+        {{ template.testimonials | safe }}
+    {% endif %}
+    
+    <!-- Blog -->
+    {% if template.blog %}
+        {{ template.blog | safe }}
+    {% endif %}
+    
+    <!-- İletişim -->
+    {% if template.contact %}
+        {{ template.contact | safe }}
+    {% endif %}
+    
+    <!-- Footer -->
+    {% if template.footer %}
+        {{ template.footer | safe }}
+    {% endif %}
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Tema JavaScript'i -->
+    {% if js %}
+        <script>
+            (function() {
+                const jsContentStr = '{{ js | tojson | safe }}';
+                const jsContent = JSON.parse(jsContentStr);
+                
+                for (const [section, content] of Object.entries(jsContent)) {
+                    const script = document.createElement('script');
+                    script.textContent = content;
+                    document.body.appendChild(script);
+                }
+            })();
+        </script>
+    {% endif %}
+</body>
+</html> 

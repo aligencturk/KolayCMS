@@ -8,7 +8,7 @@ class Slide(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200))
     description = db.Column(db.Text)
-    image_path = db.Column(db.String(200), nullable=False)
+    image_path = db.Column(db.String(200))
     button_text = db.Column(db.String(50))
     button_url = db.Column(db.String(200))
     order = db.Column(db.Integer, default=0)

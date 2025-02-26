@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} - KolayCMS Yönetim Paneli</title>
+    {% block head_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='main/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <style>
+        :root {
+            --primary-color: #13a25d;
+            --secondary-color: #333;
+            --bg-light: #f8f9fa;
+            --text-dark: #333;
+            --sidebar-bg: #2c3e50;
+            --sidebar-text: #ecf0f1;
+            --sidebar-hover: #34495e;
+            --navbar-bg: #2c3e50;
+            --navbar-text: #ecf0f1;
+            --navbar-hover: #34495e;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-light);
+        }
+        
+        .navbar {
+            background-color: var(--navbar-bg) !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            padding: 0.8rem 1rem;
+        }
+        
+        .navbar-brand {
+            color: var(--navbar-text) !important;
+            font-weight: 600;
+            font-size: 1.2rem;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-brand:hover {
+            background-color: var(--navbar-hover);
+            color: white !important;
+        }
+        
+        .navbar .nav-link {
+            color: var(--navbar-text) !important;
+            padding: 0.5rem 1rem;
+            margin: 0 0.2rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar .nav-link:hover {
+            background-color: var(--navbar-hover);
+            color: white !important;
+        }
+        
+        .navbar .nav-link i {
+            margin-right: 8px;
+        }
+        
+        .navbar-toggler {
+            border-color: var(--navbar-text);
+        }
+        
+        .navbar-toggler:focus {
+            box-shadow: none;
+            outline: none;
+        }
+        
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background-color: var(--sidebar-bg);
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            padding-top: 20px;
+        }
+        
+        .sidebar .nav-link {
+            color: var(--sidebar-text);
+            padding: 12px 20px;
+            margin: 2px 10px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav-link:hover {
+            background-color: var(--sidebar-hover);
+            color: white !important;
+            transform: translateX(5px);
+        }
+        
+        .sidebar .nav-link.active {
+            background-color: var(--primary-color);
+            color: white !important;
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link i {
+            width: 25px;
+            text-align: center;
+            margin-right: 10px;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 2px solid var(--primary-color);
+            font-weight: bold;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #0f8a4c;
+            border-color: #0f8a4c;
+        }
+        
+        .alert {
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Türkçe metin stilleri */
+        .table th {
+            font-weight: 600;
+        }
+        
+        .form-label {
+            font-weight: 500;
+        }
+        
+        .btn {
+            font-weight: 500;
+        }
+        
+        .alert {
+            font-weight: 500;
+        }
+        
+        /* Yeni eklenen stiller */
+        .help-tooltip {
+            color: var(--primary-color);
+            margin-left: 5px;
+            cursor: help;
+        }
+        
+        .nav-link .badge {
+            margin-left: 5px;
+            background-color: var(--primary-color);
+        }
+        
+        .quick-actions {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .quick-actions .btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin: 1rem 0;
+        }
+        
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: "›";
+        }
+        
+        .sidebar .nav-link:hover .nav-tooltip {
+            display: block;
+        }
+        
+        .nav-tooltip {
+            display: none;
+            position: absolute;
+            background: var(--primary-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 1000;
+            left: 100%;
+            margin-left: 10px;
+        }
+
+        /* Dropdown menü stilleri */
+        .dropdown-menu {
+            border: none;
+            border-radius: 8px;
+            margin-top: 10px;
+            min-width: 240px;
+        }
+
+        .dropdown-menu-end {
+            right: 0;
+            left: auto;
+        }
+
+        .dropdown-item {
+            padding: 8px 16px;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--bg-light);
+        }
+
+        .dropdown-item i {
+            color: var(--secondary-color);
+        }
+
+        .dropdown-item.text-danger i {
+            color: #dc3545;
+        }
+
+        .dropdown-divider {
+            margin: 4px 0;
+            border-color: #eee;
+        }
+    </style>
+    {% endblock %}
+</head>
+<body>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('admin.index') }}">
+                <i class="fas fa-cogs"></i> KolayCMS Yönetici Paneli
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.index') }}" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> Siteyi Görüntüle
+                        </a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle"></i> {{ current_user.username }}
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown">
+                            <div class="px-3 py-2 text-muted border-bottom">
+                                <small>Hoş geldiniz</small><br>
+                                <strong>{{ current_user.username }}</strong>
+                            </div>
+                            <a class="dropdown-item py-2" href="{{ url_for('admin.profile') }}">
+                                <i class="fas fa-user-cog fa-fw me-2"></i> Profil Ayarları
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item py-2 text-danger" href="{{ url_for('auth.logout') }}" onclick="return confirm('Çıkış yapmak istediğinizden emin misiniz?');">
+                                <i class="fas fa-sign-out-alt fa-fw me-2"></i> Güvenli Çıkış
+                            </a>
+                        </div>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-2 d-none d-md-block sidebar">
+                <div class="sidebar-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin.index' %}active{% endif %}" 
+                               href="{{ url_for('admin.index') }}">
+                                <i class="fas fa-tachometer-alt"></i> Panel
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin.content_pages_list' %}active{% endif %}" 
+                               href="{{ url_for('admin.content_pages_list') }}">
+                                <i class="fas fa-file-alt"></i> Sayfalar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin.menus' %}active{% endif %}" 
+                               href="{{ url_for('admin.menus') }}">
+                                <i class="fas fa-bars"></i> Menüler
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'users' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('admin.users_list') }}" data-toggle="tooltip" title="Kullanıcıları yönetin ve yetkilendirin">
+                                <i class="fas fa-users"></i> Kullanıcılar
+                                {% if stats and stats.pending_users %}<span class="badge badge-pill badge-warning">{{ stats.pending_users }}</span>{% endif %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'contents' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('admin.contents_list') }}" data-toggle="tooltip" title="Blog yazıları ve içerikleri yönetin">
+                                <i class="fas fa-newspaper"></i> İçerikler
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'products' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('admin.products_list') }}" data-toggle="tooltip" title="Ürün kataloğunu yönetin">
+                                <i class="fas fa-box"></i> Ürünler
+                                {% if stats.low_stock %}<span class="badge badge-pill badge-danger">{{ stats.low_stock }}</span>{% endif %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'orders' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('admin.orders_list') }}" data-toggle="tooltip" title="Siparişleri takip edin">
+                                <i class="fas fa-shopping-cart"></i> Siparişler
+                                {% if stats.new_orders %}<span class="badge badge-pill badge-success">{{ stats.new_orders }}</span>{% endif %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'settings' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('admin.settings') }}" data-toggle="tooltip" title="Sistem ayarlarını yapılandırın">
+                                <i class="fas fa-cog"></i> Ayarlar
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <main class="col-md-9 ml-sm-auto col-lg-10 px-md-4 content">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                {% if request.endpoint != 'admin.index' %}
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Ana Sayfa</a></li>
+                        {% block breadcrumb %}{% endblock %}
+                    </ol>
+                </nav>
+                {% endif %}
+                
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    
+    <div class="quick-actions">
+        <button class="btn btn-primary" data-toggle="tooltip" title="Hızlı Yardım" onclick="showHelp()">
+            <i class="fas fa-question"></i>
+        </button>
+        <a href="#top" class="btn btn-secondary" data-toggle="tooltip" title="Yukarı Çık">
+            <i class="fas fa-arrow-up"></i>
+        </a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Bootstrap 5 tooltip initialization
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Bootstrap 5 alert auto-close
+            document.querySelectorAll('.alert').forEach(function(alert) {
+                setTimeout(function() {
+                    var bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+            
+            // Silme işlemleri için onay
+            document.querySelectorAll('.delete-confirm').forEach(function(element) {
+                element.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    let url = this.getAttribute('href');
+                    
+                    Swal.fire({
+                        title: 'Emin misiniz?',
+                        text: "Bu işlem geri alınamaz!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Evet, sil!',
+                        cancelButtonText: 'İptal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = url;
+                        }
+                    });
+                });
+            });
+        });
+        
+        function showHelp() {
+            Swal.fire({
+                title: 'Yardım & İpuçları',
+                html: `
+                    <div class="text-start">
+                        <h5>Hızlı İpuçları:</h5>
+                        <ul>
+                            <li>Menü öğelerinin üzerine gelerek detaylı açıklamaları görebilirsiniz</li>
+                            <li>Sağ üst köşedeki profil menüsünden ayarlarınıza ulaşabilirsiniz</li>
+                            <li>Her sayfada ekmek kırıntısı (breadcrumb) ile nerede olduğunuzu görebilirsiniz</li>
+                            <li>Bildirimler için sayı rozetlerine dikkat edin</li>
+                        </ul>
+                        <p>Daha detaylı bilgi için <a href="/admin/docs" target="_blank">dokümantasyonu</a> inceleyebilirsiniz.</p>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonText: 'Anladım'
+            });
+        }
+
+        // CSRF token ayarı
+        document.addEventListener('DOMContentLoaded', function() {
+            let token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            document.querySelectorAll('form').forEach(function(form) {
+                let input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'csrf_token';
+                input.value = token;
+                form.appendChild(input);
+            });
+        });
+
+        // Toastr ayarları
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "timeOut": "3000"
+        };
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

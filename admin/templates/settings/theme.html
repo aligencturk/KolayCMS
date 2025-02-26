@@ -1,0 +1,701 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Tema Ayarları</h2>
+        </div>
+        <div class="col text-end">
+            <a href="{{ url_for('admin.settings') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Geri Dön
+            </a>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <!-- CSRF Token -->
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- Bölüm Seçici -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Bölüm Seçin</h5>
+            </div>
+            <div class="card-body">
+                <div class="btn-group w-100" role="group">
+                    <button type="button" class="btn btn-outline-primary section-btn active" data-section="navbar">Navbar</button>
+                    <button type="button" class="btn btn-outline-primary section-btn" data-section="body">Genel</button>
+                    <button type="button" class="btn btn-outline-primary section-btn" data-section="banner">Banner</button>
+                    <button type="button" class="btn btn-outline-primary section-btn" data-section="about">Hakkımızda</button>
+                    <button type="button" class="btn btn-outline-primary section-btn" data-section="services">Hizmetler</button>
+                    <button type="button" class="btn btn-outline-primary section-btn" data-section="blog">Blog</button>
+                    <button type="button" class="btn btn-outline-primary section-btn" data-section="contact">İletişim</button>
+                    <button type="button" class="btn btn-outline-primary section-btn" data-section="video">Video</button>
+                    <button type="button" class="btn btn-outline-primary section-btn" data-section="footer">Footer</button>
+                    <button type="button" class="btn btn-outline-primary section-btn" data-section="custom">Özel Kodlar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navbar Ayarları -->
+        <div class="card mb-4 section-content" id="navbar-section">
+            <div class="card-header">
+                <h5 class="mb-0">Navbar Ayarları</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="navbar_bg_color" class="form-label">Arkaplan Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="navbar_bg_color" 
+                                   name="navbar_bg_color" value="{{ settings.navbar_bg_color or '#ffffff' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="navbar_text_color" class="form-label">Yazı Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="navbar_text_color" 
+                                   name="navbar_text_color" value="{{ settings.navbar_text_color or '#212529' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="navbar_active_color" class="form-label">Aktif Menü Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="navbar_active_color" 
+                                   name="navbar_active_color" value="{{ settings.navbar_active_color or '#007bff' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="navbar_hover_color" class="form-label">Hover Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="navbar_hover_color" 
+                                   name="navbar_hover_color" value="{{ settings.navbar_hover_color or '#0056b3' }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="navbar_is_fixed" name="navbar_is_fixed"
+                           {% if settings.navbar_is_fixed %}checked{% endif %}>
+                    <label class="form-check-label" for="navbar_is_fixed">Sabit Navbar</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="navbar_is_transparent" name="navbar_is_transparent"
+                           {% if settings.navbar_is_transparent %}checked{% endif %}>
+                    <label class="form-check-label" for="navbar_is_transparent">Şeffaf Navbar</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Genel Ayarlar -->
+        <div class="card mb-4 section-content" id="body-section" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">Genel Ayarlar</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="body_bg_color" class="form-label">Sayfa Arkaplan Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="body_bg_color" 
+                                   name="body_bg_color" value="{{ settings.body_bg_color or '#ffffff' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="body_text_color" class="form-label">Yazı Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="body_text_color" 
+                                   name="body_text_color" value="{{ settings.body_text_color or '#212529' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="body_link_color" class="form-label">Link Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="body_link_color" 
+                                   name="body_link_color" value="{{ settings.body_link_color or '#007bff' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="body_heading_color" class="form-label">Başlık Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="body_heading_color" 
+                                   name="body_heading_color" value="{{ settings.body_heading_color or '#212529' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="body_font_family" class="form-label">Yazı Tipi</label>
+                            <select class="form-select" id="body_font_family" name="body_font_family">
+                                <option value="Poppins" {% if settings.body_font_family == 'Poppins' %}selected{% endif %}>Poppins</option>
+                                <option value="Roboto" {% if settings.body_font_family == 'Roboto' %}selected{% endif %}>Roboto</option>
+                                <option value="Open Sans" {% if settings.body_font_family == 'Open Sans' %}selected{% endif %}>Open Sans</option>
+                                <option value="Montserrat" {% if settings.body_font_family == 'Montserrat' %}selected{% endif %}>Montserrat</option>
+                                <option value="Lato" {% if settings.body_font_family == 'Lato' %}selected{% endif %}>Lato</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="body_font_size" class="form-label">Yazı Boyutu</label>
+                            <select class="form-select" id="body_font_size" name="body_font_size">
+                                <option value="14px" {% if settings.body_font_size == '14px' %}selected{% endif %}>Küçük (14px)</option>
+                                <option value="16px" {% if settings.body_font_size == '16px' %}selected{% endif %}>Orta (16px)</option>
+                                <option value="18px" {% if settings.body_font_size == '18px' %}selected{% endif %}>Büyük (18px)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="primary_color" class="form-label">Ana Renk</label>
+                            <input type="color" class="form-control form-control-color w-100" id="primary_color" 
+                                   name="primary_color" value="{{ settings.primary_color or '#007bff' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="secondary_color" class="form-label">İkincil Renk</label>
+                            <input type="color" class="form-control form-control-color w-100" id="secondary_color" 
+                                   name="secondary_color" value="{{ settings.secondary_color or '#6c757d' }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="is_dark_mode" name="is_dark_mode"
+                                   {% if settings.is_dark_mode %}checked{% endif %}>
+                            <label class="form-check-label" for="is_dark_mode">Karanlık Mod</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="enable_animations" name="enable_animations"
+                                   {% if settings.enable_animations %}checked{% endif %}>
+                            <label class="form-check-label" for="enable_animations">Animasyonları Etkinleştir</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banner Ayarları -->
+        <div class="card mb-4 section-content" id="banner-section" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">Banner Ayarları</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="banner_bg_color" class="form-label">Arkaplan Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="banner_bg_color" 
+                                   name="banner_bg_color" value="{{ settings.banner_bg_color or '#f8f9fa' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="banner_title_color" class="form-label">Başlık Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="banner_title_color" 
+                                   name="banner_title_color" value="{{ settings.banner_title_color or '#212529' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="banner_text_color" class="form-label">Metin Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="banner_text_color" 
+                                   name="banner_text_color" value="{{ settings.banner_text_color or '#6c757d' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="banner_button_bg_color" class="form-label">Buton Arkaplan Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="banner_button_bg_color" 
+                                   name="banner_button_bg_color" value="{{ settings.banner_button_bg_color or '#007bff' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="banner_button_text_color" class="form-label">Buton Yazı Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="banner_button_text_color" 
+                                   name="banner_button_text_color" value="{{ settings.banner_button_text_color or '#ffffff' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="banner_indicator_color" class="form-label">Gösterge Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="banner_indicator_color" 
+                                   name="banner_indicator_color" value="{{ settings.banner_indicator_color or '#007bff' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hakkımızda Ayarları -->
+        <div class="card mb-4 section-content" id="about-section" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">Hakkımızda Bölümü Ayarları</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="about_bg_color" class="form-label">Arkaplan Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="about_bg_color" 
+                                   name="about_bg_color" value="{{ settings.about_bg_color or '#ffffff' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="about_title_color" class="form-label">Başlık Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="about_title_color" 
+                                   name="about_title_color" value="{{ settings.about_title_color or '#212529' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="about_text_color" class="form-label">Metin Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="about_text_color" 
+                                   name="about_text_color" value="{{ settings.about_text_color or '#6c757d' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="about_stats_number_color" class="form-label">İstatistik Sayı Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="about_stats_number_color" 
+                                   name="about_stats_number_color" value="{{ settings.about_stats_number_color or '#007bff' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="about_stats_text_color" class="form-label">İstatistik Metin Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="about_stats_text_color" 
+                                   name="about_stats_text_color" value="{{ settings.about_stats_text_color or '#6c757d' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="about_box_bg_color" class="form-label">Kutu Arkaplan Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="about_box_bg_color" 
+                                   name="about_box_bg_color" value="{{ settings.about_box_bg_color or '#f8f9fa' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hizmetler Ayarları -->
+        <div class="card mb-4 section-content" id="services-section" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">Hizmetler Bölümü Ayarları</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="services_bg_color" class="form-label">Arkaplan Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="services_bg_color" 
+                                   name="services_bg_color" value="{{ settings.services_bg_color or '#ffffff' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="services_title_color" class="form-label">Başlık Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="services_title_color" 
+                                   name="services_title_color" value="{{ settings.services_title_color or '#212529' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="services_card_bg_color" class="form-label">Kart Arkaplan Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="services_card_bg_color" 
+                                   name="services_card_bg_color" value="{{ settings.services_card_bg_color or '#f8f9fa' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="services_icon_color" class="form-label">İkon Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="services_icon_color" 
+                                   name="services_icon_color" value="{{ settings.services_icon_color or '#007bff' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="services_card_title_color" class="form-label">Kart Başlık Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="services_card_title_color" 
+                                   name="services_card_title_color" value="{{ settings.services_card_title_color or '#212529' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="services_card_text_color" class="form-label">Kart Metin Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="services_card_text_color" 
+                                   name="services_card_text_color" value="{{ settings.services_card_text_color or '#6c757d' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Blog Ayarları -->
+        <div class="card mb-4 section-content" id="blog-section" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">Blog Bölümü Ayarları</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="blog_bg_color" class="form-label">Arkaplan Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="blog_bg_color" 
+                                   name="blog_bg_color" value="{{ settings.blog_bg_color or '#ffffff' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="blog_title_color" class="form-label">Başlık Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="blog_title_color" 
+                                   name="blog_title_color" value="{{ settings.blog_title_color or '#212529' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="blog_card_bg_color" class="form-label">Kart Arkaplan Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="blog_card_bg_color" 
+                                   name="blog_card_bg_color" value="{{ settings.blog_card_bg_color or '#f8f9fa' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="blog_date_color" class="form-label">Tarih Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="blog_date_color" 
+                                   name="blog_date_color" value="{{ settings.blog_date_color or '#6c757d' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="blog_post_title_color" class="form-label">Yazı Başlık Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="blog_post_title_color" 
+                                   name="blog_post_title_color" value="{{ settings.blog_post_title_color or '#212529' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="blog_excerpt_color" class="form-label">Özet Metin Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="blog_excerpt_color" 
+                                   name="blog_excerpt_color" value="{{ settings.blog_excerpt_color or '#6c757d' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- İletişim Ayarları -->
+        <div class="card mb-4 section-content" id="contact-section" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">İletişim Bölümü Ayarları</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="contact_bg_color" class="form-label">Arkaplan Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="contact_bg_color" 
+                                   name="contact_bg_color" value="{{ settings.contact_bg_color or '#ffffff' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="contact_title_color" class="form-label">Başlık Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="contact_title_color" 
+                                   name="contact_title_color" value="{{ settings.contact_title_color or '#212529' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="contact_text_color" class="form-label">Metin Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="contact_text_color" 
+                                   name="contact_text_color" value="{{ settings.contact_text_color or '#6c757d' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="contact_form_bg_color" class="form-label">Form Arkaplan Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="contact_form_bg_color" 
+                                   name="contact_form_bg_color" value="{{ settings.contact_form_bg_color or '#f8f9fa' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="contact_button_bg_color" class="form-label">Buton Arkaplan Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="contact_button_bg_color" 
+                                   name="contact_button_bg_color" value="{{ settings.contact_button_bg_color or '#007bff' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="contact_button_text_color" class="form-label">Buton Yazı Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="contact_button_text_color" 
+                                   name="contact_button_text_color" value="{{ settings.contact_button_text_color or '#ffffff' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Bölümü Ayarları -->
+        <div class="card mb-4 section-content" id="video-section" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">Video Bölümü Ayarları</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="video_bg_color" class="form-label">Arkaplan Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="video_bg_color" 
+                                   name="video_bg_color" value="{{ settings.video_bg_color or '#ffffff' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_title_color" class="form-label">Başlık Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="video_title_color" 
+                                   name="video_title_color" value="{{ settings.video_title_color or '#212529' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="video_play_button_color" class="form-label">Oynat Butonu Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="video_play_button_color" 
+                                   name="video_play_button_color" value="{{ settings.video_play_button_color or '#007bff' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_overlay_color" class="form-label">Overlay Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="video_overlay_color" 
+                                   name="video_overlay_color" value="{{ settings.video_overlay_color or '#000000' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_overlay_opacity" class="form-label">Overlay Opaklığı</label>
+                            <input type="range" class="form-range" id="video_overlay_opacity" 
+                                   name="video_overlay_opacity" min="0" max="100" step="5"
+                                   value="{{ settings.video_overlay_opacity or '50' }}">
+                            <small class="text-muted">0: Tamamen Şeffaf, 100: Tamamen Opak</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Ayarları -->
+        <div class="card mb-4 section-content" id="footer-section" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">Footer Ayarları</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="footer_bg_color" class="form-label">Arkaplan Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="footer_bg_color" 
+                                   name="footer_bg_color" value="{{ settings.footer_bg_color or '#212529' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="footer_text_color" class="form-label">Yazı Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="footer_text_color" 
+                                   name="footer_text_color" value="{{ settings.footer_text_color or '#ffffff' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="footer_link_color" class="form-label">Link Rengi</label>
+                            <input type="color" class="form-control form-control-color w-100" id="footer_link_color" 
+                                   name="footer_link_color" value="{{ settings.footer_link_color or '#007bff' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Özel Kodlar -->
+        <div class="card mb-4 section-content" id="custom-section" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">Özel Kodlar</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="custom_css" class="form-label">Özel CSS</label>
+                    <textarea class="form-control" id="custom_css" name="custom_css" rows="10">{{ settings.custom_css }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="custom_js" class="form-label">Özel JavaScript</label>
+                    <textarea class="form-control" id="custom_js" name="custom_js" rows="10">{{ settings.custom_js }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">Kaydet</button>
+            <button type="button" id="resetThemeButton" class="btn btn-danger float-right">Varsayılan Ayarlara Döndür</button>
+        </div>
+    </form>
+</div>
+
+<!-- Reset Modal -->
+<div class="modal fade" id="resetThemeModal" tabindex="-1" aria-labelledby="resetThemeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resetThemeModalLabel">Tema Ayarlarını Sıfırla</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Tema ayarlarını varsayılan değerlere döndürmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-danger" id="confirmResetTheme">Evet, Sıfırla</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Toastr kütüphanesi -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Aktif sekmeyi takip etmek için değişken
+    let activeSection = 'navbar'; // Varsayılan olarak navbar seçili
+
+    // Varsayılan değerler
+    const defaultValues = {
+        navbar: {
+            navbar_bg_color: '#ffffff',
+            navbar_text_color: '#000000',
+            navbar_active_color: '#007bff',
+            navbar_hover_color: '#0056b3',
+            navbar_is_fixed: true,
+            navbar_is_transparent: false
+        },
+        body: {
+            body_bg_color: '#ffffff',
+            body_text_color: '#212529',
+            body_link_color: '#007bff',
+            body_heading_color: '#212529',
+            body_font_family: 'Poppins',
+            body_font_size: '16px',
+            primary_color: '#007bff',
+            secondary_color: '#6c757d',
+            is_dark_mode: false,
+            enable_animations: true
+        },
+        banner: {
+            banner_bg_color: '#f8f9fa',
+            banner_title_color: '#212529',
+            banner_text_color: '#6c757d',
+            banner_button_bg_color: '#007bff',
+            banner_button_text_color: '#ffffff',
+            banner_indicator_color: '#007bff'
+        },
+        about: {
+            about_bg_color: '#ffffff',
+            about_title_color: '#212529',
+            about_text_color: '#6c757d',
+            about_stats_number_color: '#007bff',
+            about_stats_text_color: '#6c757d',
+            about_box_bg_color: '#f8f9fa'
+        },
+        services: {
+            services_bg_color: '#ffffff',
+            services_title_color: '#212529',
+            services_card_bg_color: '#f8f9fa',
+            services_icon_color: '#007bff',
+            services_card_title_color: '#212529',
+            services_card_text_color: '#6c757d'
+        },
+        blog: {
+            blog_bg_color: '#ffffff',
+            blog_title_color: '#212529',
+            blog_card_bg_color: '#f8f9fa',
+            blog_date_color: '#6c757d',
+            blog_post_title_color: '#212529',
+            blog_excerpt_color: '#6c757d'
+        },
+        contact: {
+            contact_bg_color: '#ffffff',
+            contact_title_color: '#212529',
+            contact_text_color: '#6c757d',
+            contact_form_bg_color: '#f8f9fa',
+            contact_button_bg_color: '#007bff',
+            contact_button_text_color: '#ffffff'
+        },
+        video: {
+            video_bg_color: '#ffffff',
+            video_title_color: '#212529',
+            video_play_button_color: '#007bff',
+            video_overlay_color: '#000000',
+            video_overlay_opacity: 50
+        },
+        footer: {
+            footer_bg_color: '#212529',
+            footer_text_color: '#ffffff',
+            footer_link_color: '#007bff'
+        }
+    };
+
+    // Form değerlerini güncelle
+    function updateFormValues(section) {
+        const values = defaultValues[section];
+        if (values) {
+            Object.keys(values).forEach(key => {
+                const element = $(`#${key}`);
+                if (element.length) {
+                    if (element.attr('type') === 'checkbox') {
+                        element.prop('checked', values[key]);
+                    } else {
+                        element.val(values[key]);
+                    }
+                }
+            });
+        }
+    }
+
+    // Bölüm seçimi işlemleri
+    const sectionButtons = document.querySelectorAll('.section-btn');
+    const sectionContents = document.querySelectorAll('.section-content');
+
+    sectionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            sectionButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            activeSection = this.dataset.section;
+            sectionContents.forEach(content => content.style.display = 'none');
+            const selectedSection = document.getElementById(this.dataset.section + '-section');
+            if (selectedSection) {
+                selectedSection.style.display = 'block';
+            }
+        });
+    });
+
+    // Sayfa yüklendiğinde ilk bölümü göster
+    const firstSection = document.querySelector('.section-content');
+    if (firstSection) {
+        firstSection.style.display = 'block';
+    }
+
+    // Toastr ayarları
+    toastr.options = {
+        "closeButton": true,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "timeOut": "3000"
+    };
+
+    // Reset Modal'ı göster
+    $('#resetThemeButton').on('click', function() {
+        const sectionName = activeSection.charAt(0).toUpperCase() + activeSection.slice(1);
+        $('#resetThemeModalLabel').text(`${sectionName} Ayarlarını Sıfırla`);
+        $('#resetThemeModal .modal-body').text(`${sectionName} bölümünün ayarlarını varsayılan değerlere döndürmek istediğinize emin misiniz? Bu işlem geri alınamaz.`);
+        $('#resetThemeModal').modal('show');
+    });
+
+    // Reset işlemini gerçekleştir
+    $('#confirmResetTheme').on('click', function() {
+        const button = $(this);
+        const sectionName = activeSection.charAt(0).toUpperCase() + activeSection.slice(1);
+        
+        button.prop('disabled', true);
+        button.html('<i class="fas fa-spinner fa-spin"></i> İşleniyor...');
+        
+        $.ajax({
+            url: `/admin/settings/theme/reset/${activeSection}`,
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Form değerlerini güncelle
+                    updateFormValues(activeSection);
+                    
+                    // Modal'ı kapat
+                    $('#resetThemeModal').modal('hide');
+                    
+                    // Başarılı mesajı göster
+                    toastr.success(`${sectionName} bölümü varsayılan ayarlara döndürüldü.`);
+                    
+                    // Formu otomatik submit et
+                    $('form').submit();
+                } else {
+                    toastr.error(response.message || 'Bir hata oluştu.');
+                }
+            },
+            error: function(xhr) {
+                toastr.error('Bir hata oluştu. Lütfen tekrar deneyin.');
+            },
+            complete: function() {
+                button.prop('disabled', false);
+                button.html('Evet, Sıfırla');
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

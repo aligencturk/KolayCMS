@@ -1,13 +1,82 @@
-{% extends 'main/base.html' %}
+{% extends "main/base.html" %}
+
+{% block title %}{{ site_settings.site_title }} - Hata{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8 text-center">
-            <h1 class="display-4 mb-4">Hata</h1>
-            <p class="lead">{{ error }}</p>
-            <a href="{{ url_for('main.index') }}" class="btn btn-primary mt-3">Ana Sayfaya Dön</a>
-        </div>
-    </div>
+<!-- error section start -->
+<div class="error_section layout_padding">
+   <div class="container">
+      <div class="row">
+         <div class="col-md-12 text-center">
+            <div class="error_img">
+               <img src="{{ url_for('static', filename='cobsin_template/images/error.png') }}" alt="Hata">
+            </div>
+            <h1 class="error_taital">{{ error_code }}</h1>
+            <h2 class="error_subtitle">{{ error_title }}</h2>
+            <p class="error_text">{{ error_message }}</p>
+            <div class="read_bt mt-4"><a href="{{ url_for('main.index') }}">Ana Sayfaya Dön</a></div>
+         </div>
+      </div>
+   </div>
 </div>
+<!-- error section end -->
+{% endblock %}
+
+{% block scripts %}
+<style>
+.error_section {
+   padding: 120px 0;
+}
+
+.error_img {
+   margin-bottom: 30px;
+}
+
+.error_img img {
+   max-width: 100%;
+   height: auto;
+   max-height: 250px;
+}
+
+.error_taital {
+   font-size: 120px;
+   color: #13a25d;
+   font-weight: bold;
+   line-height: 1;
+   margin-bottom: 20px;
+}
+
+.error_subtitle {
+   font-size: 36px;
+   color: #252525;
+   font-weight: 600;
+   margin-bottom: 20px;
+}
+
+.error_text {
+   font-size: 18px;
+   color: #555555;
+   max-width: 600px;
+   margin: 0 auto 30px auto;
+   line-height: 1.6;
+}
+
+.read_bt a {
+   display: inline-block;
+   font-size: 16px;
+   color: #ffffff;
+   background-color: #13a25d;
+   text-align: center;
+   padding: 12px 30px;
+   border-radius: 5px;
+   text-transform: uppercase;
+   font-weight: 500;
+   text-decoration: none;
+}
+
+.read_bt a:hover {
+   background-color: #252525;
+   color: #ffffff;
+}
+</style>
 {% endblock %} 

@@ -1,0 +1,31 @@
+{
+    "name": "cobsin",
+    "title": "Cobsin",
+    "description": "Modern ve kullanıcı dostu bir tema",
+    "version": "1.0.0",
+    "author": "KolayCMS",
+    "settings": {
+        "primary_color": "#4e73df",
+        "secondary_color": "#1cc88a",
+        "font_family": "Nunito",
+        "header_style": "default",
+        "footer_style": "dark",
+        "sidebar_style": "default"
+    },
+    "templates": {
+        "index": "Ana Sayfa",
+        "about": "Hakkımızda",
+        "contact": "İletişim",
+        "services": "Hizmetler",
+        "blog": "Blog",
+        "blog_post": "Blog Yazısı",
+        "page": "Sayfa"
+    },
+    "supports": {
+        "custom_css": true,
+        "custom_js": true,
+        "widgets": true,
+        "responsive": true,
+        "rtl": false
+    }
+} 

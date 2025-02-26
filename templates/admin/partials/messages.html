@@ -1,0 +1,19 @@
+{% if get_flashed_messages() %}
+    <div class="flash-messages">
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+            {% set alert_class = {
+                'success': 'alert-success',
+                'info': 'alert-info',
+                'warning': 'alert-warning',
+                'danger': 'alert-danger',
+                'error': 'alert-danger'
+            }.get(category, 'alert-info') %}
+            
+            <div class="alert {{ alert_class }} alert-dismissible fade show" role="alert">
+                <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'error' or category == 'danger' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %} 

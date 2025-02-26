@@ -1,0 +1,153 @@
+{% extends "admin/master.html" %}
+
+{% block title %}Sosyal Medya Ayarları - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-share-alt"></i> Sosyal Medya Ayarları
+        </h1>
+        <a href="{{ url_for('admin.settings') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Ayarlar Menüsüne Dön
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Sosyal Medya Hesaplarınızı Düzenleyin</h6>
+                </div>
+                <div class="card-body">
+                    {% include 'admin/partials/messages.html' %}
+                    
+                    <form method="POST" action="{{ url_for('admin.settings_social') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label for="facebook" class="form-label">Facebook</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fab fa-facebook-f"></i></span>
+                                        <input type="url" class="form-control" id="facebook" name="facebook" 
+                                               value="{{ social.facebook if social else '' }}"
+                                               placeholder="https://facebook.com/sayfaniz">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="twitter" class="form-label">Twitter</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fab fa-twitter"></i></span>
+                                        <input type="url" class="form-control" id="twitter" name="twitter" 
+                                               value="{{ social.twitter if social else '' }}"
+                                               placeholder="https://twitter.com/kullaniciadiniz">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="instagram" class="form-label">Instagram</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fab fa-instagram"></i></span>
+                                        <input type="url" class="form-control" id="instagram" name="instagram" 
+                                               value="{{ social.instagram if social else '' }}"
+                                               placeholder="https://instagram.com/kullaniciadiniz">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label for="linkedin" class="form-label">LinkedIn</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fab fa-linkedin-in"></i></span>
+                                        <input type="url" class="form-control" id="linkedin" name="linkedin" 
+                                               value="{{ social.linkedin if social else '' }}"
+                                               placeholder="https://linkedin.com/in/kullaniciadiniz">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="youtube" class="form-label">YouTube</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fab fa-youtube"></i></span>
+                                        <input type="url" class="form-control" id="youtube" name="youtube" 
+                                               value="{{ social.youtube if social else '' }}"
+                                               placeholder="https://youtube.com/c/kanaliniz">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="pinterest" class="form-label">Pinterest</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fab fa-pinterest-p"></i></span>
+                                        <input type="url" class="form-control" id="pinterest" name="pinterest" 
+                                               value="{{ social.pinterest if social else '' }}"
+                                               placeholder="https://pinterest.com/kullaniciadiniz">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-lg-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Ek Sosyal Medya Ayarları</h6>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="tiktok" class="form-label">TikTok</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="fab fa-tiktok"></i></span>
+                                                        <input type="url" class="form-control" id="tiktok" name="tiktok" 
+                                                               value="{{ social.tiktok if social else '' }}"
+                                                               placeholder="https://tiktok.com/@kullaniciadiniz">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="telegram" class="form-label">Telegram</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="fab fa-telegram-plane"></i></span>
+                                                        <input type="url" class="form-control" id="telegram" name="telegram" 
+                                                               value="{{ social.telegram if social else '' }}"
+                                                               placeholder="https://t.me/kanaliniz">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Ayarları Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Form gönderildiğinde kullanıcıya bilgi ver
+    document.querySelector('form').addEventListener('submit', function() {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kaydediliyor...';
+        submitBtn.disabled = true;
+    });
+</script>
+{% endblock %} 

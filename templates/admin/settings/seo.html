@@ -1,0 +1,208 @@
+{% extends "admin/master.html" %}
+
+{% block title %}SEO Ayarları - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-search"></i> SEO Ayarları
+        </h1>
+        <a href="{{ url_for('admin.settings') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Ayarlar Menüsüne Dön
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">SEO Ayarlarını Düzenleyin</h6>
+                </div>
+                <div class="card-body">
+                    {% include 'admin/partials/messages.html' %}
+                    
+                    <form method="POST" action="{{ url_for('admin.settings_seo') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label for="meta_title" class="form-label">Meta Başlık</label>
+                                    <input type="text" class="form-control" id="meta_title" name="meta_title" 
+                                           value="{{ seo.meta_title if seo else '' }}">
+                                    <div class="form-text">
+                                        Tarayıcı sekmesinde ve arama sonuçlarında görünen başlık (60-70 karakter önerilir)
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="meta_description" class="form-label">Meta Açıklama</label>
+                                    <textarea class="form-control" id="meta_description" name="meta_description" 
+                                              rows="3">{{ seo.meta_description if seo else '' }}</textarea>
+                                    <div class="form-text">
+                                        Arama sonuçlarında görünen açıklama (150-160 karakter önerilir)
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="meta_keywords" class="form-label">Meta Anahtar Kelimeler</label>
+                                    <input type="text" class="form-control" id="meta_keywords" name="meta_keywords" 
+                                           value="{{ seo.meta_keywords if seo else '' }}">
+                                    <div class="form-text">
+                                        Virgülle ayrılmış anahtar kelimeler (modern SEO'da daha az önemli)
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label for="canonical_url" class="form-label">Canonical URL</label>
+                                    <input type="url" class="form-control" id="canonical_url" name="canonical_url" 
+                                           value="{{ seo.canonical_url if seo else '' }}"
+                                           placeholder="https://www.siteniz.com">
+                                    <div class="form-text">
+                                        Sitenizin tercih edilen ana URL'si (www veya www olmadan)
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="robots_txt" class="form-label">Robots.txt İçeriği</label>
+                                    <textarea class="form-control font-monospace" id="robots_txt" name="robots_txt" 
+                                              rows="6">{{ seo.robots_txt if seo else 'User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /auth/' }}</textarea>
+                                    <div class="form-text">
+                                        Arama motoru botlarına hangi sayfaları tarayıp taramayacaklarını söyleyen yönergeler
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="google_site_verification" class="form-label">Google Site Doğrulama Kodu</label>
+                                    <input type="text" class="form-control" id="google_site_verification" name="google_site_verification" 
+                                           value="{{ seo.google_site_verification if seo else '' }}"
+                                           placeholder="Google Search Console'dan alınan kod">
+                                    <div class="form-text">
+                                        Google Search Console'a sitenizi eklemek için gereken doğrulama kodu
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-lg-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Sosyal Medya Meta Etiketleri</h6>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="og_title" class="form-label">Open Graph Başlık</label>
+                                                    <input type="text" class="form-control" id="og_title" name="og_title" 
+                                                           value="{{ seo.og_title if seo else '' }}">
+                                                    <div class="form-text">
+                                                        Sosyal medyada paylaşıldığında görünen başlık
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="og_description" class="form-label">Open Graph Açıklama</label>
+                                                    <textarea class="form-control" id="og_description" name="og_description" 
+                                                              rows="3">{{ seo.og_description if seo else '' }}</textarea>
+                                                    <div class="form-text">
+                                                        Sosyal medyada paylaşıldığında görünen açıklama
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="og_image" class="form-label">Open Graph Resim URL</label>
+                                                    <input type="url" class="form-control" id="og_image" name="og_image" 
+                                                           value="{{ seo.og_image if seo else '' }}"
+                                                           placeholder="https://www.siteniz.com/resim.jpg">
+                                                    <div class="form-text">
+                                                        Sosyal medyada paylaşıldığında görünen resim (1200x630px önerilir)
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="twitter_card" class="form-label">Twitter Kart Tipi</label>
+                                                    <select class="form-select" id="twitter_card" name="twitter_card">
+                                                        <option value="summary" {% if seo and seo.twitter_card == 'summary' %}selected{% endif %}>Summary</option>
+                                                        <option value="summary_large_image" {% if seo and seo.twitter_card == 'summary_large_image' %}selected{% endif %}>Summary Large Image</option>
+                                                    </select>
+                                                    <div class="form-text">
+                                                        Twitter'da paylaşıldığında görüntülenecek kart tipi
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Ayarları Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Form gönderildiğinde kullanıcıya bilgi ver
+    document.querySelector('form').addEventListener('submit', function() {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kaydediliyor...';
+        submitBtn.disabled = true;
+    });
+    
+    // Meta başlık ve açıklama karakter sayısını göster
+    const metaTitle = document.getElementById('meta_title');
+    const metaDescription = document.getElementById('meta_description');
+    
+    function updateCharCount(element, optimal) {
+        const count = element.value.length;
+        const formText = element.nextElementSibling;
+        const originalText = formText.dataset.originalText || formText.textContent;
+        
+        if (!formText.dataset.originalText) {
+            formText.dataset.originalText = originalText;
+        }
+        
+        let countText = `${count} karakter`;
+        let countClass = '';
+        
+        if (count > optimal.max) {
+            countClass = 'text-danger';
+            countText += ' (çok uzun)';
+        } else if (count < optimal.min) {
+            countClass = 'text-warning';
+            countText += ' (çok kısa)';
+        } else {
+            countClass = 'text-success';
+            countText += ' (ideal)';
+        }
+        
+        formText.innerHTML = `${originalText} <span class="${countClass}">${countText}</span>`;
+    }
+    
+    if (metaTitle) {
+        metaTitle.addEventListener('input', () => updateCharCount(metaTitle, {min: 50, max: 70}));
+        updateCharCount(metaTitle, {min: 50, max: 70});
+    }
+    
+    if (metaDescription) {
+        metaDescription.addEventListener('input', () => updateCharCount(metaDescription, {min: 120, max: 160}));
+        updateCharCount(metaDescription, {min: 120, max: 160});
+    }
+</script>
+{% endblock %} 

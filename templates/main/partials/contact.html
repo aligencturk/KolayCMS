@@ -1,0 +1,82 @@
+<!-- CobSin Tema - İletişim Bölümü -->
+<section class="contact-section" id="contact">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">İletişim</h2>
+            <p class="section-subtitle">Bizimle iletişime geçin</p>
+        </div>
+        <div class="contact-container">
+            <div class="contact-info">
+                <h3>İletişim Bilgilerimiz</h3>
+                <div class="info-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <h4>Adres</h4>
+                        <p>{{ contact_info.address|default('Adres bilgisi bulunamadı') }}</p>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-phone"></i>
+                    <div>
+                        <h4>Telefon</h4>
+                        <p>{{ contact_info.phone|default('Telefon bilgisi bulunamadı') }}</p>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-envelope"></i>
+                    <div>
+                        <h4>E-posta</h4>
+                        <p>{{ contact_info.email|default('E-posta bilgisi bulunamadı') }}</p>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                        <h4>Çalışma Saatleri</h4>
+                        <p>{{ contact_info.working_hours|default('Çalışma saatleri bilgisi bulunamadı') }}</p>
+                    </div>
+                </div>
+                <div class="social-links">
+                    {% if contact_info.facebook %}
+                    <a href="{{ contact_info.facebook }}" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                    {% endif %}
+                    {% if contact_info.twitter %}
+                    <a href="{{ contact_info.twitter }}" target="_blank"><i class="fab fa-twitter"></i></a>
+                    {% endif %}
+                    {% if contact_info.instagram %}
+                    <a href="{{ contact_info.instagram }}" target="_blank"><i class="fab fa-instagram"></i></a>
+                    {% endif %}
+                    {% if contact_info.linkedin %}
+                    <a href="{{ contact_info.linkedin }}" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="contact-form">
+                <h3>Bize Mesaj Gönderin</h3>
+                <form action="/iletisim" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-group">
+                        <input type="text" name="name" placeholder="Adınız Soyadınız" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" name="email" placeholder="E-posta Adresiniz" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" name="subject" placeholder="Konu" required>
+                    </div>
+                    <div class="form-group">
+                        <textarea name="message" placeholder="Mesajınız" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Gönder</button>
+                </form>
+            </div>
+        </div>
+        {% if contact_info.google_maps_embed %}
+        <div class="map-container">
+            <div class="google-map">
+                {{ contact_info.google_maps_embed|safe }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section> 

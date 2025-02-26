@@ -1,0 +1,64 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Sistem Logları{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Sistem Logları</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Panel</a></li>
+        <li class="breadcrumb-item active">Sistem Logları</li>
+    </ol>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-history me-1"></i>
+            Son 100 Log Kaydı
+        </div>
+        <div class="card-body">
+            {% if logs %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="logsTable">
+                    <thead>
+                        <tr>
+                            <th>Tarih/Saat</th>
+                            <th>Seviye</th>
+                            <th>Mesaj</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr class="{% if 'ERROR' in log.level %}table-danger{% elif 'WARNING' in log.level %}table-warning{% endif %}">
+                            <td>{{ log.timestamp }}</td>
+                            <td>
+                                <span class="badge {% if 'ERROR' in log.level %}bg-danger{% elif 'WARNING' in log.level %}bg-warning{% else %}bg-info{% endif %}">
+                                    {{ log.level }}
+                                </span>
+                            </td>
+                            <td>{{ log.message }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center text-muted">Henüz log kaydı bulunmuyor.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    $('#logsTable').DataTable({
+        order: [[0, 'desc']],  // Tarihe göre sırala (en yeni en üstte)
+        pageLength: 25,  // Sayfa başına 25 kayıt göster
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/tr.json'
+        }
+    });
+});
+</script>
+{% endblock %} 

@@ -1,122 +1,191 @@
-{% extends 'admin/master.html' %}
+{% extends "admin/master.html" %}
+
+{% block title %}Kullanıcı Yönetimi{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col">
-            <h2>Kullanıcılar</h2>
-        </div>
-        <div class="col text-end">
-            <a href="{{ url_for('admin.users_create') }}" class="btn btn-primary">
-                <i class="fas fa-user-plus"></i> Yeni Kullanıcı Ekle
-            </a>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Kullanıcı Adı</th>
-                            <th>E-posta</th>
-                            <th>Rol</th>
-                            <th>Durum</th>
-                            <th>Son Giriş</th>
-                            <th>Kayıt Tarihi</th>
-                            <th>İşlemler</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users %}
-                        <tr>
-                            <td>{{ user.id }}</td>
-                            <td>{{ user.username }}</td>
-                            <td>{{ user.email }}</td>
-                            <td>
-                                {% if user.role == 'admin' %}
-                                <span class="badge bg-danger">Yönetici</span>
-                                {% elif user.role == 'editor' %}
-                                <span class="badge bg-info">Editör</span>
-                                {% else %}
-                                <span class="badge bg-secondary">Kullanıcı</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if user.is_active %}
-                                <span class="badge bg-success">Aktif</span>
-                                {% else %}
-                                <span class="badge bg-warning">Pasif</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if user.last_login %}
-                                {{ user.last_login.strftime('%d.%m.%Y %H:%M') }}
-                                {% else %}
-                                <span class="text-muted">Hiç giriş yapmadı</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ user.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
-                            <td>
-                                <div class="btn-group">
-                                    <a href="{{ url_for('admin.users_edit', id=user.id) }}" class="btn btn-sm btn-info">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    {% if user.id != current_user.id %}
-                                    <button type="button" class="btn btn-sm btn-danger" 
-                                            data-user-id="{{ user.id }}"
-                                            data-username="{{ user.username }}"
-                                            onclick="deleteUser(this.dataset.userId, this.dataset.username)">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="8" class="text-center">Henüz kullanıcı eklenmemiş.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Kullanıcı Listesi</h3>
+                    <div class="card-tools">
+                        <a href="{{ url_for('admin.index') }}" class="btn btn-sm btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Geri
+                        </a>
+                        <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addUserModal">
+                            <i class="fas fa-plus"></i> Yeni Kullanıcı
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Kullanıcı Adı</th>
+                                    <th>E-posta</th>
+                                    <th>Rol</th>
+                                    <th>Durum</th>
+                                    <th>Kayıt Tarihi</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>{{ user.id }}</td>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        <span class="badge {% if user.role == 'admin' %}badge-danger{% else %}badge-info{% endif %}">
+                                            {{ user.role }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if user.is_active %}badge-success{% else %}badge-warning{% endif %}">
+                                            {{ 'Aktif' if user.is_active else 'Pasif' }}
+                                        </span>
+                                    </td>
+                                    <td>{{ user.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-info" 
+                                                    onclick="editUser('{{ user.id }}', '{{ user.username }}', '{{ user.email }}', '{{ user.role }}')">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            {% if user.id != current_user.id %}
+                                            <button type="button" class="btn btn-sm btn-danger" 
+                                                    onclick="deleteUser('{{ user.id }}', '{{ user.username }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Silme Onay Modalı -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
+<!-- Yeni Kullanıcı Ekleme Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Kullanıcıyı Sil</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title">Yeni Kullanıcı Ekle</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
             </div>
-            <div class="modal-body">
-                <p>Bu kullanıcıyı silmek istediğinizden emin misiniz?</p>
-                <p class="text-danger" id="deleteUsername"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                <form id="deleteForm" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">Sil</button>
-                </form>
-            </div>
+            <form id="addUserForm" method="POST" action="{{ url_for('admin.user_create') }}">
+                <div class="modal-body">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-group">
+                        <label>Kullanıcı Adı</label>
+                        <input type="text" class="form-control" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>E-posta</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Şifre</label>
+                        <input type="password" class="form-control" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Rol</label>
+                        <select class="form-control" name="role">
+                            <option value="user">Kullanıcı</option>
+                            <option value="admin">Yönetici</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+<!-- Kullanıcı Düzenleme Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Kullanıcı Düzenle</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form id="editUserForm" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-group">
+                        <label>Kullanıcı Adı</label>
+                        <input type="text" class="form-control" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>E-posta</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Yeni Şifre (Opsiyonel)</label>
+                        <input type="password" class="form-control" name="password">
+                    </div>
+                    <div class="form-group">
+                        <label>Rol</label>
+                        <select class="form-control" name="role">
+                            <option value="user">Kullanıcı</option>
+                            <option value="admin">Yönetici</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
+function editUser(id, username, email, role) {
+    const form = document.getElementById('editUserForm');
+    form.action = `/admin/users/${id}/edit`;
+    form.querySelector('[name="username"]').value = username;
+    form.querySelector('[name="email"]').value = email;
+    form.querySelector('[name="role"]').value = role;
+    $('#editUserModal').modal('show');
+}
+
 function deleteUser(id, username) {
-    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-    document.getElementById('deleteUsername').textContent = username;
-    document.getElementById('deleteForm').action = "{{ url_for('admin.users_delete', id=0) }}".replace('0', id);
-    modal.show();
+    if (confirm(`"${username}" kullanıcısını silmek istediğinize emin misiniz?`)) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/users/${id}/delete`;
+        
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = 'csrf_token';
+        csrf.value = '{{ csrf_token() }}';
+        form.appendChild(csrf);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
 }
 </script>
 {% endblock %} 

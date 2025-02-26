@@ -61,6 +61,10 @@ class SiteSettings(db.Model):
     is_dark_mode = db.Column(db.Boolean, default=False)
     enable_animations = db.Column(db.Boolean, default=True)
     
+    # Tema ayarları
+    active_theme = db.Column(db.String(50), default='default')
+    theme_settings = db.Column(db.JSON)
+    
     # Tema ayarları - Banner
     banner_bg_color = db.Column(db.String(7))
     banner_title_color = db.Column(db.String(7))
@@ -182,7 +186,7 @@ class ActivityLog(db.Model):
 from .page import Page
 from .content import Content
 from .widget import Widget
-from .menu import Menu
+from .menu import Menu, MenuItem
 from .theme import Theme
 from .shop import Product, Category
 from .order import Order 

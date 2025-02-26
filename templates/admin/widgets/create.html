@@ -1,0 +1,134 @@
+{% extends 'admin/master.html' %}
+
+{% block title %}Yeni Bileşen - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Başlık ve Kontrol Alanı -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-puzzle-piece me-2"></i> Yeni Bileşen Oluştur
+        </h1>
+        <div class="d-flex">
+            <a href="{{ url_for('admin.widgets_list') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Bileşenlere Dön
+            </a>
+        </div>
+    </div>
+
+    <!-- Bileşen Formu -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Bileşen Bilgileri</h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.widget_create') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="title" class="form-label">Başlık <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="type" class="form-label">Tür <span class="text-danger">*</span></label>
+                            <select class="form-select" id="type" name="type" required>
+                                <option value="">Seçiniz</option>
+                                <option value="html">HTML</option>
+                                <option value="text">Metin</option>
+                                <option value="menu">Menü</option>
+                                <option value="slider">Slider</option>
+                                <option value="contact">İletişim Formu</option>
+                                <option value="social">Sosyal Medya</option>
+                                <option value="custom">Özel</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="position" class="form-label">Pozisyon</label>
+                            <select class="form-select" id="position" name="position">
+                                <option value="">Seçiniz</option>
+                                <option value="header">Üst Kısım</option>
+                                <option value="footer">Alt Kısım</option>
+                                <option value="sidebar">Kenar Çubuğu</option>
+                                <option value="content">İçerik</option>
+                                <option value="custom">Özel</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label d-block">&nbsp;</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                <label class="form-check-label" for="is_active">
+                                    Aktif
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="content" class="form-label">İçerik</label>
+                    <textarea class="form-control" id="content" name="content" rows="10"></textarea>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" onclick="window.location.href='{{ url_for('admin.widgets_list') }}'">
+                        İptal
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-1"></i> Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // CKEditor başlat
+    ClassicEditor
+        .create(document.querySelector('#content'), {
+            toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'outdent', 'indent', '|', 'blockQuote', 'insertTable', 'undo', 'redo']
+        })
+        .catch(error => {
+            console.error(error);
+        });
+    
+    // Tür değiştiğinde içerik alanını güncelle
+    document.getElementById('type').addEventListener('change', function() {
+        const type = this.value;
+        const contentArea = document.getElementById('content');
+        
+        if (type === 'html') {
+            contentArea.placeholder = '<div class="widget-container">HTML içeriğinizi buraya yazın</div>';
+        } else if (type === 'text') {
+            contentArea.placeholder = 'Metin içeriğinizi buraya yazın';
+        } else if (type === 'menu') {
+            contentArea.placeholder = 'Menü bileşeni için içerik';
+        } else if (type === 'slider') {
+            contentArea.placeholder = 'Slider bileşeni için içerik';
+        } else if (type === 'contact') {
+            contentArea.placeholder = 'İletişim formu bileşeni için içerik';
+        } else if (type === 'social') {
+            contentArea.placeholder = 'Sosyal medya bileşeni için içerik';
+        } else {
+            contentArea.placeholder = '';
+        }
+    });
+});
+</script>
+{% endblock %} 

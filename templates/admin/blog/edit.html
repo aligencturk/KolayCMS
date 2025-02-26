@@ -1,0 +1,252 @@
+{% extends "admin/master.html" %}
+
+{% block title %}Blog Yazısı Düzenle - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-blog me-2"></i> Blog Yazısı Düzenle
+        </h1>
+        <a href="{{ url_for('admin.blog_posts_list') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Blog Yazılarına Dön
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Yazı Detayları</h6>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('admin.blog_post_edit', id=post.id) }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Başlık</label>
+                            <input type="text" class="form-control" id="title" name="title" required 
+                                   value="{{ post.title }}" placeholder="Blog yazısı başlığı">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="slug" class="form-label">Slug (URL)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">/blog/</span>
+                                <input type="text" class="form-control" id="slug" name="slug" 
+                                       placeholder="Otomatik oluşturulacak veya özel değer girin"
+                                       value="{% if hasattr(post, 'slug') %}{{ post.slug }}{% endif %}">
+                            </div>
+                            <div class="form-text">Boş bırakırsanız başlıktan otomatik oluşturulur.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="excerpt" class="form-label">Özet</label>
+                            <textarea class="form-control" id="excerpt" name="excerpt" rows="3" 
+                                      placeholder="Yazınızın kısa özeti (isteğe bağlı)">{% if hasattr(post, 'excerpt') %}{{ post.excerpt }}{% endif %}</textarea>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Bilgiler</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Oluşturulma:</strong> {{ post.created_at.strftime('%d.%m.%Y %H:%M') if post.created_at else '-' }}</p>
+                                        <p class="mb-1"><strong>Son Güncelleme:</strong> {{ post.updated_at.strftime('%d.%m.%Y %H:%M') if (hasattr(post, 'updated_at') and post.updated_at) else '-' }}</p>
+                                    </div>
+                                    {% if hasattr(post, 'slug') %}
+                                    <div class="col-md-6">
+                                        <p class="mb-1">
+                                            <strong>Önizleme:</strong> 
+                                            <a href="{{ url_for('main.blog_detail', slug=post.slug) }}" target="_blank">
+                                                {{ url_for('main.blog_detail', slug=post.slug, _external=True) }}
+                                                <i class="fas fa-external-link-alt ms-1 small"></i>
+                                            </a>
+                                        </p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Kapak Görseli</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                            <div class="form-text">Önerilen boyut: 1200x630px</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="card mt-3">
+                                <div class="card-body">
+                                    <div class="image-preview text-center p-3 bg-light rounded">
+                                        {% if post.image %}
+                                            <img id="imagePreview" src="{{ url_for('static', filename=post.image) }}" alt="{{ post.title }}" style="max-width: 100%; max-height: 200px;">
+                                            <div id="noImageText" class="text-muted" style="display: none;">
+                                                <i class="fas fa-image fa-4x mb-2"></i>
+                                                <p>Görsel önizlemesi</p>
+                                            </div>
+                                        {% else %}
+                                            <img id="imagePreview" src="" alt="Görsel Önizleme" style="max-width: 100%; max-height: 200px; display: none;">
+                                            <div id="noImageText" class="text-muted">
+                                                <i class="fas fa-image fa-4x mb-2"></i>
+                                                <p>Görsel önizlemesi</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_published" name="is_published" 
+                                       {% if (hasattr(post, 'is_published') and post.is_published) or (hasattr(post, 'is_active') and post.is_active) %}checked{% endif %}>
+                                <label class="form-check-label" for="is_published">Yayınla</label>
+                            </div>
+                            <div class="form-text">Kapalıysa taslak olarak kaydedilir.</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="content" class="form-label">İçerik</label>
+                    <textarea class="form-control summernote" id="content" name="content" rows="10" required>{{ post.content }}</textarea>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Değişiklikleri Kaydet
+                    </button>
+                    <div>
+                        <a href="{{ url_for('admin.blog_post_delete', id=post.id) }}" class="btn btn-danger me-2" 
+                           onclick="return confirm('Bu blog yazısını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.');">
+                            <i class="fas fa-trash me-1"></i> Sil
+                        </a>
+                        <a href="{{ url_for('admin.blog_posts_list') }}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i> İptal
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function() {
+        // WYSIWYG editörünü başlat
+        $('#content').summernote({
+            height: 300,
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'italic', 'underline', 'clear']],
+                ['fontname', ['fontname']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['table', ['table']],
+                ['insert', ['link', 'picture', 'video']],
+                ['view', ['fullscreen', 'codeview', 'help']]
+            ],
+            callbacks: {
+                onImageUpload: function(files) {
+                    // Resim yükleme işlemleri burada yapılabilir
+                    for (let i = 0; i < files.length; i++) {
+                        uploadImage(files[i]);
+                    }
+                }
+            }
+        });
+
+        // Başlıktan otomatik slug oluştur
+        $('#title').on('keyup', function() {
+            let title = $(this).val();
+            let slug = slugify(title);
+            $('#slug').val(slug);
+        });
+
+        // Mevcut resim var mı kontrol et
+        const hasImage = {{ 'true' if post and post.image else 'false' }};
+        const defaultImageSrc = hasImage ? "{{ url_for('static', filename=post.image) if post and post.image }}" : "";
+        
+        // Resim ön izleme işlemleri
+        $('#image').on('change', function() {
+            var input = this;
+            var imagePreviewContainer = $('#image-preview-container');
+            
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    imagePreviewContainer.show();
+                    $('#image-preview').attr('src', e.target.result);
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            } else if (hasImage) {
+                // Eğer dosya seçilmediyse ve mevcut bir resim varsa, onu göster
+                imagePreviewContainer.show();
+                $('#image-preview').attr('src', defaultImageSrc);
+            } else {
+                imagePreviewContainer.hide();
+            }
+        });
+        
+        // Sayfa yüklendikten sonra mevcut resmi göster
+        if (hasImage) {
+            $('#image-preview-container').show();
+            $('#image-preview').attr('src', defaultImageSrc);
+        }
+
+        // Slug oluşturmaya yardımcı fonksiyon
+        function slugify(text) {
+            var trMap = {
+                'çÇ':'c', 'ğĞ':'g', 'şŞ':'s', 'üÜ':'u', 'ıİ':'i', 'öÖ':'o'
+            };
+            
+            for (var key in trMap) {
+                text = text.replace(new RegExp('[' + key + ']', 'g'), trMap[key]);
+            }
+            
+            return text.toString().toLowerCase()
+                .replace(/\s+/g, '-')           // Boşlukları tire ile değiştir
+                .replace(/[^\w\-]+/g, '')       // Alfanumerik olmayan karakterleri kaldır
+                .replace(/\-\-+/g, '-')         // Birden fazla tireyi tek tire yap
+                .replace(/^-+/, '')             // Baştaki tireleri kaldır
+                .replace(/-+$/, '');            // Sondaki tireleri kaldır
+        }
+
+        // Resim yükleme fonksiyonu
+        function uploadImage(file) {
+            var formData = new FormData();
+            formData.append('file', file);
+            
+            $.ajax({
+                url: '/admin/upload-image',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(data) {
+                    $('#content').summernote('insertImage', data.url);
+                },
+                error: function(xhr, status, error) {
+                    alert('Resim yüklenirken bir hata oluştu: ' + error);
+                }
+            });
+        }
+
+        // Blog yazısını silme onayı
+        $('#delete-post-form').on('submit', function(e) {
+            if (!confirm('Bu blog yazısını silmek istediğinize emin misiniz? Bu işlem geri alınamaz!')) {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+{% endblock %} 

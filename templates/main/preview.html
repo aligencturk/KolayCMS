@@ -1,0 +1,299 @@
+{% extends "main/base.html" %}
+
+{% block title %}{{ site_settings.site_title }} - Önizleme{% endblock %}
+
+{% block content %}
+<!-- preview section start -->
+<div class="preview_section layout_padding">
+   <div class="container">
+      <div class="row">
+         <div class="col-md-12">
+            <h1 class="preview_taital">{{ page.title }}</h1>
+            <div class="preview_meta">
+               <span><i class="fa fa-calendar"></i> {{ page.created_at.strftime('%d.%m.%Y') }}</span>
+               {% if page.author %}
+                  <span><i class="fa fa-user"></i> {{ page.author }}</span>
+               {% endif %}
+               {% if page.category %}
+                  <span><i class="fa fa-folder"></i> {{ page.category }}</span>
+               {% endif %}
+            </div>
+         </div>
+      </div>
+      
+      <div class="row mt-4">
+         <div class="col-md-12">
+            <div class="preview_content">
+               {% if page.featured_image %}
+                  <div class="preview_image">
+                     <img src="{{ page.featured_image }}" alt="{{ page.title }}">
+                  </div>
+               {% endif %}
+               
+               <div class="preview_text">
+                  {{ page.content|safe }}
+               </div>
+               
+               {% if page.tags %}
+                  <div class="preview_tags">
+                     <span class="tags_title">Etiketler:</span>
+                     {% for tag in page.tags %}
+                        <a href="{{ url_for('main.tag', slug=tag.slug) }}" class="tag">{{ tag.name }}</a>
+                     {% endfor %}
+                  </div>
+               {% endif %}
+            </div>
+         </div>
+      </div>
+      
+      {% if related_pages and related_pages|length > 0 %}
+         <div class="row mt-5">
+            <div class="col-md-12">
+               <h3 class="related_title">İlgili İçerikler</h3>
+            </div>
+         </div>
+         
+         <div class="row mt-3">
+            {% for related in related_pages %}
+               <div class="col-md-4 mb-4">
+                  <div class="related_box">
+                     <div class="related_img">
+                        <img src="{{ related.featured_image or url_for('static', filename='cobsin_template/images/blog-img.png') }}" alt="{{ related.title }}">
+                     </div>
+                     <div class="related_content">
+                        <h4 class="related_title">{{ related.title }}</h4>
+                        <p class="related_text">{{ related.summary|truncate(100) }}</p>
+                        <div class="read_bt"><a href="{{ url_for('main.preview', slug=related.slug) }}">Devamını Oku</a></div>
+                     </div>
+                  </div>
+               </div>
+            {% endfor %}
+         </div>
+      {% endif %}
+      
+      <div class="row mt-5">
+         <div class="col-md-12">
+            <div class="back_button">
+               <a href="{{ url_for('main.index') }}" class="btn_back"><i class="fa fa-arrow-left"></i> Ana Sayfaya Dön</a>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+<!-- preview section end -->
+{% endblock %}
+
+{% block scripts %}
+<style>
+.preview_section {
+   padding: 90px 0;
+}
+
+.preview_taital {
+   font-size: 40px;
+   color: #252525;
+   font-weight: bold;
+   margin-bottom: 15px;
+}
+
+.preview_meta {
+   margin-bottom: 30px;
+   color: #777777;
+}
+
+.preview_meta span {
+   margin-right: 20px;
+   font-size: 14px;
+}
+
+.preview_meta i {
+   margin-right: 5px;
+   color: #13a25d;
+}
+
+.preview_content {
+   background-color: #ffffff;
+   border-radius: 10px;
+   overflow: hidden;
+   box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+   margin-bottom: 30px;
+}
+
+.preview_image {
+   width: 100%;
+   margin-bottom: 30px;
+}
+
+.preview_image img {
+   width: 100%;
+   height: auto;
+   max-height: 500px;
+   object-fit: cover;
+}
+
+.preview_text {
+   padding: 0 30px 30px 30px;
+   font-size: 16px;
+   color: #555555;
+   line-height: 1.8;
+}
+
+.preview_text h1, 
+.preview_text h2, 
+.preview_text h3, 
+.preview_text h4, 
+.preview_text h5, 
+.preview_text h6 {
+   color: #252525;
+   margin-top: 30px;
+   margin-bottom: 15px;
+}
+
+.preview_text p {
+   margin-bottom: 20px;
+}
+
+.preview_text img {
+   max-width: 100%;
+   height: auto;
+   margin: 20px 0;
+   border-radius: 5px;
+}
+
+.preview_text ul, 
+.preview_text ol {
+   margin-bottom: 20px;
+   padding-left: 20px;
+}
+
+.preview_text li {
+   margin-bottom: 10px;
+}
+
+.preview_text blockquote {
+   border-left: 4px solid #13a25d;
+   padding: 15px 20px;
+   margin: 20px 0;
+   background-color: #f8f9fa;
+   font-style: italic;
+}
+
+.preview_tags {
+   margin-top: 30px;
+   padding: 20px 30px;
+   border-top: 1px solid #eee;
+}
+
+.tags_title {
+   font-weight: 600;
+   color: #252525;
+   margin-right: 10px;
+}
+
+.tag {
+   display: inline-block;
+   background-color: #f8f9fa;
+   color: #555555;
+   padding: 5px 12px;
+   border-radius: 20px;
+   margin-right: 8px;
+   margin-bottom: 8px;
+   font-size: 14px;
+   text-decoration: none;
+   transition: all 0.3s ease;
+}
+
+.tag:hover {
+   background-color: #13a25d;
+   color: #ffffff;
+}
+
+.related_title {
+   font-size: 24px;
+   color: #252525;
+   font-weight: 600;
+   margin-bottom: 20px;
+}
+
+.related_box {
+   background-color: #ffffff;
+   border-radius: 10px;
+   overflow: hidden;
+   box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+   height: 100%;
+   transition: all 0.3s ease;
+}
+
+.related_box:hover {
+   transform: translateY(-5px);
+   box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.related_img img {
+   width: 100%;
+   height: 200px;
+   object-fit: cover;
+}
+
+.related_content {
+   padding: 20px;
+}
+
+.related_content h4 {
+   font-size: 18px;
+   font-weight: 600;
+   color: #252525;
+   margin-bottom: 10px;
+}
+
+.related_text {
+   font-size: 14px;
+   color: #555555;
+   margin-bottom: 15px;
+}
+
+.related_box .read_bt {
+   margin-top: 15px;
+}
+
+.related_box .read_bt a {
+   display: inline-block;
+   font-size: 14px;
+   color: #ffffff;
+   background-color: #13a25d;
+   text-align: center;
+   padding: 8px 20px;
+   border-radius: 5px;
+   text-transform: uppercase;
+   font-weight: 500;
+   text-decoration: none;
+}
+
+.related_box .read_bt a:hover {
+   background-color: #252525;
+}
+
+.back_button {
+   margin-top: 20px;
+   margin-bottom: 30px;
+}
+
+.btn_back {
+   display: inline-block;
+   font-size: 16px;
+   color: #555555;
+   padding: 10px 20px;
+   border-radius: 5px;
+   text-decoration: none;
+   transition: all 0.3s ease;
+}
+
+.btn_back:hover {
+   color: #13a25d;
+}
+
+.btn_back i {
+   margin-right: 5px;
+}
+</style>
+{% endblock %} 

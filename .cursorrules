@@ -1,0 +1,74 @@
+Before diving into the best practices, please note that you need to adapt the globs depending on your project's specific file structure and requirements.
+
+---
+name: sqlite-best-practices.mdc
+description: Best practices for using SQLite database
+globs: **/*.{ts,tsx,js,jsx,sql}
+---
+
+- Use parameterized queries to prevent SQL injection
+- Implement proper transaction management
+- Regularly backup your database
+- Use indexes for frequently queried columns
+- Avoid recreating the database on every run
+
+---
+name: cms-best-practices.mdc
+description: Best practices for implementing a Content Management System
+globs: **/*.{ts,tsx,js,jsx}
+---
+
+- Implement a clear separation between content and presentation
+- Use a robust API for content management
+- Implement user authentication and authorization
+- Ensure content versioning and backup
+- Optimize for content editor experience
+
+---
+name: ui-ux-best-practices.mdc
+description: Best practices for modern UI/UX design
+globs: **/*.{ts,tsx,js,jsx,css}
+---
+
+- Follow current design trends and patterns
+- Ensure high usability and user-friendliness
+- Implement responsive design across all devices
+- Use consistent typography and color schemes
+- Conduct user testing and iterate based on feedback
+
+---
+name: responsive-design-best-practices.mdc
+description: Best practices for creating responsive designs
+globs: **/*.{ts,tsx,js,jsx,css}
+---
+
+- Use flexible grid layouts
+- Implement media queries for different screen sizes
+- Optimize images for various resolutions
+- Ensure touch-friendly interactions on mobile
+- Test on multiple devices and browsers
+
+---
+name: csrf-protection-best-practices.mdc
+description: Best practices for implementing CSRF protection
+globs: **/*.{ts,tsx,js,jsx}
+---
+
+- Use CSRF tokens for all state-changing operations
+- Implement token validation on the server-side
+- Use secure, HttpOnly cookies for token storage
+- Implement double-submit cookie pattern
+- Regularly rotate CSRF tokens for added security
+
+---
+name: error-handling-best-practices.mdc
+description: Best practices for error handling and prevention
+globs: **/*.{ts,tsx,js,jsx}
+---
+
+- Implement comprehensive error logging
+- Use try-catch blocks for critical operations
+- Provide user-friendly error messages
+- Implement proper error boundaries in React
+- Regularly review and fix coding errors
+- söz dizisi yapma.

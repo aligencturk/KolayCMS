@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, Response
 from flask_login import login_required, current_user
 from apps.models import Page, BlogPost, Slide, Service, AboutSection, VideoSection, SiteSettings, ContactInfo, db, Menu
 from apps.forms import ContactForm
 from datetime import datetime
+import json
 
 main_bp = Blueprint('main', __name__)
 
@@ -18,16 +19,12 @@ def get_template(page):
 
 @main_bp.context_processor
 def utility_processor():
-    """Global template değişkenlerini sağla"""
-    # Her seferinde yeni bir sorgu yap
-    db.session.expire_all()
-    db.session.commit()
+    """Her template'e genel değişkenleri enjekte et"""
+    settings = SiteSettings.query.first()
     
-    # Yeni bir sorgu ile en güncel ayarları al
-    settings = db.session.query(SiteSettings).first()
     if not settings:
         settings = SiteSettings(
-            site_title='KolayCMS',
+            site_title='Cobsin',
             navbar_bg_color='#ffffff',
             navbar_text_color='#000000',
             navbar_active_color='#007bff',
@@ -49,8 +46,9 @@ def utility_processor():
     
     return {
         'now': datetime.now(),
-        'settings': settings,
-        'contact_info': contact_info
+        'site_settings': settings,
+        'contact_info': contact_info,
+        'settings': settings
     }
 
 @main_bp.context_processor
@@ -100,34 +98,41 @@ def inject_menu_data():
 
 @main_bp.route('/')
 def index():
-    # Ana sayfayı getir
-    home_page = Page.query.filter_by(slug='home', is_published=True).first()
-    
-    # Diğer içerikleri getir
-    slides = Slide.query.filter_by(is_active=True).order_by(Slide.order).all()
-    about = AboutSection.query.filter_by(is_active=True).first()
-    services = Service.query.filter_by(is_active=True).order_by(Service.order).all()
-    blog_posts = BlogPost.query.filter_by(is_published=True).order_by(BlogPost.created_at.desc()).limit(3).all()
-    video = VideoSection.query.filter_by(is_active=True).first()
-    
-    if home_page:
-        # Şablona göre render et
-        template = get_template(home_page)
-        return render_template(template,
-                            page=home_page,
-                            slides=slides,
-                            about=about,
-                            services=services,
-                            blog_posts=blog_posts,
-                            video=video)
-    
-    # Ana sayfa yoksa varsayılan şablonu kullan
-    return render_template('main/templates/default.html',
-                        slides=slides,
-                        about=about,
-                        services=services,
-                        blog_posts=blog_posts,
-                        video=video)
+    try:
+        # Ana sayfa içeriğini getir
+        page = Page.query.filter_by(slug='home', is_published=True).first()
+        
+        # Aktif slaytları getir
+        slides = Slide.query.filter_by(is_active=True).order_by(Slide.order).all()
+        
+        # Hakkımızda bölümünü getir
+        about = Page.query.filter_by(slug='about', is_published=True).first()
+        
+        # Hizmetleri getir
+        services = Service.query.filter_by(is_active=True).order_by(Service.order).all()
+        
+        # Blog yazılarını getir
+        blog_posts = BlogPost.query.filter_by(
+            is_published=True
+        ).order_by(
+            BlogPost.published_at.desc()
+        ).limit(4).all()
+
+        # Cobsin temasını kullanarak ana sayfayı göster
+        return render_template('main/index.html',
+                             page=page,
+                             slides=slides,
+                             about=about,
+                             services=services,
+                             blog_posts=blog_posts)
+                             
+    except Exception as e:
+        current_app.logger.error(f"Error loading index page: {str(e)}")
+        return render_template('main/error.html', 
+                             error_title="Sayfa Yüklenemedi",
+                             error_message="Ana sayfa yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.",
+                             error_details=str(e),
+                             debug=current_app.config.get('DEBUG', False)), 500
 
 @main_bp.route('/page/<slug>')
 def page(slug):
@@ -182,8 +187,50 @@ def contact():
 
 @main_bp.route('/about')
 def about():
-    about = AboutSection.query.first()
-    return render_template('main/about.html', about=about)
+    try:
+        # Hakkımızda sayfasını getir
+        page = Page.query.filter_by(slug='about').first()
+        if not page:
+            page = Page(
+                title='Hakkımızda',
+                slug='about',
+                content='Hakkımızda sayfası içeriği',
+                is_published=True
+            )
+            db.session.add(page)
+            db.session.commit()
+
+        # Hakkımızda bölümünü getir
+        about_section = AboutSection.query.first()
+        if not about_section:
+            about_section = AboutSection(
+                title='Hakkımızda',
+                subtitle='Profesyonel Çözümler',
+                content='Uzun yıllara dayanan tecrübemizle müşterilerimize en iyi hizmeti sunuyoruz.',
+                stats_items=json.dumps([
+                    {'number': '1234', 'text': 'Mutlu Müşteri'},
+                    {'number': '123', 'text': 'Tamamlanan Proje'},
+                    {'number': '12', 'text': 'Yıllık Tecrübe'}
+                ]),
+                is_active=True
+            )
+            db.session.add(about_section)
+            db.session.commit()
+
+        # Sayfa görüntülenme sayısını artır
+        if hasattr(page, 'view_count'):
+            page.view_count += 1
+            db.session.commit()
+
+        return render_template('main/about.html', 
+                             page=page, 
+                             about_section=about_section)
+
+    except Exception as e:
+        current_app.logger.error(f'Hakkımızda sayfası hatası: {str(e)}')
+        return render_template('main/error.html', 
+                             error_code=500,
+                             error_message='Sayfa yüklenirken bir hata oluştu.')
 
 @main_bp.route('/services')
 def services():
@@ -195,6 +242,14 @@ def services():
 @login_required
 def events():
     return render_template('main/events.html')
+
+@main_bp.route('/custom.css')
+def custom_css():
+    settings = SiteSettings.query.first()
+    custom_css = settings.custom_css if settings and settings.custom_css else ''
+    response = Response(custom_css, mimetype='text/css')
+    response.headers['Cache-Control'] = 'public, max-age=300'  # 5 dakika cache
+    return response
 
 @main_bp.route('/career')
 def career():

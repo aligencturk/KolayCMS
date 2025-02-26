@@ -23,165 +23,92 @@
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
+    <!-- Owl Carousel CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
+    
+    <!-- Magnific Popup CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/magnific-popup.min.css">
+    
+    <!-- Slider CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/slider.css') }}">
+    
+    {% block styles %}{% endblock %}
+    
     <!-- Tema Stilleri -->
     <style>
         :root {
-            --navbar-bg-color: {{ settings.navbar_bg_color|default('#ffffff', true) }};
-            --navbar-text-color: {{ settings.navbar_text_color|default('#000000', true) }};
-            --navbar-hover-color: {{ settings.navbar_hover_color|default('#0056b3', true) }};
-            --navbar-active-color: {{ settings.navbar_active_color|default('#007bff', true) }};
-            --footer-bg-color: {{ settings.footer_bg_color|default('#343a40', true) }};
-            --footer-text-color: {{ settings.footer_text_color|default('#ffffff', true) }};
-            --footer-link-color: {{ settings.footer_link_color|default('#ffffff', true) }};
+            --navbar-bg-color: {{ settings.navbar_bg_color|default('#ffffff') }};
+            --navbar-text-color: {{ settings.navbar_text_color|default('#000000') }};
+            --navbar-hover-color: {{ settings.navbar_hover_color|default('#0056b3') }};
+            --navbar-active-color: {{ settings.navbar_active_color|default('#007bff') }};
+            --footer-bg-color: {{ settings.footer_bg_color|default('#343a40') }};
+            --footer-text-color: {{ settings.footer_text_color|default('#ffffff') }};
+            --footer-link-color: {{ settings.footer_link_color|default('#ffffff') }};
+            --body-font-family: {{ settings.body_font_family|default('Poppins') }};
+            --body-font-size: {{ settings.body_font_size|default('14px') }};
+            --body-bg-color: {{ settings.body_bg_color|default('#ffffff') }};
+            --body-text-color: {{ settings.body_text_color|default('#212529') }};
+            --body-line-height: {{ settings.body_line_height|default('1.5') }};
+            --body-link-color: {{ settings.body_link_color|default('#007bff') }};
         }
         
-        /* Cobsin Tema Override */
-        /* Navbar Override */
-        body .header_section,
-        body header,
-        body .header_bg,
-        body .navbar,
-        body .navbar-light,
-        body .bg-light,
-        body nav.navbar {
-            background-color: var(--navbar-bg-color) !important;
-            background-image: none !important;
-        }
-        
-        body .header_section *,
-        body header *,
-        body .header_bg *,
-        body .navbar *,
-        body nav.navbar * {
-            background-color: transparent !important;
-        }
-        
-        body .header_section .navbar-expand-lg .navbar-nav .nav-link,
-        body .menu_text li a,
-        body .header_section .navbar-light .navbar-nav .nav-link,
-        body .navbar-nav .nav-link,
-        body nav.navbar .nav-link,
-        body .search_icon ul li a,
-        body .search_icon ul li a i {
-            color: var(--navbar-text-color) !important;
-            text-transform: none !important;
-        }
-        
-        body .header_section .navbar-light .navbar-nav .nav-link:hover,
-        body .menu_text li a:hover,
-        body .navbar-nav .nav-link:hover,
-        body nav.navbar .nav-link:hover,
-        body .search_icon ul li a:hover,
-        body .search_icon ul li a:hover i {
-            color: var(--navbar-hover-color) !important;
-        }
-        
-        body .header_section .navbar-light .navbar-nav .active>.nav-link,
-        body .header_section .navbar-light .navbar-nav .nav-link.active,
-        body .menu_text li.active a,
-        body .navbar-nav .nav-item.active .nav-link,
-        body nav.navbar .nav-item.active .nav-link {
-            color: var(--navbar-active-color) !important;
-        }
-        
-        body .navbar-toggler,
-        body nav.navbar .navbar-toggler {
-            border-color: var(--navbar-text-color) !important;
-        }
-        
-        body .navbar-toggler-icon,
-        body nav.navbar .navbar-toggler-icon {
-            background-image: none !important;
-            position: relative;
-        }
-        
-        body .navbar-toggler-icon::before,
-        body nav.navbar .navbar-toggler-icon::before {
-            content: '\f0c9';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: var(--navbar-text-color) !important;
-        }
-        
-        /* Footer Override */
-        body .footer_section,
-        body footer,
-        body .footer_section_2 {
-            background-color: var(--footer-bg-color) !important;
-            background-image: none !important;
-        }
-        
-        body .footer_section *,
-        body footer *,
-        body .footer_section_2 * {
-            background-color: transparent !important;
-        }
-        
-        body .footer_section .footer_text,
-        body .footer_section .location_text,
-        body .footer_section .footer_taital,
-        body .footer_section p,
-        body .footer_section h1,
-        body .footer_section h2,
-        body .footer_section h3,
-        body .footer_section h4,
-        body .footer_section h5,
-        body .footer_section h6,
-        body .footer_section span {
-            color: var(--footer-text-color) !important;
-        }
-        
-        body .footer_section .location_text a,
-        body .footer_section .social_icon ul li a,
-        body .footer_section a {
-            color: var(--footer-link-color) !important;
-            text-decoration: none !important;
-        }
-        
-        body .footer_section .location_text a:hover,
-        body .footer_section .social_icon ul li a:hover,
-        body .footer_section a:hover {
-            color: var(--footer-link-color) !important;
-            opacity: 0.8 !important;
-            text-decoration: underline !important;
-        }
-        
-        /* Diğer Genel Stiller */
+        /* Temel Stiller */
         body {
-            font-family: '{{ settings.body_font_family|default('Poppins', true) }}', sans-serif !important;
-            font-size: {{ settings.body_font_size|default('14px', true) }} !important;
-            background-color: {{ settings.body_bg_color|default('#ffffff', true) }} !important;
-            color: {{ settings.body_text_color|default('#212529', true) }} !important;
-            line-height: {{ settings.body_line_height|default('1.5', true) }} !important;
+            font-family: var(--body-font-family), sans-serif !important;
+            font-size: var(--body-font-size) !important;
+            background-color: var(--body-bg-color) !important;
+            color: var(--body-text-color) !important;
+            line-height: var(--body-line-height) !important;
         }
         
         a {
-            color: {{ settings.body_link_color|default('#007bff', true) }} !important;
+            color: var(--body-link-color) !important;
             text-decoration: none !important;
         }
         
         a:hover {
-            color: {{ settings.body_link_color|default('#007bff', true) }} !important;
+            color: var(--body-link-color) !important;
             text-decoration: underline !important;
         }
         
-        .navbar, header {
+        /* Navbar Stilleri */
+        .navbar, 
+        header,
+        .header_section,
+        .header_bg,
+        .navbar-light,
+        .bg-light,
+        nav.navbar {
             background-color: var(--navbar-bg-color) !important;
+            background-image: none !important;
         }
         
-        .navbar-brand, .navbar-brand * {
+        .header_section *,
+        header *,
+        .header_bg *,
+        .navbar *,
+        nav.navbar * {
+            background-color: transparent !important;
+        }
+        
+        .navbar-brand, 
+        .navbar-brand *,
+        .header_section .navbar-expand-lg .navbar-nav .nav-link,
+        .menu_text li a,
+        .header_section .navbar-light .navbar-nav .nav-link,
+        .navbar-nav .nav-link,
+        nav.navbar .nav-link,
+        .search_icon ul li a,
+        .search_icon ul li a i {
             color: var(--navbar-text-color) !important;
+            text-transform: none !important;
         }
         
-        .navbar-nav .nav-link, .menu_text li a {
-            color: var(--navbar-text-color) !important;
-        }
-        
-        .navbar-nav .nav-link:hover, .menu_text li a:hover {
+        .navbar-nav .nav-link:hover, 
+        .menu_text li a:hover,
+        .search_icon ul li a:hover,
+        .search_icon ul li a:hover i {
             color: var(--navbar-hover-color) !important;
         }
         
@@ -193,27 +120,34 @@
             border-color: var(--navbar-text-color) !important;
         }
         
-        footer, .footer_section {
+        /* Footer Stilleri */
+        footer, 
+        .footer_section {
             background-color: var(--footer-bg-color) !important;
             color: var(--footer-text-color) !important;
         }
         
-        footer a, .footer_section a {
+        footer a, 
+        .footer_section a {
             color: var(--footer-link-color) !important;
         }
         
-        footer a:hover, .footer_section a:hover {
+        footer a:hover, 
+        .footer_section a:hover {
             color: var(--footer-link-color) !important;
             opacity: 0.8;
         }
         
-        footer h5, .footer_section h5 {
+        footer h5, 
+        .footer_section h5 {
             color: var(--footer-text-color) !important;
         }
-        
-        /* Özel CSS */
-        {{ settings.custom_css|safe }}
     </style>
+    
+    {% if settings.custom_css %}
+    <!-- Özel CSS -->
+    <link rel="stylesheet" href="{{ url_for('main.custom_css') }}">
+    {% endif %}
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -245,6 +179,9 @@
             </div>
         </div>
     </nav>
+    
+    <!-- Banner -->
+    {% block banner %}{% endblock %}
     
     <!-- Ana İçerik -->
     <main>
@@ -321,14 +258,21 @@
         </div>
     </footer>
     
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Özel JavaScript -->
-    <script>
-        {{ settings.custom_js|safe }}
-    </script>
+    <!-- Owl Carousel JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
     
-    {% block extra_js %}{% endblock %}
+    <!-- Magnific Popup JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.min.js"></script>
+    
+    <!-- Slider JS -->
+    <script src="{{ url_for('static', filename='js/slider.js') }}"></script>
+    
+    {% block scripts %}{% endblock %}
 </body>
 </html> 

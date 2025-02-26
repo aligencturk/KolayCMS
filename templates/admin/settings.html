@@ -1,228 +1,275 @@
-{% extends "admin/base.html" %}
+{% extends "admin/master.html" %}
+
+{% block title %}Site Ayarları{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4">
-    <h1 class="mt-4">Site Ayarları</h1>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Dashboard</a></li>
-        <li class="breadcrumb-item active">Site Ayarları</li>
-    </ol>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Site Ayarları</h3>
+                    <div class="card-tools">
+                        <a href="{{ url_for('admin.index') }}" class="btn btn-sm btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Geri
+                        </a>
+                    </div>
                 </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    <!-- Ayar Kartları -->
-    <div class="row mb-4">
-        <!-- Tema Ayarları Kartı -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card bg-primary text-white mb-4">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-paint-brush"></i> Tema Ayarları</h5>
-                    <p class="card-text">Site teması ve görünüm ayarlarını düzenleyin.</p>
-                </div>
-                <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a class="small text-white stretched-link" href="{{ url_for('admin.theme_settings') }}">Düzenle</a>
-                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Slider Ayarları Kartı -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card bg-success text-white mb-4">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-images"></i> Slider Ayarları</h5>
-                    <p class="card-text">Slider görünüm ve davranış ayarlarını düzenleyin.</p>
-                </div>
-                <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a class="small text-white stretched-link" href="{{ url_for('admin.slider_settings') }}">Düzenle</a>
-                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <div>
-                <i class="fas fa-cogs me-1"></i>
-                Genel Ayarlar
-            </div>
-            <button type="button" class="btn btn-warning" onclick="showResetConfirmation()">
-                <i class="fas fa-undo me-1"></i> Varsayılan Ayarlara Dön
-            </button>
-        </div>
-        <div class="card-body">
-            <form method="POST" action="{{ url_for('admin.settings') }}" enctype="multipart/form-data">
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="site_title" name="site_title" 
-                                   value="{{ settings.site_title }}" required>
-                            <label for="site_title">Site Başlığı</label>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="site_description" class="form-label">Site Açıklaması</label>
-                            <textarea class="form-control" id="site_description" name="site_description" rows="3">{{ settings.site_description }}</textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="logo" class="form-label">Logo</label>
-                            <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
-                            {% if settings.logo_path %}
-                            <div class="mt-2">
-                                <img src="{{ settings.logo_path }}" alt="Mevcut Logo" class="img-thumbnail" style="max-height: 100px;">
+                    <form method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <!-- Genel Ayarlar -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Genel Ayarlar</h5>
                             </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="favicon" class="form-label">Favicon</label>
-                            <input type="file" class="form-control" id="favicon" name="favicon" accept="image/*">
-                            {% if settings.favicon_path %}
-                            <div class="mt-2">
-                                <img src="{{ settings.favicon_path }}" alt="Mevcut Favicon" class="img-thumbnail" style="max-height: 32px;">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Site Başlığı</label>
+                                            <input type="text" class="form-control" name="site_title" value="{{ settings.site_title }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Site Açıklaması</label>
+                                            <input type="text" class="form-control" name="site_description" value="{{ settings.site_description }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Meta Anahtar Kelimeler</label>
+                                            <input type="text" class="form-control" name="meta_keywords" value="{{ settings.meta_keywords }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Meta Açıklama</label>
+                                            <input type="text" class="form-control" name="meta_description" value="{{ settings.meta_description }}">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            {% endif %}
                         </div>
-                    </div>
+                        
+                        <!-- Logo ve Favicon -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Logo ve Favicon</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Logo</label>
+                                            {% if settings.logo_path %}
+                                                <div class="mb-2">
+                                                    <img src="{{ url_for('static', filename=settings.logo_path) }}" alt="Logo" style="max-height: 50px;">
+                                                </div>
+                                            {% endif %}
+                                            <input type="file" class="form-control" name="logo" accept="image/*">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Favicon</label>
+                                            {% if settings.favicon_path %}
+                                                <div class="mb-2">
+                                                    <img src="{{ url_for('static', filename=settings.favicon_path) }}" alt="Favicon" style="max-height: 32px;">
+                                                </div>
+                                            {% endif %}
+                                            <input type="file" class="form-control" name="favicon" accept="image/*">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- İletişim Bilgileri -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">İletişim Bilgileri</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>E-posta Adresi</label>
+                                            <input type="email" class="form-control" name="contact_email" value="{{ settings.contact_email }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Telefon</label>
+                                            <input type="text" class="form-control" name="contact_phone" value="{{ settings.contact_phone }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>Adres</label>
+                                            <textarea class="form-control" name="contact_address" rows="3">{{ settings.contact_address }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>Google Maps Embed Kodu</label>
+                                            <textarea class="form-control" name="contact_map" rows="3">{{ settings.contact_map }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sosyal Medya -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Sosyal Medya</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Facebook URL</label>
+                                            <input type="url" class="form-control" name="facebook_url" value="{{ settings.facebook_url }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Twitter URL</label>
+                                            <input type="url" class="form-control" name="twitter_url" value="{{ settings.twitter_url }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Instagram URL</label>
+                                            <input type="url" class="form-control" name="instagram_url" value="{{ settings.instagram_url }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>LinkedIn URL</label>
+                                            <input type="url" class="form-control" name="linkedin_url" value="{{ settings.linkedin_url }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>YouTube URL</label>
+                                            <input type="url" class="form-control" name="youtube_url" value="{{ settings.youtube_url }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- SMTP Ayarları -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">SMTP Ayarları</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>SMTP Host</label>
+                                            <input type="text" class="form-control" name="smtp_host" value="{{ settings.smtp_host }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>SMTP Port</label>
+                                            <input type="number" class="form-control" name="smtp_port" value="{{ settings.smtp_port }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>SMTP Kullanıcı Adı</label>
+                                            <input type="text" class="form-control" name="smtp_user" value="{{ settings.smtp_user }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>SMTP Şifre</label>
+                                            <input type="password" class="form-control" name="smtp_pass" value="{{ settings.smtp_pass }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Gönderen Adı</label>
+                                            <input type="text" class="form-control" name="smtp_from_name" value="{{ settings.smtp_from_name }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Gönderen E-posta</label>
+                                            <input type="email" class="form-control" name="smtp_from_email" value="{{ settings.smtp_from_email }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Özel Kodlar -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Özel Kodlar</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Google Analytics Kodu</label>
+                                            <textarea class="form-control" name="google_analytics" rows="3">{{ settings.google_analytics }}</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Facebook Pixel Kodu</label>
+                                            <textarea class="form-control" name="facebook_pixel" rows="3">{{ settings.facebook_pixel }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Özel CSS</label>
+                                            <textarea class="form-control" name="custom_css" rows="5">{{ settings.custom_css }}</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Özel JavaScript</label>
+                                            <textarea class="form-control" name="custom_js" rows="5">{{ settings.custom_js }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Ayarları Kaydet
+                            </button>
+                        </div>
+                    </form>
                 </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-4">
-                        <div class="form-floating mb-3">
-                            <input type="color" class="form-control form-control-color w-100" id="primary_color" 
-                                   name="primary_color" value="{{ settings.primary_color }}">
-                            <label for="primary_color">Ana Renk</label>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-floating mb-3">
-                            <input type="color" class="form-control form-control-color w-100" id="secondary_color" 
-                                   name="secondary_color" value="{{ settings.secondary_color }}">
-                            <label for="secondary_color">İkincil Renk</label>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-floating mb-3">
-                            <select class="form-select" id="font_family" name="font_family">
-                                <option value="Roboto" {% if settings.font_family == 'Roboto' %}selected{% endif %}>Roboto</option>
-                                <option value="Open Sans" {% if settings.font_family == 'Open Sans' %}selected{% endif %}>Open Sans</option>
-                                <option value="Montserrat" {% if settings.font_family == 'Montserrat' %}selected{% endif %}>Montserrat</option>
-                                <option value="Poppins" {% if settings.font_family == 'Poppins' %}selected{% endif %}>Poppins</option>
-                            </select>
-                            <label for="font_family">Yazı Tipi</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <div class="form-floating mb-3">
-                            <select class="form-select" id="font_size" name="font_size">
-                                <option value="small" {% if settings.font_size == 'small' %}selected{% endif %}>Küçük</option>
-                                <option value="medium" {% if settings.font_size == 'medium' %}selected{% endif %}>Orta</option>
-                                <option value="large" {% if settings.font_size == 'large' %}selected{% endif %}>Büyük</option>
-                            </select>
-                            <label for="font_size">Yazı Boyutu</label>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="is_dark_mode" name="is_dark_mode" {% if settings.is_dark_mode %}checked{% endif %}>
-                            <label class="form-check-label" for="is_dark_mode">Karanlık Mod</label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Kaydet ve Sıfırla Butonları -->
-                <div class="card-footer">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-1"></i> Kaydet
-                    </button>
-                    <button type="button" id="resetSettingsButton" class="btn btn-danger float-end">
-                        <i class="fas fa-undo me-1"></i> Varsayılan Ayarlara Döndür
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
-
-<!-- Reset Modal -->
-<div class="modal fade" id="resetSettingsModal" tabindex="-1" aria-labelledby="resetSettingsModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="resetSettingsModalLabel">Ayarları Sıfırla</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Site ayarlarını varsayılan değerlere döndürmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                <button type="button" class="btn btn-danger" id="confirmResetSettings">Evet, Sıfırla</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-{% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Reset Modal
-    var resetModal = document.getElementById('resetSettingsModal');
-    var myModal = new bootstrap.Modal(resetModal);
-
-    // Reset butonuna tıklandığında
-    document.getElementById('resetSettingsButton').addEventListener('click', function(e) {
-        e.preventDefault();
-        myModal.show();
-    });
-
-    // Onay butonuna tıklandığında
-    document.getElementById('confirmResetSettings').addEventListener('click', function() {
-        fetch("{{ url_for('admin.settings_reset') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token() }}'
-            }
-        })
-        .then(response => {
-            if (response.ok) {
-                window.location.reload();
-            } else {
-                response.json().then(data => {
-                    alert(data.message || 'Bir hata oluştu. Lütfen tekrar deneyin.');
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Hata:', error);
-            alert('Bir hata oluştu. Lütfen tekrar deneyin.');
-        })
-        .finally(() => {
-            myModal.hide();
-        });
-    });
-});
-</script>
-{% endblock %}
 {% endblock %} 

@@ -1,0 +1,90 @@
+{% extends 'admin/master.html' %}
+
+{% block title %}Şablon Düzenle - Admin Panel{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+<style>
+    .CodeMirror {
+        height: 600px;
+        border: 1px solid #ddd;
+        font-family: 'Fira Code', monospace;
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-edit"></i> Şablon Düzenle: {{ template_path }}
+        </h1>
+        <a href="{{ url_for('admin.template_editor') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Geri Dön
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-code"></i> {{ active_theme }} / {{ template_path }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.template_editor_edit', path=template_path) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="mb-3">
+                            <textarea id="code-editor" name="content">{{ content }}</textarea>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> <strong>Uyarı:</strong> Şablon dosyalarını düzenlerken dikkatli olun. Yanlış değişiklikler sitenizin görünümünü bozabilir.
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Değişiklikleri Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closetag.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+            mode: 'htmlmixed',
+            theme: 'monokai',
+            lineNumbers: true,
+            indentUnit: 4,
+            autoCloseTags: true,
+            matchBrackets: true,
+            lineWrapping: true
+        });
+        
+        // Form gönderilmeden önce CodeMirror içeriğini textarea'ya aktar
+        document.querySelector('form').addEventListener('submit', function() {
+            editor.save();
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,127 +1,108 @@
 {% extends 'admin/master.html' %}
 
+{% block title %}{{ page.title }} - Düzenle - Admin Panel{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col">
-            <h2>Sayfayı Düzenle</h2>
-        </div>
-        <div class="col text-end">
-            <a href="{{ url_for('admin.pages_list') }}" class="btn btn-secondary">
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-edit"></i> Sayfa Düzenle
+        </h1>
+        <div>
+            <a href="{{ url_for('main.page', slug=page.slug) }}" class="btn btn-info me-2" target="_blank">
+                <i class="fas fa-eye"></i> Görüntüle
+            </a>
+            <a href="{{ url_for('admin.content_pages_list') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Geri Dön
             </a>
         </div>
     </div>
 
-    <div class="card">
+    <div class="card shadow">
         <div class="card-body">
-            <form method="POST" id="editPageForm">
-                {{ form.hidden_tag() }}
+            <form method="POST" action="{{ url_for('admin.page_edit', id=page.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 
-                <div class="mb-3">
-                    {{ form.title.label(class="form-label") }}
-                    {{ form.title(class="form-control") }}
-                </div>
-                
-                <div class="mb-3">
-                    {{ form.menu_title.label(class="form-label") }}
-                    {{ form.menu_title(class="form-control", placeholder="Boş bırakılırsa sayfa başlığı kullanılır") }}
-                    <small class="form-text text-muted">Menüde görünecek başlık. Boş bırakırsanız sayfa başlığı kullanılacaktır.</small>
-                </div>
-                
-                <div class="mb-3">
-                    {{ form.slug.label(class="form-label") }}
-                    {{ form.slug(class="form-control") }}
-                </div>
-                
-                <div class="mb-3">
-                    {{ form.content.label(class="form-label") }}
-                    {{ form.content(class="form-control", rows="10") }}
-                </div>
-
-                <div class="mb-3">
-                    {{ form.meta_description.label(class="form-label") }}
-                    {{ form.meta_description(class="form-control") }}
-                </div>
-
-                <div class="mb-3">
-                    {{ form.meta_keywords.label(class="form-label") }}
-                    {{ form.meta_keywords(class="form-control") }}
-                </div>
-
-                {% if page.slug == 'contact' %}
-                <!-- İletişim Bilgileri -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h5 class="mb-0">İletişim Bilgileri</h5>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Başlık</label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                   value="{{ page.title }}" required autofocus>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="content" class="form-label">İçerik</label>
+                            <textarea class="form-control" id="content" name="content" 
+                                      rows="15">{{ page.content }}</textarea>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label for="address" class="form-label">Adres</label>
-                            <input type="text" class="form-control" id="address" name="contact_info.address" 
-                                   value="{{ page.contact_info.address if page.contact_info else '' }}">
+                    
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Sayfa Ayarları</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="slug" class="form-label">URL</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">/</span>
+                                        <input type="text" class="form-control" id="slug" name="slug" 
+                                               value="{{ page.slug }}">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" 
+                                           id="is_published" name="is_published"
+                                           {% if page.is_published %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_published">
+                                        Yayınla
+                                    </label>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Değişiklikleri Kaydet
+                                    </button>
+                                    <button type="button" class="btn btn-danger" 
+                                            onclick="confirmDelete('{{ page.id }}', '{{ page.title }}')">
+                                        <i class="fas fa-trash"></i> Sayfayı Sil
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="phone" class="form-label">Telefon</label>
-                            <input type="text" class="form-control" id="phone" name="contact_info.phone" 
-                                   value="{{ page.contact_info.phone if page.contact_info else '' }}">
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="email" class="form-label">E-posta</label>
-                            <input type="email" class="form-control" id="email" name="contact_info.email" 
-                                   value="{{ page.contact_info.email if page.contact_info else '' }}">
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="working_hours" class="form-label">Çalışma Saatleri</label>
-                            <input type="text" class="form-control" id="working_hours" name="contact_info.working_hours" 
-                                   value="{{ page.contact_info.working_hours if page.contact_info else '' }}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="google_maps" class="form-label">Google Maps Embed Kodu</label>
-                            <textarea class="form-control" id="google_maps" name="contact_info.google_maps" rows="3">{{ page.contact_info.google_maps_embed if page.contact_info else '' }}</textarea>
-                        </div>
-
-                        <h5 class="mt-4">Sosyal Medya</h5>
-                        <div class="mb-3">
-                            <label for="facebook" class="form-label">Facebook</label>
-                            <input type="url" class="form-control" id="facebook" name="contact_info.facebook" 
-                                   value="{{ page.contact_info.facebook if page.contact_info else '' }}">
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="twitter" class="form-label">Twitter</label>
-                            <input type="url" class="form-control" id="twitter" name="contact_info.twitter" 
-                                   value="{{ page.contact_info.twitter if page.contact_info else '' }}">
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="instagram" class="form-label">Instagram</label>
-                            <input type="url" class="form-control" id="instagram" name="contact_info.instagram" 
-                                   value="{{ page.contact_info.instagram if page.contact_info else '' }}">
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="linkedin" class="form-label">LinkedIn</label>
-                            <input type="url" class="form-control" id="linkedin" name="contact_info.linkedin" 
-                                   value="{{ page.contact_info.linkedin if page.contact_info else '' }}">
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Sayfa Bilgileri</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>Oluşturulma</span>
+                                        <span>{{ page.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>Son Güncelleme</span>
+                                        <span>{{ page.updated_at.strftime('%d.%m.%Y %H:%M') if page.updated_at else '-' }}</span>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
-                {% endif %}
-
-                <div class="mb-3 form-check">
-                    {{ form.is_published(class="form-check-input") }}
-                    {{ form.is_published.label(class="form-check-label") }}
-                </div>
-                
-                <div class="text-end">
-                    <button type="submit" class="btn btn-primary">Kaydet</button>
-                    <a href="{{ url_for('admin.pages_list') }}" class="btn btn-secondary">İptal</a>
-                </div>
+            </form>
+            
+            <form id="delete-form" action="{{ url_for('admin.page_delete', id=page.id) }}"
+                  method="POST" style="display: none;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             </form>
         </div>
     </div>
@@ -129,14 +110,40 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/lang/summernote-tr-TR.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    ClassicEditor
-        .create(document.querySelector('#content'))
-        .catch(error => {
-            console.error(error);
-        });
+$(document).ready(function() {
+    // Zengin metin editörü
+    $('#content').summernote({
+        height: 300,
+        lang: 'tr-TR',
+        toolbar: [
+            ['style', ['style']],
+            ['font', ['bold', 'underline', 'clear']],
+            ['color', ['color']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['table', ['table']],
+            ['insert', ['link', 'picture']],
+            ['view', ['fullscreen', 'codeview', 'help']]
+        ]
+    });
+    
+    // Otomatik URL oluşturma
+    $('#title').on('keyup', function() {
+        let slug = $(this).val()
+            .toLowerCase()
+            .replace(/[^\w ]+/g, '')
+            .replace(/ +/g, '-');
+        $('#slug').val(slug);
+    });
 });
+
+function confirmDelete(id, title) {
+    if (confirm(`"${title}" sayfasını silmek istediğinize emin misiniz?`)) {
+        document.getElementById('delete-form').submit();
+    }
+}
 </script>
 {% endblock %} 

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ settings.site_title|default('KolayCMS') }}</title>
+    <meta name="description" content="{{ settings.site_description }}">
+    <meta name="keywords" content="{{ settings.meta_keywords }}">
+    
+    {% block styles %}
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/bootstrap-grid.min.css') }}">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/font-awesome.min.css') }}">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/animate.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/normalize.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/responsive.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/jquery.mCustomScrollbar.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/jquery.fancybox.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/jquery-ui.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/nice-select.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/slick.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/variables.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='cobsin_template/css/custom.css') }}">
+    {% endblock %}
+
+    <!-- Favicon -->
+    {% if settings.favicon_path %}
+    <link rel="icon" type="image/x-icon" href="{{ settings.favicon_path }}">
+    {% endif %}
+
+    <script>
+    // Tema ayarlarını JavaScript değişkenine aktar
+    window.themeSettings = {
+        navbar_bg_color: '{{ settings.navbar_bg_color|default("#ffffff") }}',
+        navbar_text_color: '{{ settings.navbar_text_color|default("#000000") }}',
+        navbar_active_color: '{{ settings.navbar_active_color|default("#f7941d") }}',
+        navbar_hover_color: '{{ settings.navbar_hover_color|default("#f7941d") }}',
+        body_bg_color: '{{ settings.body_bg_color|default("#ffffff") }}',
+        body_text_color: '{{ settings.body_text_color|default("#212529") }}',
+        body_link_color: '{{ settings.body_link_color|default("#f7941d") }}',
+        footer_bg_color: '{{ settings.footer_bg_color|default("#212529") }}',
+        footer_text_color: '{{ settings.footer_text_color|default("#ffffff") }}',
+        footer_link_color: '{{ settings.footer_link_color|default("#ffffff") }}',
+        custom_css: `{{ settings.custom_css|default('')|safe }}`
+    };
+    </script>
+</head>
+<body class="main-layout">
+    <!-- loader -->
+    <div class="loader_bg">
+        <div class="loader"><img src="{{ url_for('static', filename='cobsin_template/images/loading.gif') }}" alt="Yükleniyor"/></div>
+    </div>
+    
+    <!-- Header -->
+    <header class="header_section">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg custom_nav-container">
+                <a class="navbar-brand" href="{{ url_for('main.index') }}">
+                    {% if settings.logo_path %}
+                    <img src="{{ settings.logo_path }}" alt="{{ settings.site_title }}" class="img-fluid">
+                    {% else %}
+                    {{ settings.site_title|default('KolayCMS') }}
+                    {% endif %}
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        {% for menu_item in menus %}
+                        <li class="nav-item {% if menu_item.children %}dropdown{% endif %}">
+                            {% if menu_item.children %}
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown{{ menu_item.id }}" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ menu_item.title }}
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown{{ menu_item.id }}">
+                                {% for child in menu_item.children %}
+                                <li><a class="dropdown-item" href="{{ child.url }}">{{ child.title }}</a></li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            <a class="nav-link" href="{{ menu_item.url }}">{{ menu_item.title }}</a>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer_section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="footer_detail">
+                        <h3>Hakkımızda</h3>
+                        <p>{{ settings.footer_about }}</p>
+                        <div class="social_box">
+                            {% if settings.facebook_url %}
+                            <a href="{{ settings.facebook_url }}" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                            {% endif %}
+                            {% if settings.twitter_url %}
+                            <a href="{{ settings.twitter_url }}" target="_blank"><i class="fab fa-twitter"></i></a>
+                            {% endif %}
+                            {% if settings.instagram_url %}
+                            <a href="{{ settings.instagram_url }}" target="_blank"><i class="fab fa-instagram"></i></a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="footer_detail">
+                        <h3>İletişim</h3>
+                        <p>
+                            {% if settings.address %}<i class="fas fa-map-marker-alt"></i> {{ settings.address }}<br>{% endif %}
+                            {% if settings.phone %}<i class="fas fa-phone"></i> {{ settings.phone }}<br>{% endif %}
+                            {% if settings.email %}<i class="fas fa-envelope"></i> {{ settings.email }}{% endif %}
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="footer_detail">
+                        <h3>Hızlı Bağlantılar</h3>
+                        <ul class="footer_links">
+                            {% for menu_item in menus %}
+                            <li><a href="{{ menu_item.url }}">{{ menu_item.title }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Copyright -->
+    <div class="copyright_section">
+        <div class="container">
+            <p>&copy; {{ now.year }} {{ settings.site_title|default('KolayCMS') }}. Tüm hakları saklıdır.</p>
+        </div>
+    </div>
+
+    {% block scripts %}
+    <!-- jQuery -->
+    <script src="{{ url_for('static', filename='cobsin_template/js/jquery.min.js') }}"></script>
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="{{ url_for('static', filename='cobsin_template/js/bootstrap.bundle.min.js') }}"></script>
+    <!-- Theme Scripts -->
+    <script src="{{ url_for('static', filename='cobsin_template/js/jquery-3.0.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='cobsin_template/js/jquery.mCustomScrollbar.concat.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='cobsin_template/js/jquery.fancybox.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='cobsin_template/js/jquery.nice-select.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='cobsin_template/js/jquery-ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='cobsin_template/js/custom.js') }}"></script>
+    <script src="{{ url_for('static', filename='cobsin_template/js/theme-settings.js') }}"></script>
+    {% endblock %}
+
+    {% if settings.custom_js %}
+    <script>
+    {{ settings.custom_js|safe }}
+    </script>
+    {% endif %}
+</body>
+</html> 

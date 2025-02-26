@@ -1,0 +1,394 @@
+{% extends 'admin/master.html' %}
+
+{% block title %}Menüler - Admin Panel{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.css">
+<style>
+    .menu-item {
+        cursor: move;
+        margin-bottom: 5px;
+    }
+    .menu-item .card {
+        transition: all 0.2s;
+    }
+    .menu-item.sortable-ghost .card {
+        background-color: #f8f9fa;
+        opacity: 0.5;
+    }
+    .submenu-container {
+        margin-left: 25px;
+        border-left: 2px solid #e9ecef;
+        padding-left: 15px;
+    }
+    .menu-actions {
+        visibility: hidden;
+        opacity: 0;
+        transition: all 0.2s;
+    }
+    .menu-item:hover .menu-actions {
+        visibility: visible;
+        opacity: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-bars"></i> Menüler
+        </h1>
+        <a href="{{ url_for('admin.menu_create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Yeni Menü
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Header Menüsü</h5>
+                </div>
+                <div class="card-body">
+                    {% if header_menus %}
+                    <div id="header-menu-container" class="menu-container" data-type="header">
+                        {% for menu in header_menus %}
+                        <div class="menu-item" data-id="{{ menu.id }}" data-parent="0">
+                            <div class="card">
+                                <div class="card-body d-flex justify-content-between align-items-center py-2">
+                                    <div>
+                                        <i class="fas fa-grip-vertical me-2 text-muted"></i>
+                                        <span>{{ menu.title }}</span>
+                                        <small class="text-muted">{{ menu.url }}</small>
+                                    </div>
+                                    <div class="menu-actions">
+                                        <a href="{{ url_for('admin.menu_edit', id=menu.id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" 
+                                                onclick="confirmDelete({{ menu.id }}, '{{ menu.title }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        <form id="delete-form-{{ menu.id }}" action="{{ url_for('admin.menu_delete', id=menu.id) }}"
+                                              method="POST" style="display: none;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if menu.children %}
+                            <div class="submenu-container">
+                                {% for child in menu.children %}
+                                <div class="menu-item" data-id="{{ child.id }}" data-parent="{{ menu.id }}">
+                                    <div class="card">
+                                        <div class="card-body d-flex justify-content-between align-items-center py-2">
+                                            <div>
+                                                <i class="fas fa-grip-vertical me-2 text-muted"></i>
+                                                <span>{{ child.title }}</span>
+                                                <small class="text-muted">{{ child.url }}</small>
+                                            </div>
+                                            <div class="menu-actions">
+                                                <a href="{{ url_for('admin.menu_edit', id=child.id) }}" class="btn btn-sm btn-info">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-danger" 
+                                                        onclick="confirmDelete({{ child.id }}, '{{ child.title }}')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                <form id="delete-form-{{ child.id }}" action="{{ url_for('admin.menu_delete', id=child.id) }}"
+                                                      method="POST" style="display: none;">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        Henüz header menüsü oluşturulmamış. <a href="{{ url_for('admin.menu_create') }}">Yeni menü ekle</a>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <button id="save-header-order" class="btn btn-success d-none">
+                        <i class="fas fa-save"></i> Sıralamayı Kaydet
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="card-title mb-0">Footer Menüsü</h5>
+                </div>
+                <div class="card-body">
+                    {% if footer_menus %}
+                    <div id="footer-menu-container" class="menu-container" data-type="footer">
+                        {% for menu in footer_menus %}
+                        <div class="menu-item" data-id="{{ menu.id }}" data-parent="0">
+                            <div class="card">
+                                <div class="card-body d-flex justify-content-between align-items-center py-2">
+                                    <div>
+                                        <i class="fas fa-grip-vertical me-2 text-muted"></i>
+                                        <span>{{ menu.title }}</span>
+                                        <small class="text-muted">{{ menu.url }}</small>
+                                    </div>
+                                    <div class="menu-actions">
+                                        <a href="{{ url_for('admin.menu_edit', id=menu.id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" 
+                                                onclick="confirmDelete({{ menu.id }}, '{{ menu.title }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        <form id="delete-form-{{ menu.id }}" action="{{ url_for('admin.menu_delete', id=menu.id) }}"
+                                              method="POST" style="display: none;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if menu.children %}
+                            <div class="submenu-container">
+                                {% for child in menu.children %}
+                                <div class="menu-item" data-id="{{ child.id }}" data-parent="{{ menu.id }}">
+                                    <div class="card">
+                                        <div class="card-body d-flex justify-content-between align-items-center py-2">
+                                            <div>
+                                                <i class="fas fa-grip-vertical me-2 text-muted"></i>
+                                                <span>{{ child.title }}</span>
+                                                <small class="text-muted">{{ child.url }}</small>
+                                            </div>
+                                            <div class="menu-actions">
+                                                <a href="{{ url_for('admin.menu_edit', id=child.id) }}" class="btn btn-sm btn-info">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-danger" 
+                                                        onclick="confirmDelete({{ child.id }}, '{{ child.title }}')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                <form id="delete-form-{{ child.id }}" action="{{ url_for('admin.menu_delete', id=child.id) }}"
+                                                      method="POST" style="display: none;">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        Henüz footer menüsü oluşturulmamış. <a href="{{ url_for('admin.menu_create') }}">Yeni menü ekle</a>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <button id="save-footer-order" class="btn btn-success d-none">
+                        <i class="fas fa-save"></i> Sıralamayı Kaydet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+<script>
+function confirmDelete(id, title) {
+    if (confirm(`"${title}" menüsünü silmek istediğinize emin misiniz? Alt menüler de silinecektir.`)) {
+        document.getElementById(`delete-form-${id}`).submit();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const headerContainer = document.getElementById('header-menu-container');
+    const footerContainer = document.getElementById('footer-menu-container');
+    const saveHeaderOrderBtn = document.getElementById('save-header-order');
+    const saveFooterOrderBtn = document.getElementById('save-footer-order');
+    
+    let headerMenuOrder = [];
+    let footerMenuOrder = [];
+    let hasChanges = false;
+    
+    // Header menüsü
+    if (headerContainer) {
+        const headerSortable = new Sortable(headerContainer, {
+            animation: 150,
+            handle: '.fa-grip-vertical',
+            onSort: function() {
+                collectMenuOrder();
+                saveHeaderOrderBtn.classList.remove('d-none');
+                hasChanges = true;
+            }
+        });
+        
+        // Alt menüler için sıralama özelliği ekle
+        document.querySelectorAll('#header-menu-container .submenu-container').forEach(container => {
+            new Sortable(container, {
+                animation: 150,
+                group: 'nested',
+                handle: '.fa-grip-vertical',
+                onSort: function() {
+                    collectMenuOrder();
+                    saveHeaderOrderBtn.classList.remove('d-none');
+                    hasChanges = true;
+                }
+            });
+        });
+    }
+    
+    // Footer menüsü
+    if (footerContainer) {
+        const footerSortable = new Sortable(footerContainer, {
+            animation: 150,
+            handle: '.fa-grip-vertical',
+            onSort: function() {
+                collectMenuOrder();
+                saveFooterOrderBtn.classList.remove('d-none');
+                hasChanges = true;
+            }
+        });
+        
+        // Alt menüler için sıralama özelliği ekle
+        document.querySelectorAll('#footer-menu-container .submenu-container').forEach(container => {
+            new Sortable(container, {
+                animation: 150,
+                group: 'nested',
+                handle: '.fa-grip-vertical',
+                onSort: function() {
+                    collectMenuOrder();
+                    saveFooterOrderBtn.classList.remove('d-none');
+                    hasChanges = true;
+                }
+            });
+        });
+    }
+    
+    function collectMenuOrder() {
+        headerMenuOrder = [];
+        footerMenuOrder = [];
+        
+        if (headerContainer) {
+            let order = 0;
+            headerContainer.querySelectorAll(':scope > .menu-item').forEach(item => {
+                const id = parseInt(item.dataset.id);
+                const parentId = parseInt(item.dataset.parent) || 0;
+                
+                headerMenuOrder.push({
+                    id: id,
+                    parent_id: parentId,
+                    order: order++
+                });
+                
+                // Alt menüleri topla
+                let subOrder = 0;
+                item.querySelectorAll('.submenu-container > .menu-item').forEach(subItem => {
+                    const subId = parseInt(subItem.dataset.id);
+                    headerMenuOrder.push({
+                        id: subId,
+                        parent_id: id,
+                        order: subOrder++
+                    });
+                });
+            });
+        }
+        
+        if (footerContainer) {
+            let order = 0;
+            footerContainer.querySelectorAll(':scope > .menu-item').forEach(item => {
+                const id = parseInt(item.dataset.id);
+                const parentId = parseInt(item.dataset.parent) || 0;
+                
+                footerMenuOrder.push({
+                    id: id,
+                    parent_id: parentId,
+                    order: order++
+                });
+                
+                // Alt menüleri topla
+                let subOrder = 0;
+                item.querySelectorAll('.submenu-container > .menu-item').forEach(subItem => {
+                    const subId = parseInt(subItem.dataset.id);
+                    footerMenuOrder.push({
+                        id: subId,
+                        parent_id: id,
+                        order: subOrder++
+                    });
+                });
+            });
+        }
+    }
+    
+    // Sıralama kaydet
+    saveHeaderOrderBtn.addEventListener('click', function() {
+        saveSortOrder(headerMenuOrder, this);
+    });
+    
+    saveFooterOrderBtn.addEventListener('click', function() {
+        saveSortOrder(footerMenuOrder, this);
+    });
+    
+    function saveSortOrder(orderData, button) {
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kaydediliyor...';
+        
+        fetch('{{ url_for("admin.menu_reorder") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify(orderData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                button.innerHTML = '<i class="fas fa-check"></i> Kaydedildi';
+                setTimeout(() => {
+                    button.classList.add('d-none');
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-save"></i> Sıralamayı Kaydet';
+                }, 2000);
+            } else {
+                alert('Hata: ' + data.error);
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-save"></i> Sıralamayı Kaydet';
+            }
+        })
+        .catch(error => {
+            alert('Bir hata oluştu: ' + error);
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-save"></i> Sıralamayı Kaydet';
+        });
+    }
+    
+    // Sayfa terk edildiğinde uyarı
+    window.addEventListener('beforeunload', function(e) {
+        if (hasChanges) {
+            const message = 'Kaydedilmemiş değişiklikleriniz var. Sayfadan ayrılmak istediğinize emin misiniz?';
+            e.returnValue = message;
+            return message;
+        }
+    });
+});
+</script>
+{% endblock %} 

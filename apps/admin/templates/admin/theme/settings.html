@@ -1,0 +1,451 @@
+{% extends "admin/layout.html" %}
+{% from "admin/macros/form_helpers.html" import render_field %}
+
+{% block title %}Tema Ayarları - CobSin{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Tema Ayarları</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Gösterge Paneli</a></li>
+                    <li class="breadcrumb-item active">Tema Ayarları</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">CobSin Teması Ayarları</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('admin.theme_settings') }}">
+                            {{ form.csrf_token }}
+                            
+                            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="navbar-tab" data-toggle="tab" href="#navbar" role="tab" aria-controls="navbar" aria-selected="true">Navbar</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="body-tab" data-toggle="tab" href="#body" role="tab" aria-controls="body" aria-selected="false">Body</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="banner-tab" data-toggle="tab" href="#banner" role="tab" aria-controls="banner" aria-selected="false">Banner/Slider</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="about-tab" data-toggle="tab" href="#about" role="tab" aria-controls="about" aria-selected="false">Hakkımızda</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="services-tab" data-toggle="tab" href="#services" role="tab" aria-controls="services" aria-selected="false">Hizmetler</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="blog-tab" data-toggle="tab" href="#blog" role="tab" aria-controls="blog" aria-selected="false">Blog</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">İletişim</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="video-tab" data-toggle="tab" href="#video" role="tab" aria-controls="video" aria-selected="false">Video</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="footer-tab" data-toggle="tab" href="#footer" role="tab" aria-controls="footer" aria-selected="false">Footer</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="custom-tab" data-toggle="tab" href="#custom" role="tab" aria-controls="custom" aria-selected="false">Özel CSS/JS</a>
+                                </li>
+                            </ul>
+                            
+                            <div class="tab-content p-3 border border-top-0 rounded-bottom" id="myTabContent">
+                                <!-- Navbar Ayarları -->
+                                <div class="tab-pane fade show active" id="navbar" role="tabpanel" aria-labelledby="navbar-tab">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.navbar_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.navbar_text_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.navbar_active_color, class="form-control") }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.navbar_hover_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="checkbox">
+                                                    {{ form.navbar_is_fixed() }} {{ form.navbar_is_fixed.label }}
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="checkbox">
+                                                    {{ form.navbar_is_transparent() }} {{ form.navbar_is_transparent.label }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Body Ayarları -->
+                                <div class="tab-pane fade" id="body" role="tabpanel" aria-labelledby="body-tab">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.body_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.body_text_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.body_link_color, class="form-control") }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.body_font_family, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.body_font_size, class="form-control") }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Banner/Slider Ayarları -->
+                                <div class="tab-pane fade" id="banner" role="tabpanel" aria-labelledby="banner-tab">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.banner_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.banner_title_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.banner_text_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.banner_button_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.banner_button_text_color, class="form-control") }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.banner_button_hover_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.banner_button_hover_text_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.banner_indicator_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.banner_arrow_color, class="form-control") }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Hakkımızda Ayarları -->
+                                <div class="tab-pane fade" id="about" role="tabpanel" aria-labelledby="about-tab">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.about_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.about_title_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.about_subtitle_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.about_text_color, class="form-control") }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.about_stats_number_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.about_stats_text_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.about_box_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.about_box_border_color, class="form-control") }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Hizmetler Ayarları -->
+                                <div class="tab-pane fade" id="services" role="tabpanel" aria-labelledby="services-tab">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.services_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.services_title_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.services_subtitle_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.services_card_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.services_card_border_color, class="form-control") }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.services_icon_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.services_icon_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.services_card_title_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.services_card_text_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.services_card_hover_shadow, class="form-control") }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Blog Ayarları -->
+                                <div class="tab-pane fade" id="blog" role="tabpanel" aria-labelledby="blog-tab">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.blog_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.blog_title_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.blog_subtitle_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.blog_card_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.blog_card_border_color, class="form-control") }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.blog_date_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.blog_post_title_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.blog_excerpt_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.blog_card_hover_shadow, class="form-control") }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- İletişim Ayarları -->
+                                <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.contact_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.contact_title_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.contact_subtitle_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.contact_text_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.contact_info_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.contact_info_border_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.contact_info_icon_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.contact_form_bg_color, class="form-control") }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.contact_form_border_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.contact_input_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.contact_input_text_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.contact_input_border_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.contact_button_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.contact_button_text_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.contact_button_hover_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.contact_button_hover_text_color, class="form-control") }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Video Ayarları -->
+                                <div class="tab-pane fade" id="video" role="tabpanel" aria-labelledby="video-tab">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.video_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.video_overlay_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.video_title_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.video_subtitle_color, class="form-control") }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.video_play_button_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.video_play_button_bg_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.video_play_button_hover_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.video_play_button_hover_bg_color, class="form-control") }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Footer Ayarları -->
+                                <div class="tab-pane fade" id="footer" role="tabpanel" aria-labelledby="footer-tab">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.footer_bg_color, class="form-control") }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.footer_text_color, class="form-control") }}
+                                            </div>
+                                            <div class="form-group">
+                                                {{ render_field(form.footer_link_color, class="form-control") }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Özel CSS ve JS -->
+                                <div class="tab-pane fade" id="custom" role="tabpanel" aria-labelledby="custom-tab">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.custom_css, class="form-control", rows=10) }}
+                                                <small class="form-text text-muted">Özel CSS kodlarını girin. Bu kodlar otomatik oluşturulan CSS'den sonra eklenecektir.</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                {{ render_field(form.custom_js, class="form-control", rows=10) }}
+                                                <small class="form-text text-muted">Özel JavaScript kodlarını girin. Bu kodlar sayfanın en sonuna eklenecektir.</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group mt-4">
+                                <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
+                                <a href="{{ url_for('admin.index') }}" class="btn btn-secondary ml-2">İptal</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h3 class="card-title">Tema Önizleme</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 text-center">
+                                <a href="{{ url_for('main.index') }}" class="btn btn-info" target="_blank">
+                                    <i class="fas fa-external-link-alt mr-1"></i> Siteyi Yeni Sekmede Görüntüle
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        // Renk seçici input'ları için Bootstrap Colorpicker kullan
+        $('input[type="color"]').colorpicker();
+        
+        // Tab geçişlerinde URL hash'i güncelle
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            var target = $(e.target).attr("href");
+            window.location.hash = target;
+        });
+        
+        // Sayfa yüklenirken URL hash'i varsa ilgili tab'ı aç
+        var hash = window.location.hash;
+        if (hash) {
+            $('.nav-tabs a[href="' + hash + '"]').tab('show');
+        }
+    });
+</script>
+{% endblock %} 

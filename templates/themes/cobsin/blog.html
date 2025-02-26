@@ -1,0 +1,195 @@
+{% extends "themes/cobsin/base.html" %}
+
+{% block title %}Blog - {{ site_title }}{% endblock %}
+{% block description %}{{ site_title }} blog sayfası. En son haberler, makaleler ve güncellemeler.{% endblock %}
+
+{% block page_title %}Blog{% endblock %}
+
+{% block content %}
+<!-- Blog Hero Section -->
+<section class="blog-hero-section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center animate-on-scroll">
+                <h1 class="section-title">Blog</h1>
+                <p class="section-subtitle">En son haberler, makaleler ve güncellemeler</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Blog Posts Section -->
+<section class="blog-posts-section py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Blog Posts -->
+            <div class="col-lg-8">
+                {% if posts %}
+                    {% for post in posts %}
+                    <article class="blog-post mb-5 animate-on-scroll">
+                        <div class="blog-post-image">
+                            {% if post.featured_image %}
+                            <img src="{{ url_for('static', filename='uploads/' + post.featured_image) }}" alt="{{ post.title }}" class="img-fluid rounded">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='themes/cobsin/images/blog-placeholder.jpg') }}" alt="{{ post.title }}" class="img-fluid rounded">
+                            {% endif %}
+                        </div>
+                        <div class="blog-post-content">
+                            <div class="blog-post-meta">
+                                <span class="post-date"><i class="far fa-calendar-alt me-1"></i> {{ post.created_at.strftime('%d.%m.%Y') }}</span>
+                                <span class="post-author"><i class="far fa-user me-1"></i> {{ post.author.name }}</span>
+                                {% if post.category %}
+                                <span class="post-category"><i class="far fa-folder me-1"></i> {{ post.category.name }}</span>
+                                {% endif %}
+                            </div>
+                            <h2 class="blog-post-title">
+                                <a href="{{ url_for('blog.post', slug=post.slug) }}">{{ post.title }}</a>
+                            </h2>
+                            <div class="blog-post-excerpt">
+                                {{ post.content|striptags|truncate(200) }}
+                            </div>
+                            <a href="{{ url_for('blog.post', slug=post.slug) }}" class="btn btn-outline-primary mt-3">
+                                Devamını Oku <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </article>
+                    {% endfor %}
+                    
+                    <!-- Pagination -->
+                    {% if pagination.pages > 1 %}
+                    <nav aria-label="Blog sayfaları" class="mt-5">
+                        <ul class="pagination justify-content-center">
+                            {% if pagination.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('blog.index', page=pagination.prev_num) }}" aria-label="Önceki">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for page in pagination.iter_pages() %}
+                                {% if page %}
+                                    <li class="page-item {% if page == pagination.page %}active{% endif %}">
+                                        <a class="page-link" href="{{ url_for('blog.index', page=page) }}">{{ page }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if pagination.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('blog.index', page=pagination.next_num) }}" aria-label="Sonraki">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i> Henüz blog yazısı bulunmamaktadır.
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Search Widget -->
+                <div class="blog-widget mb-4 animate-on-scroll">
+                    <div class="widget-title">
+                        <h3>Arama</h3>
+                    </div>
+                    <div class="widget-content">
+                        <form action="{{ url_for('blog.search') }}" method="GET">
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="q" placeholder="Blog'da ara..." required>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Categories Widget -->
+                {% if categories %}
+                <div class="blog-widget mb-4 animate-on-scroll">
+                    <div class="widget-title">
+                        <h3>Kategoriler</h3>
+                    </div>
+                    <div class="widget-content">
+                        <ul class="list-unstyled">
+                            {% for category in categories %}
+                            <li>
+                                <a href="{{ url_for('blog.category', slug=category.slug) }}" class="d-flex justify-content-between align-items-center">
+                                    {{ category.name }}
+                                    <span class="badge bg-primary rounded-pill">{{ category.posts|length }}</span>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Recent Posts Widget -->
+                {% if recent_posts %}
+                <div class="blog-widget mb-4 animate-on-scroll">
+                    <div class="widget-title">
+                        <h3>Son Yazılar</h3>
+                    </div>
+                    <div class="widget-content">
+                        <ul class="list-unstyled">
+                            {% for post in recent_posts %}
+                            <li class="recent-post">
+                                <div class="recent-post-image">
+                                    {% if post.featured_image %}
+                                    <img src="{{ url_for('static', filename='uploads/' + post.featured_image) }}" alt="{{ post.title }}">
+                                    {% else %}
+                                    <img src="{{ url_for('static', filename='themes/cobsin/images/blog-placeholder.jpg') }}" alt="{{ post.title }}">
+                                    {% endif %}
+                                </div>
+                                <div class="recent-post-content">
+                                    <h4><a href="{{ url_for('blog.post', slug=post.slug) }}">{{ post.title }}</a></h4>
+                                    <span class="post-date"><i class="far fa-calendar-alt me-1"></i> {{ post.created_at.strftime('%d.%m.%Y') }}</span>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Tags Widget -->
+                {% if tags %}
+                <div class="blog-widget mb-4 animate-on-scroll">
+                    <div class="widget-title">
+                        <h3>Etiketler</h3>
+                    </div>
+                    <div class="widget-content">
+                        <div class="tag-cloud">
+                            {% for tag in tags %}
+                            <a href="{{ url_for('blog.tag', slug=tag.slug) }}" class="tag">{{ tag.name }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize animations
+        initAnimations();
+    });
+</script>
+{% endblock %} 

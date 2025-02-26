@@ -1,0 +1,249 @@
+{% extends "themes/cobsin/base.html" %}
+
+{% block title %}Hizmetlerimiz - {{ site_title }}{% endblock %}
+{% block description %}{{ site_title }} olarak sunduğumuz profesyonel hizmetler. Web tasarım, dijital pazarlama ve daha fazlası.{% endblock %}
+
+{% block page_title %}Hizmetlerimiz{% endblock %}
+
+{% block content %}
+<!-- Services Hero Section -->
+<section class="services-hero-section py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 animate-on-scroll">
+                <div class="services-hero-content">
+                    <h1 class="section-title">Profesyonel Web Çözümleri</h1>
+                    <p class="lead">İşletmeniz için ihtiyacınız olan tüm dijital hizmetleri tek çatı altında sunuyoruz.</p>
+                    <p>Modern ve kullanıcı dostu web siteleri, e-ticaret çözümleri, dijital pazarlama stratejileri ve daha fazlası ile işinizi büyütmenize yardımcı oluyoruz.</p>
+                </div>
+            </div>
+            <div class="col-lg-6 animate-on-scroll">
+                <div class="services-hero-image">
+                    <img src="{{ url_for('static', filename='themes/cobsin/images/services-hero.jpg') }}" alt="Hizmetlerimiz" class="img-fluid rounded shadow">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Services Section -->
+<section class="main-services-section py-5">
+    <div class="container">
+        <div class="section-header text-center mb-5 animate-on-scroll">
+            <h2 class="section-title">Sunduğumuz Hizmetler</h2>
+            <p class="section-subtitle">İşletmenizi büyütmek için ihtiyacınız olan tüm dijital çözümler</p>
+        </div>
+        
+        <div class="row">
+            {% for service in services %}
+            <div class="col-lg-4 col-md-6 mb-4 animate-on-scroll">
+                <div class="service-card h-100">
+                    <div class="service-icon">
+                        <i class="{{ service.icon if service.icon else 'fas fa-star' }}"></i>
+                    </div>
+                    <div class="service-content">
+                        <h3 class="service-title">{{ service.title }}</h3>
+                        <p class="service-description">{{ service.description }}</p>
+                        <a href="{{ url_for('service_detail', slug=service.slug) }}" class="btn btn-outline-primary">Detaylı Bilgi</a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center">
+                <p>Henüz hizmet bulunmamaktadır.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Us Section -->
+<section class="why-choose-section py-5 bg-light">
+    <div class="container">
+        <div class="section-header text-center mb-5 animate-on-scroll">
+            <h2 class="section-title">Neden Bizi Seçmelisiniz?</h2>
+            <p class="section-subtitle">Size en iyi hizmeti sunmak için çalışıyoruz</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4 mb-4 animate-on-scroll">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="feature-title">Uzman Ekip</h3>
+                    <p class="feature-text">Alanında uzman ekibimizle projelerinizi profesyonel bir şekilde yönetiyoruz.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4 animate-on-scroll">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3 class="feature-title">Zamanında Teslimat</h3>
+                    <p class="feature-text">Projelerinizi belirlenen süre içinde tamamlayarak size zaman kazandırıyoruz.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4 animate-on-scroll">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3 class="feature-title">7/24 Destek</h3>
+                    <p class="feature-text">Teknik destek ekibimiz sorularınızı yanıtlamak için her zaman hazır.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Process Section -->
+<section class="process-section py-5">
+    <div class="container">
+        <div class="section-header text-center mb-5 animate-on-scroll">
+            <h2 class="section-title">Çalışma Sürecimiz</h2>
+            <p class="section-subtitle">Projelerinizi nasıl hayata geçiriyoruz?</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-3 mb-4 animate-on-scroll">
+                <div class="process-card text-center">
+                    <div class="process-icon">
+                        <i class="fas fa-comments"></i>
+                        <span class="process-number">1</span>
+                    </div>
+                    <h3 class="process-title">Görüşme</h3>
+                    <p class="process-text">İhtiyaçlarınızı dinliyor ve en uygun çözümü belirliyoruz.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4 animate-on-scroll">
+                <div class="process-card text-center">
+                    <div class="process-icon">
+                        <i class="fas fa-pencil-ruler"></i>
+                        <span class="process-number">2</span>
+                    </div>
+                    <h3 class="process-title">Planlama</h3>
+                    <p class="process-text">Projenizi detaylı bir şekilde planlıyor ve takvim oluşturuyoruz.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4 animate-on-scroll">
+                <div class="process-card text-center">
+                    <div class="process-icon">
+                        <i class="fas fa-code"></i>
+                        <span class="process-number">3</span>
+                    </div>
+                    <h3 class="process-title">Geliştirme</h3>
+                    <p class="process-text">Modern teknolojilerle projenizi hayata geçiriyoruz.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4 animate-on-scroll">
+                <div class="process-card text-center">
+                    <div class="process-icon">
+                        <i class="fas fa-rocket"></i>
+                        <span class="process-number">4</span>
+                    </div>
+                    <h3 class="process-title">Yayına Alma</h3>
+                    <p class="process-text">Projenizi test ediyor ve canlıya alıyoruz.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq-section py-5 bg-light">
+    <div class="container">
+        <div class="section-header text-center mb-5 animate-on-scroll">
+            <h2 class="section-title">Sık Sorulan Sorular</h2>
+            <p class="section-subtitle">Hizmetlerimiz hakkında merak edilenler</p>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8 animate-on-scroll">
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                Hizmet süreciniz nasıl işliyor?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                İlk olarak sizinle bir görüşme yapıyor ve ihtiyaçlarınızı belirliyoruz. Ardından proje planı ve takvimi oluşturuyor, geliştirme sürecini başlatıyoruz. Süreç boyunca sizinle sürekli iletişim halinde kalıyor ve projenin ilerleyişi hakkında bilgi veriyoruz.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Fiyatlandırma politikanız nasıl?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Fiyatlandırmamız projenin kapsamına, özelliklerine ve süresine göre değişiklik göstermektedir. Size özel bir teklif hazırlamak için detaylı görüşme yapıyoruz.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Proje teslim süreniz nedir?
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Proje teslim süresi, projenin büyüklüğüne ve karmaşıklığına göre değişmektedir. Ancak her projede belirlenen takvime uygun hareket ediyor ve zamanında teslimat yapıyoruz.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                Destek ve bakım hizmeti sunuyor musunuz?
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Evet, tüm projelerimiz için destek ve bakım hizmeti sunuyoruz. Teknik destek ekibimiz 7/24 yanınızda ve karşılaştığınız sorunları hızlıca çözüme kavuşturuyoruz.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section py-5 bg-primary text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 animate-on-scroll">
+                <h2 class="cta-title">Projenizi Hayata Geçirelim</h2>
+                <p class="cta-text">Hemen bizimle iletişime geçin, projenizi konuşalım ve en uygun çözümü birlikte belirleyelim.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end animate-on-scroll">
+                <a href="{{ url_for('contact') }}" class="btn btn-light btn-lg">İletişime Geçin</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize animations
+        initAnimations();
+    });
+</script>
+{% endblock %} 

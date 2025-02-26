@@ -1,47 +1,152 @@
-{% extends 'admin/master.html' %}
+{% extends "admin/master.html" %}
+
+{% block title %}Kullanıcı Profili{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col">
-            <h2>Profil Ayarları</h2>
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Profiliniz</h1>
+</div>
+
+<!-- Content Row -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Profil Bilgileri</h6>
+            </div>
+            <div class="card-body">
+                {% include 'admin/partials/messages.html' %}
+                
+                <form method="POST" action="{{ url_for('admin.profile') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="username">Kullanıcı Adı</label>
+                                <input type="text" class="form-control" id="username" name="username" 
+                                       value="{{ user.username }}" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email">E-posta Adresi</label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ user.email }}" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="first_name">Ad</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" 
+                                       value="{{ user.first_name }}">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="last_name">Soyad</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" 
+                                       value="{{ user.last_name }}">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="profile_picture">Profil Resmi</label>
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="profile_picture" name="profile_picture">
+                                    <label class="custom-file-label" for="profile_picture">Dosya Seçin</label>
+                                </div>
+                                {% if user.profile_picture %}
+                                <div class="mt-2">
+                                    <img src="{{ url_for('static', filename='uploads/profiles/' + user.profile_picture) }}" 
+                                         alt="Profil Resmi" class="img-thumbnail" style="max-height: 100px;">
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="bio">Hakkımda</label>
+                                <textarea class="form-control" id="bio" name="bio" rows="3">{{ user.bio }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary mt-3">Profil Bilgilerini Güncelle</button>
+                </form>
+            </div>
         </div>
     </div>
-
-    <div class="card">
-        <div class="card-body">
-            <form method="POST" action="{{ url_for('admin.profile') }}">
-                <div class="mb-3">
-                    <label for="username" class="form-label">Kullanıcı Adı</label>
-                    <input type="text" class="form-control" id="username" name="username" 
-                           value="{{ current_user.username }}" required>
-                </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Şifre Değiştir</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin.change_password') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="form-group">
+                        <label for="current_password">Mevcut Şifre</label>
+                        <input type="password" class="form-control" id="current_password" name="current_password" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="new_password">Yeni Şifre</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirm_password">Yeni Şifre (Tekrar)</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-danger">Şifreyi Değiştir</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Hesap Bilgileri</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Kullanıcı Tipi:</strong> 
+                    {% if user.role == 'admin' %}
+                        <span class="badge badge-primary">Admin</span>
+                    {% else %}
+                        <span class="badge badge-secondary">Kullanıcı</span>
+                    {% endif %}
+                </p>
                 
-                <div class="mb-3">
-                    <label for="email" class="form-label">E-posta Adresi</label>
-                    <input type="email" class="form-control" id="email" name="email" 
-                           value="{{ current_user.email }}" required>
-                </div>
+                <p><strong>Kayıt Tarihi:</strong> {{ user.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
                 
-                <hr>
-                <h5 class="mb-3">Şifre Değiştir</h5>
+                <p><strong>Son Giriş:</strong> 
+                    {% if user.last_login %}
+                        {{ user.last_login.strftime('%d.%m.%Y %H:%M') }}
+                    {% else %}
+                        <span class="text-muted">Bilgi yok</span>
+                    {% endif %}
+                </p>
                 
-                <div class="mb-3">
-                    <label for="current_password" class="form-label">Mevcut Şifre</label>
-                    <input type="password" class="form-control" id="current_password" name="current_password">
-                    <small class="form-text text-muted">Şifrenizi değiştirmek istemiyorsanız boş bırakın.</small>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="new_password" class="form-label">Yeni Şifre</label>
-                    <input type="password" class="form-control" id="new_password" name="new_password">
-                </div>
-                
-                <div class="text-end">
-                    <button type="submit" class="btn btn-primary">Kaydet</button>
-                </div>
-            </form>
+                <p><strong>Durum:</strong> 
+                    {% if user.is_active %}
+                        <span class="badge badge-success">Aktif</span>
+                    {% else %}
+                        <span class="badge badge-danger">Pasif</span>
+                    {% endif %}
+                </p>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Custom file input için bootstrap dosya adı gösterme
+    $('.custom-file-input').on('change', function() {
+        var fileName = $(this).val().split('\\').pop();
+        $(this).next('.custom-file-label').html(fileName);
+    });
+</script>
 {% endblock %} 

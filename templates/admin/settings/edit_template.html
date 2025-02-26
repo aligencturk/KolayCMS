@@ -1,0 +1,206 @@
+{% extends 'admin/master.html' %}
+
+{% block title %}{{ template_type|title }} Şablonu Düzenle - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-edit"></i> {{ template_type|title }} Şablonu Düzenle
+        </h1>
+        <div>
+            <a href="{{ url_for('theme_bp.theme_templates') }}" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left"></i> Şablonlara Dön
+            </a>
+            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#helpModal">
+                <i class="fas fa-question-circle"></i> Yardım
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-code"></i> {{ template_file }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('theme_bp.save_theme_template', template_type=template_type) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <!-- Editör Araç Çubuğu -->
+                        <div class="editor-toolbar mb-3">
+                            <div class="btn-group me-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-editor-action="undo">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-editor-action="redo">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                            </div>
+                            <div class="btn-group me-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-editor-action="find">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-editor-action="replace">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </button>
+                            </div>
+                            <div class="btn-group me-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-editor-action="format">
+                                    <i class="fas fa-indent"></i>
+                                </button>
+                            </div>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-editor-action="fullscreen">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Kod Editörü -->
+                        <div class="form-group">
+                            <div id="editor" style="height: 600px; width: 100%; border: 1px solid #ddd; border-radius: 4px;">{{ template_content }}</div>
+                            <textarea name="content" id="content" style="display: none;">{{ template_content }}</textarea>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Değişiklikleri Kaydet
+                            </button>
+                            <button type="button" class="btn btn-warning" id="resetButton">
+                                <i class="fas fa-undo-alt"></i> Varsayılana Döndür
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Yardım Modalı -->
+<div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpModalLabel">
+                    <i class="fas fa-question-circle"></i> Şablon Düzenleme Yardımı
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle"></i> Kullanılabilir Değişkenler</h6>
+                    <p>Bu şablonda aşağıdaki değişkenleri kullanabilirsiniz:</p>
+                    <ul>
+                        {% if template_type == 'index' %}
+                        <li><code>{{ "{{ site_title }}" }}</code> - Site başlığı</li>
+                        <li><code>{{ "{{ site_description }}" }}</code> - Site açıklaması</li>
+                        <li><code>{{ "{{ latest_posts }}" }}</code> - Son blog yazıları</li>
+                        <li><code>{{ "{{ featured_services }}" }}</code> - Öne çıkan hizmetler</li>
+                        {% elif template_type == 'blog' %}
+                        <li><code>{{ "{{ posts }}" }}</code> - Blog yazıları listesi</li>
+                        <li><code>{{ "{{ categories }}" }}</code> - Kategoriler listesi</li>
+                        <li><code>{{ "{{ tags }}" }}</code> - Etiketler listesi</li>
+                        <li><code>{{ "{{ pagination }}" }}</code> - Sayfalama bilgisi</li>
+                        {% elif template_type == 'blog_detail' %}
+                        <li><code>{{ "{{ post }}" }}</code> - Blog yazısı detayları</li>
+                        <li><code>{{ "{{ related_posts }}" }}</code> - Benzer yazılar</li>
+                        <li><code>{{ "{{ comments }}" }}</code> - Yorumlar listesi</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle"></i> Önemli Uyarılar</h6>
+                    <ul>
+                        <li>Şablon yapısını bozmamaya özen gösterin.</li>
+                        <li>Değişiklik yapmadan önce yedek almanız önerilir.</li>
+                        <li>Sorun yaşarsanız varsayılan temaya dönebilirsiniz.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // CodeMirror editörünü başlat
+        var editor = CodeMirror(document.getElementById('editor'), {
+            mode: '{% if template_type == "css" %}text/css{% elif template_type == "js" %}javascript{% else %}htmlmixed{% endif %}',
+            theme: 'monokai',
+            lineNumbers: true,
+            autoCloseTags: true,
+            autoCloseBrackets: true,
+            matchBrackets: true,
+            indentUnit: 4,
+            tabSize: 4,
+            lineWrapping: true,
+            foldGutter: true,
+            gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+            extraKeys: {
+                'Ctrl-Space': 'autocomplete',
+                'Ctrl-/': 'toggleComment',
+                'Ctrl-F': 'findPersistent'
+            }
+        });
+
+        // Form gönderilmeden önce editör içeriğini textarea'ya aktar
+        document.querySelector('form').addEventListener('submit', function() {
+            document.getElementById('content').value = editor.getValue();
+        });
+
+        // Editör araç çubuğu işlevleri
+        document.querySelectorAll('[data-editor-action]').forEach(button => {
+            button.addEventListener('click', function() {
+                const action = this.dataset.editorAction;
+                switch(action) {
+                    case 'undo':
+                        editor.undo();
+                        break;
+                    case 'redo':
+                        editor.redo();
+                        break;
+                    case 'find':
+                        editor.execCommand('findPersistent');
+                        break;
+                    case 'replace':
+                        editor.execCommand('replace');
+                        break;
+                    case 'format':
+                        editor.execCommand('indentAuto');
+                        break;
+                    case 'fullscreen':
+                        editor.setOption('fullScreen', !editor.getOption('fullScreen'));
+                        break;
+                }
+            });
+        });
+
+        // Varsayılana döndürme butonu
+        document.getElementById('resetButton').addEventListener('click', function() {
+            if (confirm('Bu şablonu varsayılan haline döndürmek istediğinizden emin misiniz?')) {
+                window.location.href = "{{ url_for('theme_bp.reset_theme_template', template_type=template_type) }}";
+            }
+        });
+    });
+</script>
+{% endblock %} 

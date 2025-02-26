@@ -1,0 +1,451 @@
+{% extends "admin/master.html" %}
+
+{% block title %}Şablon Düzenleyici{% endblock %}
+
+{% block head %}
+<!-- CodeMirror CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+<style>
+    .template-editor-container {
+        display: flex;
+        height: calc(100vh - 150px);
+        margin-top: 20px;
+    }
+    
+    .file-explorer {
+        width: 250px;
+        background-color: #f8f9fc;
+        border-right: 1px solid #e3e6f0;
+        overflow-y: auto;
+    }
+    
+    .file-explorer-header {
+        padding: 15px;
+        border-bottom: 1px solid #e3e6f0;
+        font-weight: bold;
+    }
+    
+    .file-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .file-list li {
+        padding: 10px 15px;
+        cursor: pointer;
+        border-bottom: 1px solid #e3e6f0;
+        transition: background-color 0.2s;
+    }
+    
+    .file-list li:hover {
+        background-color: #eaecf4;
+    }
+    
+    .file-list li.active {
+        background-color: #4e73df;
+        color: white;
+    }
+    
+    .editor-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .editor-header {
+        padding: 15px;
+        background-color: #f8f9fc;
+        border-bottom: 1px solid #e3e6f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .editor-title {
+        font-weight: bold;
+        margin: 0;
+    }
+    
+    .editor-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .editor-content {
+        flex: 1;
+        position: relative;
+    }
+    
+    .CodeMirror {
+        height: 100% !important;
+        font-size: 14px;
+    }
+    
+    .preview-container {
+        width: 40%;
+        border-left: 1px solid #e3e6f0;
+        display: none;
+    }
+    
+    .preview-header {
+        padding: 15px;
+        background-color: #f8f9fc;
+        border-bottom: 1px solid #e3e6f0;
+        font-weight: bold;
+    }
+    
+    .preview-frame {
+        width: 100%;
+        height: calc(100% - 51px);
+        border: none;
+    }
+    
+    .file-tabs {
+        display: flex;
+        background-color: #f1f1f1;
+        border-bottom: 1px solid #e3e6f0;
+    }
+    
+    .file-tab {
+        padding: 10px 15px;
+        cursor: pointer;
+        border-right: 1px solid #e3e6f0;
+        transition: background-color 0.2s;
+    }
+    
+    .file-tab.active {
+        background-color: #4e73df;
+        color: white;
+    }
+    
+    .dropdown-menu {
+        min-width: 10rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Şablon Düzenleyici</h1>
+    <div class="dropdown">
+        <button class="btn btn-primary dropdown-toggle" type="button" id="templateActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            İşlemler
+        </button>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="templateActions">
+            <a class="dropdown-item" href="#" id="saveAllBtn"><i class="fas fa-save mr-2"></i>Tümünü Kaydet</a>
+            <a class="dropdown-item" href="#" id="previewBtn"><i class="fas fa-eye mr-2"></i>Önizleme</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item text-danger" href="#" id="resetBtn"><i class="fas fa-undo mr-2"></i>Varsayılana Sıfırla</a>
+        </div>
+    </div>
+</div>
+
+<div class="template-editor-container">
+    <div class="file-explorer">
+        <div class="file-tabs">
+            <div class="file-tab active" data-type="html">HTML</div>
+            <div class="file-tab" data-type="css">CSS</div>
+            <div class="file-tab" data-type="js">JS</div>
+        </div>
+        <div class="file-list-container">
+            <ul class="file-list" id="htmlFiles">
+                <li data-file="index.html">index.html</li>
+                <li data-file="partials/header.html">header.html</li>
+                <li data-file="partials/footer.html">footer.html</li>
+                <li data-file="partials/slider.html">slider.html</li>
+                <li data-file="partials/about.html">about.html</li>
+                <li data-file="partials/services.html">services.html</li>
+                <li data-file="partials/contact.html">contact.html</li>
+            </ul>
+            <ul class="file-list" id="cssFiles" style="display: none;">
+                <li data-file="style.css">style.css</li>
+                <li data-file="responsive.css">responsive.css</li>
+            </ul>
+            <ul class="file-list" id="jsFiles" style="display: none;">
+                <li data-file="main.js">main.js</li>
+            </ul>
+        </div>
+    </div>
+    <div class="editor-container">
+        <div class="editor-header">
+            <h5 class="editor-title" id="currentFileName">Dosya seçilmedi</h5>
+            <div class="editor-actions">
+                <button class="btn btn-success btn-sm" id="saveBtn"><i class="fas fa-save mr-1"></i>Kaydet</button>
+                <button class="btn btn-info btn-sm" id="togglePreviewBtn"><i class="fas fa-eye mr-1"></i>Önizleme</button>
+            </div>
+        </div>
+        <div class="editor-content">
+            <textarea id="codeEditor"></textarea>
+        </div>
+    </div>
+    <div class="preview-container">
+        <div class="preview-header">
+            Önizleme
+            <button class="btn btn-sm btn-outline-secondary float-right" id="closePreviewBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <iframe class="preview-frame" id="previewFrame"></iframe>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- CodeMirror JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // CodeMirror editörünü başlat
+        const editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+            lineNumbers: true,
+            mode: 'htmlmixed',
+            theme: 'monokai',
+            indentUnit: 4,
+            indentWithTabs: false,
+            lineWrapping: true,
+            autoCloseTags: true,
+            autoCloseBrackets: true,
+            matchBrackets: true,
+            extraKeys: {
+                "Ctrl-S": function(cm) {
+                    saveCurrentFile();
+                }
+            }
+        });
+        
+        // Değişkenler
+        let currentFileType = 'html';
+        let currentFileName = '';
+        let currentFilePath = '';
+        let isPreviewOpen = false;
+        
+        // Dosya türü sekmelerini işle
+        const fileTabs = document.querySelectorAll('.file-tab');
+        const fileLists = {
+            'html': document.getElementById('htmlFiles'),
+            'css': document.getElementById('cssFiles'),
+            'js': document.getElementById('jsFiles')
+        };
+        
+        fileTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const fileType = this.getAttribute('data-type');
+                
+                // Aktif sekmeyi güncelle
+                fileTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Dosya listesini güncelle
+                Object.keys(fileLists).forEach(type => {
+                    fileLists[type].style.display = type === fileType ? 'block' : 'none';
+                });
+                
+                currentFileType = fileType;
+            });
+        });
+        
+        // Dosya listesi öğelerini işle
+        const fileListItems = document.querySelectorAll('.file-list li');
+        
+        fileListItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const fileName = this.getAttribute('data-file');
+                const fileType = this.parentElement.id === 'htmlFiles' ? 'html' : 
+                                 this.parentElement.id === 'cssFiles' ? 'css' : 'js';
+                
+                // Aktif dosyayı güncelle
+                fileListItems.forEach(li => li.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Dosya içeriğini yükle
+                loadFile(fileName, fileType);
+            });
+        });
+        
+        // Dosya içeriğini yükle
+        function loadFile(fileName, fileType) {
+            currentFileName = fileName;
+            currentFilePath = getFilePath(fileName, fileType);
+            
+            // Editör başlığını güncelle
+            document.getElementById('currentFileName').textContent = fileName;
+            
+            // Editör modunu ayarla
+            const mode = fileType === 'html' ? 'htmlmixed' : 
+                         fileType === 'css' ? 'css' : 'javascript';
+            editor.setOption('mode', mode);
+            
+            // Dosya içeriğini al
+            fetch('/admin/api/template-file?file=' + encodeURIComponent(fileName) + '&type=' + fileType)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Dosya yüklenirken hata oluştu');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        editor.setValue(data.content);
+                    } else {
+                        alert('Hata: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Dosya yükleme hatası:', error);
+                    alert('Dosya yüklenirken bir hata oluştu.');
+                });
+        }
+        
+        // Dosya yolunu al
+        function getFilePath(fileName, fileType) {
+            if (fileType === 'html') {
+                return 'templates/main/' + fileName;
+            } else if (fileType === 'css') {
+                return 'static/cobsin_template/css/' + fileName;
+            } else {
+                return 'static/cobsin_template/js/' + fileName;
+            }
+        }
+        
+        // Mevcut dosyayı kaydet
+        function saveCurrentFile() {
+            if (!currentFileName) {
+                alert('Lütfen önce bir dosya seçin.');
+                return;
+            }
+            
+            const content = editor.getValue();
+            
+            fetch('/admin/api/save-template-file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    file: currentFileName,
+                    type: currentFileType,
+                    content: content
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Başarılı bildirim göster
+                    const successAlert = document.createElement('div');
+                    successAlert.className = 'alert alert-success alert-dismissible fade show';
+                    successAlert.innerHTML = `
+                        <strong>Başarılı!</strong> Dosya kaydedildi.
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    `;
+                    document.querySelector('.editor-header').appendChild(successAlert);
+                    
+                    // 3 saniye sonra bildirimi kaldır
+                    setTimeout(() => {
+                        successAlert.remove();
+                    }, 3000);
+                    
+                    // Önizleme açıksa güncelle
+                    if (isPreviewOpen) {
+                        updatePreview();
+                    }
+                } else {
+                    alert('Hata: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Kaydetme hatası:', error);
+                alert('Dosya kaydedilirken bir hata oluştu.');
+            });
+        }
+        
+        // Tüm dosyaları kaydet
+        function saveAllFiles() {
+            // Önce mevcut dosyayı kaydet
+            saveCurrentFile();
+            
+            // Başarılı bildirim göster
+            alert('Tüm değişiklikler kaydedildi.');
+        }
+        
+        // Önizlemeyi güncelle
+        function updatePreview() {
+            const previewFrame = document.getElementById('previewFrame');
+            previewFrame.src = '/';
+        }
+        
+        // Önizlemeyi aç/kapat
+        function togglePreview() {
+            const editorContainer = document.querySelector('.editor-container');
+            const previewContainer = document.querySelector('.preview-container');
+            
+            if (isPreviewOpen) {
+                // Önizlemeyi kapat
+                previewContainer.style.display = 'none';
+                editorContainer.style.width = '100%';
+            } else {
+                // Önizlemeyi aç
+                previewContainer.style.display = 'block';
+                editorContainer.style.width = '60%';
+                updatePreview();
+            }
+            
+            isPreviewOpen = !isPreviewOpen;
+        }
+        
+        // Şablonu sıfırla
+        function resetTemplate() {
+            if (confirm('Bu işlem tüm şablon dosyalarını varsayılan haline döndürecektir. Devam etmek istiyor musunuz?')) {
+                fetch('/admin/api/reset-template', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Şablon başarıyla sıfırlandı.');
+                        // Mevcut dosyayı yeniden yükle
+                        if (currentFileName) {
+                            loadFile(currentFileName, currentFileType);
+                        }
+                    } else {
+                        alert('Hata: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Sıfırlama hatası:', error);
+                    alert('Şablon sıfırlanırken bir hata oluştu.');
+                });
+            }
+        }
+        
+        // Buton olaylarını ekle
+        document.getElementById('saveBtn').addEventListener('click', saveCurrentFile);
+        document.getElementById('saveAllBtn').addEventListener('click', saveAllFiles);
+        document.getElementById('togglePreviewBtn').addEventListener('click', togglePreview);
+        document.getElementById('previewBtn').addEventListener('click', function() {
+            if (!isPreviewOpen) {
+                togglePreview();
+            } else {
+                updatePreview();
+            }
+        });
+        document.getElementById('closePreviewBtn').addEventListener('click', togglePreview);
+        document.getElementById('resetBtn').addEventListener('click', resetTemplate);
+        
+        // Varsayılan olarak ilk dosyayı yükle
+        if (fileListItems.length > 0) {
+            fileListItems[0].click();
+        }
+    });
+</script>
+{% endblock %} 

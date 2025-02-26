@@ -1,100 +1,173 @@
 {% extends "main/base.html" %}
 
+{% block title %}{{ site_settings.site_title }} - {{ post.title }}{% endblock %}
+
 {% block content %}
 <!-- blog detail section start -->
 <div class="blog_section layout_padding">
-    <div class="container">
-        <div class="blog_detail_box">
-            {% if post.featured_image %}
-            <div class="blog_img mb-4">
-                <img src="{{ post.featured_image }}" alt="{{ post.title }}" class="img-fluid">
+   <div class="container">
+      <div class="row">
+         <div class="col-md-12">
+            <h1 class="blog_taital">{{ post.title }}</h1>
+            <p class="blog_date">{{ post.created_at.strftime('%d.%m.%Y') }}</p>
+         </div>
+      </div>
+      
+      <div class="blog_section_2 layout_padding">
+         <div class="row">
+            <div class="col-md-12">
+               {% if post.image_url %}
+               <div class="blog_img_full mb-4">
+                  <img src="{{ post.image_url }}" alt="{{ post.title }}" class="img-fluid">
+               </div>
+               {% endif %}
+               
+               <div class="blog_content">
+                  {{ post.content|safe }}
+               </div>
+               
+               {% if post.tags %}
+               <div class="blog_tags mt-4">
+                  <strong>Etiketler:</strong>
+                  {% for tag in post.tags %}
+                  <a href="{{ url_for('main.blog', tag=tag) }}" class="badge badge-secondary">{{ tag }}</a>
+                  {% endfor %}
+               </div>
+               {% endif %}
+               
+               <div class="blog_actions mt-5">
+                  <a href="{{ url_for('main.blog') }}" class="btn btn-primary">Tüm Yazılar</a>
+               </div>
             </div>
-            {% endif %}
-            
-            <div class="blog_detail_info mb-3">
-                <span class="date_text">{{ post.created_at.strftime('%d.%m.%Y') }}</span>
-                {% if post.author %}
-                <span class="author_text ml-3">
-                    <i class="fa fa-user"></i> {{ post.author.username }}
-                </span>
-                {% endif %}
+         </div>
+      </div>
+      
+      {% if related_posts %}
+      <div class="related_posts mt-5">
+         <h3 class="mb-4">İlgili Yazılar</h3>
+         <div class="row">
+            {% for related in related_posts %}
+            <div class="col-md-4 mb-4">
+               <div class="blog_box">
+                  <div class="blog_img">
+                     <img src="{{ related.image_url or url_for('static', filename='cobsin_template/images/blog-img.png') }}" alt="{{ related.title }}">
+                  </div>
+                  <h4 class="blog_taital_1">{{ related.title }}</h4>
+                  <p class="blog_text_1">{{ related.summary|truncate(100) }}</p>
+                  <div class="read_bt"><a href="{{ url_for('main.blog_detail', slug=related.slug) }}">Devamını Oku</a></div>
+               </div>
             </div>
-            
-            <h1 class="blog_taital mb-4">{{ post.title }}</h1>
-            
-            {% if post.excerpt %}
-            <div class="blog_excerpt mb-4">
-                <p><em>{{ post.excerpt }}</em></p>
-            </div>
-            {% endif %}
-            
-            <div class="blog_content">
-                {{ post.content|safe }}
-            </div>
-            
-            {% if post.meta_title or post.meta_description %}
-            <div class="blog_meta mt-5 pt-4 border-top">
-                {% if post.meta_title %}
-                <h4>{{ post.meta_title }}</h4>
-                {% endif %}
-                {% if post.meta_description %}
-                <p>{{ post.meta_description }}</p>
-                {% endif %}
-            </div>
-            {% endif %}
-            
-            <div class="back_link mt-4">
-                <a href="{{ url_for('main.blog') }}" class="btn btn-secondary">
-                    <i class="fa fa-arrow-left"></i> Blog Listesine Dön
-                </a>
-            </div>
-        </div>
-    </div>
+            {% endfor %}
+         </div>
+      </div>
+      {% endif %}
+   </div>
 </div>
 <!-- blog detail section end -->
 {% endblock %}
 
 {% block scripts %}
 <style>
-.blog_detail_box {
-    background: #fff;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+.blog_section {
+   padding: 90px 0 50px 0;
 }
 
-.blog_detail_box .blog_img img {
-    width: 100%;
-    border-radius: 10px;
+.blog_taital {
+   font-size: 40px;
+   font-weight: bold;
+   color: #252525;
+   margin-bottom: 10px;
 }
 
-.blog_detail_info {
-    color: #666;
+.blog_date {
+   font-size: 16px;
+   color: #13a25d;
+   margin-bottom: 30px;
 }
 
-.blog_detail_info .author_text {
-    color: #333;
+.blog_img_full img {
+   width: 100%;
+   border-radius: 10px;
+   box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
 .blog_content {
-    line-height: 1.8;
-    color: #333;
+   font-size: 16px;
+   line-height: 1.8;
+   color: #555555;
 }
 
-.blog_content img {
-    max-width: 100%;
-    height: auto;
-    margin: 20px 0;
-    border-radius: 5px;
+.blog_tags {
+   margin-top: 30px;
 }
 
-.blog_meta {
-    color: #666;
-    font-size: 0.9em;
+.badge-secondary {
+   background-color: #6c757d;
+   margin-right: 5px;
+   padding: 5px 10px;
+   font-size: 14px;
 }
 
-.back_link {
-    text-align: center;
+.blog_actions {
+   margin-top: 40px;
+}
+
+.btn-primary {
+   background-color: #13a25d;
+   border-color: #13a25d;
+   padding: 10px 25px;
+}
+
+.btn-primary:hover {
+   background-color: #0f8c4f;
+   border-color: #0f8c4f;
+}
+
+.related_posts {
+   margin-top: 60px;
+   padding-top: 40px;
+   border-top: 1px solid #eee;
+}
+
+.blog_box {
+   background-color: #ffffff;
+   border-radius: 10px;
+   box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+   padding: 20px;
+   transition: all 0.3s ease;
+}
+
+.blog_box:hover {
+   transform: translateY(-5px);
+   box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.blog_taital_1 {
+   font-size: 22px;
+   font-weight: bold;
+   color: #252525;
+   margin: 15px 0 10px 0;
+}
+
+.blog_text_1 {
+   font-size: 14px;
+   color: #555555;
+   margin-bottom: 15px;
+}
+
+.read_bt a {
+   display: inline-block;
+   color: #13a25d;
+   font-size: 16px;
+   font-weight: 500;
+   text-decoration: none;
+   border-bottom: 1px solid #13a25d;
+   transition: all 0.3s ease;
+}
+
+.read_bt a:hover {
+   color: #252525;
+   border-color: #252525;
 }
 </style>
 {% endblock %} 

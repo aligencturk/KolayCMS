@@ -1,85 +1,353 @@
 {% extends 'admin/master.html' %}
 
-{% block content %}
-<!-- CSRF Token Meta Tag -->
-<meta name="csrf-token" content="{{ csrf_token() }}">
+{% block title %}Sayfalar - Admin Panel{% endblock %}
 
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col">
-            <h2>Sayfalar</h2>
-        </div>
-        <div class="col text-end">
-            <a href="{{ url_for('admin.pages_create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Yeni Sayfa Ekle
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Başlık ve Kontrol Alanı -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-file-alt me-2"></i> Sayfalar
+            <span class="badge bg-primary ms-2">{{ pages|length }}</span>
+        </h1>
+        <div class="d-flex">
+            <div class="input-group me-2 search-box">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" id="searchInput" class="form-control" placeholder="Sayfa ara...">
+            </div>
+            <div class="btn-group me-2">
+                <button type="button" class="btn btn-outline-primary" id="viewToggle" title="Görünümü Değiştir">
+                    <i class="fas fa-th-large"></i>
+                </button>
+                <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" title="Filtrele">
+                    <i class="fas fa-filter"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item filter-item" data-filter="all" href="#">Tümü</a></li>
+                    <li><a class="dropdown-item filter-item" data-filter="published" href="#">Yayında</a></li>
+                    <li><a class="dropdown-item filter-item" data-filter="draft" href="#">Taslak</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item filter-item" data-filter="recent" href="#">Son Eklenenler</a></li>
+                </ul>
+            </div>
+            <a href="{{ url_for('admin.page_create') }}" class="btn btn-success">
+                <i class="fas fa-plus me-1"></i> Yeni Sayfa
             </a>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Başlık</th>
-                            <th>URL</th>
-                            <th>Durum</th>
-                            <th>Oluşturulma Tarihi</th>
-                            <th>İşlemler</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for page in pages %}
-                        <tr>
-                            <td>{{ page.title }}</td>
-                            <td>/{{ page.slug }}</td>
-                            <td>
-                                {% if page.is_published %}
-                                <span class="badge bg-success">Yayında</span>
-                                {% else %}
-                                <span class="badge bg-warning">Taslak</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ page.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
-                            <td>
-                                <a href="{{ url_for('admin.pages_edit', id=page.id) }}" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="{{ url_for('admin.pages_preview', id=page.id) }}" class="btn btn-sm btn-info">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <button type="button" class="btn btn-sm btn-danger delete-page-btn" 
-                                        data-page-id="{{ page.id }}"
-                                        data-page-title="{{ page.title }}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <!-- İstatistik Kartları -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Toplam Sayfa</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pages|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-file-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Yayında</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pages|selectattr('is_published', 'eq', true)|list|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Taslak</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pages|selectattr('is_published', 'eq', false)|list|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-edit fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Son Güncellenme</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% set latest = pages|sort(attribute='updated_at', reverse=true)|first %}
+                                {% if latest %}
+                                    {{ latest.updated_at.strftime('%d.%m.%Y') if latest.updated_at else '-' }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ana İçerik - Varsayılan Olarak Tablo Görünümü -->
+    <div id="tableView" class="view-container">
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="pagesTable">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort="id">ID <i class="fas fa-sort"></i></th>
+                                <th class="sortable" data-sort="title">Başlık <i class="fas fa-sort"></i></th>
+                                <th>URL</th>
+                                <th class="sortable" data-sort="status">Durum <i class="fas fa-sort"></i></th>
+                                <th class="sortable" data-sort="created">Oluşturulma <i class="fas fa-sort"></i></th>
+                                <th class="sortable" data-sort="updated">Güncelleme <i class="fas fa-sort"></i></th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for page in pages %}
+                            <tr class="page-item" 
+                                data-id="{{ page.id }}" 
+                                data-title="{{ page.title }}" 
+                                data-status="{{ 'published' if page.is_published else 'draft' }}"
+                                data-created="{{ page.created_at.timestamp() }}"
+                                data-updated="{{ page.updated_at.timestamp() if page.updated_at else 0 }}">
+                                <td>{{ page.id }}</td>
+                                <td>{{ page.title }}</td>
+                                <td>
+                                    <a href="{{ url_for('main.page', slug=page.slug) }}" target="_blank" class="text-decoration-none">
+                                        <span class="badge bg-light text-dark">
+                                            <i class="fas fa-link me-1"></i>/{{ page.slug }}
+                                        </span>
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if page.is_published %}
+                                    <span class="badge bg-success">Yayında</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Taslak</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ page.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                <td>{{ page.updated_at.strftime('%d.%m.%Y %H:%M') if page.updated_at else '-' }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('admin.page_edit', id=page.id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{{ url_for('main.page', slug=page.slug) }}" target="_blank" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-success add-to-menu-btn" 
+                                                data-bs-toggle="modal" data-bs-target="#addToMenuModal"
+                                                data-page-id="{{ page.id }}" 
+                                                data-page-title="{{ page.title }}"
+                                                data-page-slug="{{ page.slug }}">
+                                            <i class="fas fa-bars"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger delete-page-btn" 
+                                                data-id="{{ page.id }}" 
+                                                data-title="{{ page.title }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                    <form id="delete-form-{{ page.id }}" action="{{ url_for('admin.page_delete', id=page.id) }}" method="POST" style="display: none;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <div class="text-muted">
+                                        <i class="fas fa-folder-open fa-3x mb-3"></i>
+                                        <p>Henüz hiç sayfa oluşturulmamış.</p>
+                                        <a href="{{ url_for('admin.page_create') }}" class="btn btn-sm btn-primary mt-2">
+                                            <i class="fas fa-plus me-1"></i> İlk Sayfayı Oluştur
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kart Görünümü -->
+    <div id="cardView" class="view-container" style="display: none;">
+        <div class="row">
+            {% for page in pages %}
+            <div class="col-md-4 mb-4 page-item" 
+                 data-id="{{ page.id }}" 
+                 data-title="{{ page.title }}" 
+                 data-status="{{ 'published' if page.is_published else 'draft' }}"
+                 data-created="{{ page.created_at.timestamp() }}"
+                 data-updated="{{ page.updated_at.timestamp() if page.updated_at else 0 }}">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">{{ page.title }}</h5>
+                        {% if page.is_published %}
+                        <span class="badge bg-success">Yayında</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">Taslak</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text small text-muted">
+                            <i class="fas fa-link me-1"></i> /{{ page.slug }}
+                        </p>
+                        <p class="card-text small">
+                            <i class="fas fa-calendar me-1"></i> {{ page.created_at.strftime('%d.%m.%Y') }}
+                            {% if page.updated_at %}
+                            <br><i class="fas fa-edit me-1"></i> {{ page.updated_at.strftime('%d.%m.%Y') }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <div class="btn-group w-100">
+                            <a href="{{ url_for('admin.page_edit', id=page.id) }}" class="btn btn-sm btn-info">
+                                <i class="fas fa-edit"></i> Düzenle
+                            </a>
+                            <a href="{{ url_for('main.page', slug=page.slug) }}" target="_blank" class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye"></i> Görüntüle
+                            </a>
+                            <button type="button" class="btn btn-sm btn-success add-to-menu-btn" 
+                                    data-bs-toggle="modal" data-bs-target="#addToMenuModal"
+                                    data-page-id="{{ page.id }}" 
+                                    data-page-title="{{ page.title }}"
+                                    data-page-slug="{{ page.slug }}">
+                                <i class="fas fa-bars"></i> Menüye Ekle
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger delete-page-btn" 
+                                    data-id="{{ page.id }}" 
+                                    data-title="{{ page.title }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Toplu İşlem Alanı -->
+    <div class="card shadow mt-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Toplu İşlemler</h5>
+        </div>
+        <div class="card-body">
+            <form id="bulkActionForm" method="POST" action="{{ url_for('admin.pages_bulk_action') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="page_ids" id="selectedPageIds" value="">
+                
+                <div class="row align-items-center">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="selectAllPages">
+                            <label class="form-check-label" for="selectAllPages">
+                                Tümünü Seç
+                            </label>
+                        </div>
+                        <div id="selectedCount" class="text-muted" style="display: none;">
+                            <small>0 sayfa seçildi</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-success bulk-action-btn" data-action="publish" disabled>
+                                <i class="fas fa-check-circle me-1"></i> Yayınla
+                            </button>
+                            <button type="button" class="btn btn-outline-warning bulk-action-btn" data-action="draft" disabled>
+                                <i class="fas fa-file me-1"></i> Taslak Yap
+                            </button>
+                            <button type="button" class="btn btn-outline-danger bulk-action-btn" data-action="delete" disabled>
+                                <i class="fas fa-trash me-1"></i> Sil
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<!-- Silme Onay Modalı -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
+<!-- Menüye Ekle Modal -->
+<div class="modal fade" id="addToMenuModal" tabindex="-1" aria-labelledby="addToMenuModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Sayfayı Sil</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title" id="addToMenuModalLabel">Sayfayı Menüye Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
             </div>
-            <div class="modal-body">
-                <p>Bu sayfayı silmek istediğinizden emin misiniz?</p>
-                <p class="text-danger" id="deletePageTitle"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                <button type="button" class="btn btn-danger" id="confirmDelete">Sil</button>
-            </div>
+            <form id="addToMenuForm" action="{{ url_for('admin.menu_create') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" id="modal-page-id" name="page_id" value="">
+                <input type="hidden" id="modal-page-slug" name="page_slug" value="">
+                
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="modal-title" class="form-label">Menü Başlığı</label>
+                        <input type="text" class="form-control" id="modal-title" name="title" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="modal-menu-type" class="form-label">Menü Tipi</label>
+                        <select class="form-select" id="modal-menu-type" name="menu_type" required>
+                            <option value="header">Header Menüsü</option>
+                            <option value="footer">Footer Menüsü</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="modal-parent-id" class="form-label">Üst Menü</label>
+                        <select class="form-select" id="modal-parent-id" name="parent_id">
+                            <option value="0">Ana Menü (Üst menü yok)</option>
+                            {% for menu in header_menus %}
+                            <option value="{{ menu.id }}" data-type="header">{{ menu.title }}</option>
+                            {% endfor %}
+                            {% for menu in footer_menus %}
+                            <option value="{{ menu.id }}" data-type="footer">{{ menu.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="modal-order" class="form-label">Sıralama</label>
+                        <input type="number" class="form-control" id="modal-order" name="order" value="0" min="0">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Menüye Ekle</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -88,50 +356,388 @@
 {% block scripts %}
 {{ super() }}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-    let currentPageId = null;
-    let currentRow = null;
+// Silme onayı
+function confirmDelete(id, title) {
+    if (confirm(`"${title}" sayfasını silmek istediğinize emin misiniz?`)) {
+        document.getElementById(`delete-form-${id}`).submit();
+    }
+}
 
-    // Silme butonlarına tıklama olayı
-    document.querySelectorAll('.delete-page-btn').forEach(button => {
+document.addEventListener('DOMContentLoaded', function() {
+    // Silme butonları için olay dinleyicisi
+    const deleteButtons = document.querySelectorAll('.delete-page-btn');
+    deleteButtons.forEach(button => {
         button.addEventListener('click', function() {
-            currentPageId = this.dataset.pageId;
-            currentRow = this.closest('tr');
-            document.getElementById('deletePageTitle').textContent = this.dataset.pageTitle;
-            deleteModal.show();
+            const id = this.getAttribute('data-id');
+            const title = this.getAttribute('data-title');
+            confirmDelete(id, title);
         });
     });
-
-    // Silme onayı
-    document.getElementById('confirmDelete').addEventListener('click', function() {
-        if (currentPageId) {
-            const token = '{{ csrf_token() }}';
-            fetch(`/admin/pages/delete/${currentPageId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': token
-                },
-                credentials: 'include'
-            })
-            .then(response => response.json().then(data => ({ ok: response.ok, data })))
-            .then(({ ok, data }) => {
-                if (ok && data.success) {
-                    currentRow.remove();
-                    toastr.success(data.message);
-                } else {
-                    toastr.error(data.message || 'Sayfa silinirken bir hata oluştu.');
+    
+    // Tooltip'leri etkinleştir
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Görünüm değiştirme
+    const viewToggle = document.getElementById('viewToggle');
+    const tableView = document.getElementById('tableView');
+    const cardView = document.getElementById('cardView');
+    
+    viewToggle.addEventListener('click', function() {
+        if (tableView.style.display !== 'none') {
+            tableView.style.display = 'none';
+            cardView.style.display = 'block';
+            viewToggle.innerHTML = '<i class="fas fa-table"></i>';
+            viewToggle.title = 'Tablo Görünümü';
+            localStorage.setItem('pagesViewPreference', 'card');
+        } else {
+            tableView.style.display = 'block';
+            cardView.style.display = 'none';
+            viewToggle.innerHTML = '<i class="fas fa-th-large"></i>';
+            viewToggle.title = 'Kart Görünümü';
+            localStorage.setItem('pagesViewPreference', 'table');
+        }
+    });
+    
+    // Kullanıcı tercihini hatırla
+    const viewPreference = localStorage.getItem('pagesViewPreference');
+    if (viewPreference === 'card') {
+        tableView.style.display = 'none';
+        cardView.style.display = 'block';
+        viewToggle.innerHTML = '<i class="fas fa-table"></i>';
+        viewToggle.title = 'Tablo Görünümü';
+    }
+    
+    // Arama fonksiyonu
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('keyup', function() {
+        const searchTerm = this.value.toLowerCase();
+        const pageItems = document.querySelectorAll('.page-item');
+        
+        pageItems.forEach(item => {
+            const title = item.getAttribute('data-title').toLowerCase();
+            if (title.includes(searchTerm)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+    
+    // Filtreleme
+    const filterItems = document.querySelectorAll('.filter-item');
+    filterItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const filter = this.getAttribute('data-filter');
+            const pageItems = document.querySelectorAll('.page-item');
+            
+            pageItems.forEach(pageItem => {
+                switch(filter) {
+                    case 'all':
+                        pageItem.style.display = '';
+                        break;
+                    case 'published':
+                        pageItem.style.display = pageItem.getAttribute('data-status') === 'published' ? '' : 'none';
+                        break;
+                    case 'draft':
+                        pageItem.style.display = pageItem.getAttribute('data-status') === 'draft' ? '' : 'none';
+                        break;
+                    case 'recent':
+                        // Son 7 gün içinde oluşturulanları göster
+                        const createdTime = parseInt(pageItem.getAttribute('data-created'));
+                        const oneWeekAgo = (Date.now() / 1000) - (7 * 24 * 60 * 60);
+                        pageItem.style.display = createdTime > oneWeekAgo ? '' : 'none';
+                        break;
                 }
-                deleteModal.hide();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                toastr.error('Sayfa silinirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
-                deleteModal.hide();
+            });
+        });
+    });
+    
+    // Sıralama fonksiyonu
+    const sortableHeaders = document.querySelectorAll('.sortable');
+    sortableHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            const sortBy = this.getAttribute('data-sort');
+            const isAscending = this.classList.contains('sort-asc');
+            
+            // Sıralama iconlarını sıfırla
+            sortableHeaders.forEach(h => {
+                h.classList.remove('sort-asc', 'sort-desc');
+                h.querySelector('i').className = 'fas fa-sort';
+            });
+            
+            // Yeni sıralama yönünü ayarla
+            if (isAscending) {
+                this.classList.add('sort-desc');
+                this.querySelector('i').className = 'fas fa-sort-down';
+            } else {
+                this.classList.add('sort-asc');
+                this.querySelector('i').className = 'fas fa-sort-up';
+            }
+            
+            sortItems(sortBy, !isAscending);
+        });
+    });
+    
+    function sortItems(sortBy, ascending) {
+        const tableBody = document.querySelector('#pagesTable tbody');
+        const cardsContainer = document.querySelector('#pagesCards');
+        const tableRows = Array.from(tableBody.querySelectorAll('tr.page-item'));
+        const cards = Array.from(cardsContainer.querySelectorAll('.page-item'));
+        
+        // Tablo sıralaması
+        tableRows.sort((a, b) => {
+            let valA, valB;
+            
+            switch(sortBy) {
+                case 'id':
+                    valA = parseInt(a.getAttribute('data-id'));
+                    valB = parseInt(b.getAttribute('data-id'));
+                    break;
+                case 'title':
+                    valA = a.getAttribute('data-title').toLowerCase();
+                    valB = b.getAttribute('data-title').toLowerCase();
+                    break;
+                case 'status':
+                    valA = a.getAttribute('data-status');
+                    valB = b.getAttribute('data-status');
+                    break;
+                case 'created':
+                    valA = parseInt(a.getAttribute('data-created'));
+                    valB = parseInt(b.getAttribute('data-created'));
+                    break;
+                case 'updated':
+                    valA = parseInt(a.getAttribute('data-updated'));
+                    valB = parseInt(b.getAttribute('data-updated'));
+                    break;
+                default:
+                    valA = 0;
+                    valB = 0;
+            }
+            
+            if (ascending) {
+                return valA > valB ? 1 : -1;
+            } else {
+                return valA < valB ? 1 : -1;
+            }
+        });
+        
+        // Sıralanmış satırları DOM'a ekle
+        tableRows.forEach(row => {
+            tableBody.appendChild(row);
+        });
+        
+        // Kart sıralaması
+        cards.sort((a, b) => {
+            let valA, valB;
+            
+            switch(sortBy) {
+                case 'id':
+                    valA = parseInt(a.getAttribute('data-id'));
+                    valB = parseInt(b.getAttribute('data-id'));
+                    break;
+                case 'title':
+                    valA = a.getAttribute('data-title').toLowerCase();
+                    valB = b.getAttribute('data-title').toLowerCase();
+                    break;
+                case 'status':
+                    valA = a.getAttribute('data-status');
+                    valB = b.getAttribute('data-status');
+                    break;
+                case 'created':
+                    valA = parseInt(a.getAttribute('data-created'));
+                    valB = parseInt(b.getAttribute('data-created'));
+                    break;
+                case 'updated':
+                    valA = parseInt(a.getAttribute('data-updated'));
+                    valB = parseInt(b.getAttribute('data-updated'));
+                    break;
+                default:
+                    valA = 0;
+                    valB = 0;
+            }
+            
+            if (ascending) {
+                return valA > valB ? 1 : -1;
+            } else {
+                return valA < valB ? 1 : -1;
+            }
+        });
+        
+        // Sıralanmış kartları DOM'a ekle
+        cards.forEach(card => {
+            cardsContainer.appendChild(card);
+        });
+    }
+    
+    // Toplu işlem işlevsellikleri
+    const selectAllCheckbox = document.getElementById('selectAllPages');
+    const bulkActionButtons = document.querySelectorAll('.bulk-action-btn');
+    const selectedCountDisplay = document.getElementById('selectedCount');
+    let selectedPages = [];
+    
+    selectAllCheckbox.addEventListener('change', function() {
+        const pageItems = document.querySelectorAll('.page-item');
+        pageItems.forEach(item => {
+            const pageId = item.getAttribute('data-id');
+            if (this.checked) {
+                // Tümünü seç
+                if (!selectedPages.includes(pageId)) {
+                    selectedPages.push(pageId);
+                }
+                item.classList.add('selected');
+            } else {
+                // Tümünü kaldır
+                selectedPages = selectedPages.filter(id => id !== pageId);
+                item.classList.remove('selected');
+            }
+        });
+        
+        updateSelectedUI();
+    });
+    
+    // Toplu işlem düğmelerinin işlevsellikleri
+    bulkActionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const action = this.getAttribute('data-action');
+            if (selectedPages.length === 0) return;
+            
+            let confirmMessage = '';
+            switch(action) {
+                case 'publish':
+                    confirmMessage = `${selectedPages.length} sayfayı yayınlamak istediğinize emin misiniz?`;
+                    break;
+                case 'draft':
+                    confirmMessage = `${selectedPages.length} sayfayı taslak yapmak istediğinize emin misiniz?`;
+                    break;
+                case 'delete':
+                    confirmMessage = `${selectedPages.length} sayfayı kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz!`;
+                    break;
+            }
+            
+            if (confirm(confirmMessage)) {
+                document.getElementById('selectedPageIds').value = selectedPages.join(',');
+                const form = document.getElementById('bulkActionForm');
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = action;
+                form.appendChild(actionInput);
+                form.submit();
+            }
+        });
+    });
+    
+    function updateSelectedUI() {
+        document.getElementById('selectedPageIds').value = selectedPages.join(',');
+        
+        // Seçilen sayfa sayısını güncelle
+        if (selectedPages.length > 0) {
+            selectedCountDisplay.textContent = `${selectedPages.length} sayfa seçildi`;
+            selectedCountDisplay.style.display = 'block';
+            
+            // Düğmeleri etkinleştir
+            bulkActionButtons.forEach(btn => {
+                btn.disabled = false;
+            });
+        } else {
+            selectedCountDisplay.style.display = 'none';
+            
+            // Düğmeleri devre dışı bırak
+            bulkActionButtons.forEach(btn => {
+                btn.disabled = true;
             });
         }
+    }
+
+    // Menüye Ekle butonları için olay dinleyicisi
+    const addToMenuBtns = document.querySelectorAll('.add-to-menu-btn');
+    addToMenuBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const pageId = this.dataset.pageId;
+            const pageTitle = this.dataset.pageTitle;
+            const pageSlug = this.dataset.pageSlug;
+            
+            document.getElementById('modal-page-id').value = pageId;
+            document.getElementById('modal-page-slug').value = pageSlug;
+            document.getElementById('modal-title').value = pageTitle;
+            
+            // Menü tipine göre üst menüleri filtrele
+            const menuTypeSelect = document.getElementById('modal-menu-type');
+            const parentSelect = document.getElementById('modal-parent-id');
+            
+            menuTypeSelect.addEventListener('change', function() {
+                updateParentOptions();
+            });
+            
+            function updateParentOptions() {
+                const menuType = menuTypeSelect.value;
+                const options = parentSelect.options;
+                
+                // İlk seçeneği her zaman tut (Ana Menü)
+                while (options.length > 1) {
+                    options.remove(1);
+                }
+                
+                // Seçilen tipe göre üst menüleri ekle
+                const parentOptions = Array.from(document.querySelectorAll('#modal-parent-id option[data-type]'));
+                for (const option of parentOptions) {
+                    if (option.dataset.type === menuType) {
+                        const newOption = new Option(option.text, option.value);
+                        newOption.dataset.type = option.dataset.type;
+                        parentSelect.add(newOption);
+                    }
+                }
+            }
+            
+            // Sayfa yüklendiğinde çalıştır
+            updateParentOptions();
+        });
     });
 });
 </script>
+
+<style>
+/* Özel CSS Stilleri */
+.border-left-primary {
+    border-left: 4px solid #4e73df !important;
+}
+.border-left-success {
+    border-left: 4px solid #1cc88a !important;
+}
+.border-left-warning {
+    border-left: 4px solid #f6c23e !important;
+}
+.border-left-info {
+    border-left: 4px solid #36b9cc !important;
+}
+
+.sortable {
+    cursor: pointer;
+}
+.sort-asc i, .sort-desc i {
+    color: #4e73df;
+}
+
+.selected {
+    background-color: #f8f9fc;
+}
+
+.search-box {
+    width: 250px;
+}
+
+@media (max-width: 768px) {
+    .search-box {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    .d-flex {
+        flex-wrap: wrap;
+    }
+}
+</style>
 {% endblock %} 

@@ -1,0 +1,251 @@
+{% extends 'admin/master.html' %}
+
+{% block title %}Tema Şablonları - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-file-code"></i> Tema Şablonları
+        </h1>
+        <div>
+            <a href="{{ url_for('admin.settings_theme') }}" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left"></i> Tema Ayarlarına Dön
+            </a>
+            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#helpModal">
+                <i class="fas fa-question-circle"></i> Yardım
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sayfa Şablonları -->
+        <div class="col-md-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-file-alt"></i> Sayfa Şablonları
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{{ url_for('theme_bp.edit_theme_template', template_type='index') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-home"></i> Ana Sayfa</h6>
+                                    <small>Ana sayfa düzeni ve içerik bölümleri</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">index.html</span>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('theme_bp.edit_theme_template', template_type='about') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-info-circle"></i> Hakkımızda</h6>
+                                    <small>Hakkımızda sayfası düzeni</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">about.html</span>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('theme_bp.edit_theme_template', template_type='services') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-cogs"></i> Hizmetler</h6>
+                                    <small>Hizmetler sayfası düzeni</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">services.html</span>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('theme_bp.edit_theme_template', template_type='contact') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-envelope"></i> İletişim</h6>
+                                    <small>İletişim sayfası düzeni</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">contact.html</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Blog Şablonları -->
+        <div class="col-md-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-blog"></i> Blog Şablonları
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{{ url_for('theme_bp.edit_theme_template', template_type='blog') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-th-list"></i> Blog Listesi</h6>
+                                    <small>Blog yazıları listesi düzeni</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">blog.html</span>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('theme_bp.edit_theme_template', template_type='blog_detail') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-file-alt"></i> Blog Detay</h6>
+                                    <small>Blog yazı detayı düzeni</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">blog_detail.html</span>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('theme_bp.edit_theme_template', template_type='blog_category') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-folder"></i> Blog Kategori</h6>
+                                    <small>Kategori sayfası düzeni</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">blog_category.html</span>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('theme_bp.edit_theme_template', template_type='blog_tag') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-tags"></i> Blog Etiket</h6>
+                                    <small>Etiket sayfası düzeni</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">blog_tag.html</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bileşen Şablonları -->
+        <div class="col-md-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-puzzle-piece"></i> Bileşen Şablonları
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{{ url_for('theme_bp.edit_theme_template', template_type='header') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-window-maximize"></i> Header</h6>
+                                    <small>Üst menü ve header bölümü</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">header.html</span>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('theme_bp.edit_theme_template', template_type='footer') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-window-minimize"></i> Footer</h6>
+                                    <small>Alt menü ve footer bölümü</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">footer.html</span>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('theme_bp.edit_theme_template', template_type='sidebar') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-columns"></i> Kenar Çubuğu</h6>
+                                    <small>Blog kenar çubuğu bileşenleri</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">sidebar.html</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stil ve Script Şablonları -->
+        <div class="col-md-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-code"></i> Stil ve Script Şablonları
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{{ url_for('theme_bp.edit_theme_template', template_type='css') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="fab fa-css3"></i> CSS Stilleri</h6>
+                                    <small>Tema CSS stilleri</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">style.css</span>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('theme_bp.edit_theme_template', template_type='js') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="fab fa-js"></i> JavaScript</h6>
+                                    <small>Tema JavaScript kodları</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">main.js</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Yardım Modalı -->
+<div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpModalLabel">
+                    <i class="fas fa-question-circle"></i> Şablon Düzenleme Yardımı
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle"></i> Şablon Düzenleme Hakkında</h6>
+                    <p>Tema şablonlarını düzenlerken dikkat edilmesi gereken noktalar:</p>
+                    <ul>
+                        <li>Şablonlar Jinja2 template motoru kullanmaktadır.</li>
+                        <li>Değişkenler {{ "{{ değişken }}" }} şeklinde kullanılır.</li>
+                        <li>Döngüler ve koşullar {% raw %}{% for ... %}{% endfor %}{% endraw %} şeklinde kullanılır.</li>
+                        <li>Yapılan değişiklikler anında siteye yansıyacaktır.</li>
+                    </ul>
+                </div>
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle"></i> Önemli Uyarılar</h6>
+                    <ul>
+                        <li>Şablon yapısını bozmamaya özen gösterin.</li>
+                        <li>Değişiklik yapmadan önce yedek almanız önerilir.</li>
+                        <li>Sorun yaşarsanız varsayılan temaya dönebilirsiniz.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Liste öğelerine hover efekti
+    document.querySelectorAll('.list-group-item').forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.querySelector('.badge').classList.add('bg-secondary');
+        });
+        item.addEventListener('mouseleave', function() {
+            this.querySelector('.badge').classList.remove('bg-secondary');
+        });
+    });
+</script>
+{% endblock %} 

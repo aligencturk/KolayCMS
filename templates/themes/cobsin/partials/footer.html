@@ -1,0 +1,151 @@
+<!-- Footer Section -->
+<footer class="footer bg-dark text-white pt-5 pb-3">
+    <div class="container">
+        <div class="row">
+            <!-- About Column -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h5 class="text-uppercase mb-4">Hakkımızda</h5>
+                <p>{{ settings.footer_text if settings else 'KolayCMS ile modern ve profesyonel web siteleri oluşturun. Kullanımı kolay, özelleştirilebilir ve güvenli.' }}</p>
+                <div class="mt-4">
+                    {% if contact_info and contact_info.facebook %}
+                    <a href="{{ contact_info.facebook }}" class="text-white me-3" target="_blank">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    {% endif %}
+                    {% if contact_info and contact_info.twitter %}
+                    <a href="{{ contact_info.twitter }}" class="text-white me-3" target="_blank">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    {% endif %}
+                    {% if contact_info and contact_info.instagram %}
+                    <a href="{{ contact_info.instagram }}" class="text-white me-3" target="_blank">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    {% endif %}
+                    {% if contact_info and contact_info.linkedin %}
+                    <a href="{{ contact_info.linkedin }}" class="text-white" target="_blank">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Quick Links Column -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h5 class="text-uppercase mb-4">Hızlı Bağlantılar</h5>
+                <ul class="list-unstyled">
+                    {% for menu in footer_menus %}
+                        {% if menu.parent_id is none %}
+                            <li class="mb-2">
+                                <a href="{{ menu.url }}" class="text-white text-decoration-none">
+                                    <i class="fas fa-angle-right me-2"></i>{{ menu.title }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <!-- Services Column -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h5 class="text-uppercase mb-4">Hizmetlerimiz</h5>
+                <ul class="list-unstyled">
+                    {% for service in services %}
+                        <li class="mb-2">
+                            <a href="{{ url_for('main.service_detail', slug=service.slug) }}" class="text-white text-decoration-none">
+                                <i class="fas fa-angle-right me-2"></i>{{ service.title }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <!-- Contact Column -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h5 class="text-uppercase mb-4">İletişim</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-3">
+                        <i class="fas fa-map-marker-alt me-2"></i> {{ contact_info.address if contact_info else 'Örnek Adres, İstanbul, Türkiye' }}
+                    </li>
+                    <li class="mb-3">
+                        <i class="fas fa-phone me-2"></i> {{ contact_info.phone if contact_info else '+90 555 123 4567' }}
+                    </li>
+                    <li class="mb-3">
+                        <i class="fas fa-envelope me-2"></i> {{ contact_info.email if contact_info else 'info@kolaycms.com' }}
+                    </li>
+                    <li>
+                        <i class="fas fa-clock me-2"></i> {{ contact_info.working_hours if contact_info else 'Pazartesi - Cuma: 09:00 - 18:00' }}
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Copyright -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <p class="small mb-0">
+                    &copy; {{ now.year }} {{ settings.site_name if settings else 'KolayCMS' }}. Tüm hakları saklıdır.
+                </p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <p class="small mb-0">
+                    <a href="{{ url_for('main.index') }}" class="text-white text-decoration-none">KolayCMS</a> ile tasarlanmıştır.
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Back to Top Button -->
+<a href="#" class="back-to-top btn btn-primary rounded-circle" id="backToTop">
+    <i class="fas fa-arrow-up"></i>
+</a>
+
+<!-- Cookie Consent -->
+<div class="cookie-consent bg-dark text-white py-3" id="cookieConsent" style="display: none; position: fixed; bottom: 0; width: 100%; z-index: 9999;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <p class="mb-md-0">Bu web sitesi, size en iyi deneyimi sunmak için çerezleri kullanmaktadır. Sitemizi kullanmaya devam ederek, çerez politikamızı kabul etmiş olursunuz.</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <button class="btn btn-primary me-2" id="cookieAccept">Kabul Et</button>
+                <a href="{{ url_for('main.page', slug='gizlilik-politikasi') }}" class="btn btn-outline-light">Daha Fazla Bilgi</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer Scripts -->
+<script>
+    // Back to Top Button
+    document.addEventListener('DOMContentLoaded', function() {
+        var backToTopButton = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopButton.style.display = 'block';
+            } else {
+                backToTopButton.style.display = 'none';
+            }
+        });
+        
+        backToTopButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        });
+        
+        // Cookie Consent
+        var cookieConsent = document.getElementById('cookieConsent');
+        var cookieAccept = document.getElementById('cookieAccept');
+        
+        if (!localStorage.getItem('cookieConsent')) {
+            cookieConsent.style.display = 'block';
+        }
+        
+        cookieAccept.addEventListener('click', function() {
+            localStorage.setItem('cookieConsent', 'true');
+            cookieConsent.style.display = 'none';
+        });
+    });
+</script> 

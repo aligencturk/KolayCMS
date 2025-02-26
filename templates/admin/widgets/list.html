@@ -1,0 +1,365 @@
+{% extends 'admin/master.html' %}
+
+{% block title %}Bileşenler - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Başlık ve Kontrol Alanı -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-puzzle-piece me-2"></i> Bileşenler
+            <span class="badge bg-primary ms-2">{{ widgets|length }}</span>
+        </h1>
+        <div class="d-flex">
+            <div class="input-group me-2 search-box">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" id="searchInput" class="form-control" placeholder="Bileşen ara...">
+            </div>
+            <div class="btn-group me-2">
+                <button type="button" class="btn btn-outline-primary" id="viewToggle" title="Görünümü Değiştir">
+                    <i class="fas fa-th-large"></i>
+                </button>
+                <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" title="Filtrele">
+                    <i class="fas fa-filter"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item filter-item" data-filter="all" href="#">Tümü</a></li>
+                    <li><a class="dropdown-item filter-item" data-filter="active" href="#">Aktif</a></li>
+                    <li><a class="dropdown-item filter-item" data-filter="inactive" href="#">Pasif</a></li>
+                </ul>
+            </div>
+            <a href="{{ url_for('admin.widget_create') }}" class="btn btn-success">
+                <i class="fas fa-plus me-1"></i> Yeni Bileşen
+            </a>
+        </div>
+    </div>
+
+    <!-- İstatistik Kartları -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Toplam Bileşen</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ widgets|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-puzzle-piece fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Aktif</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ widgets|selectattr('is_active', 'eq', true)|list|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pasif</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ widgets|selectattr('is_active', 'eq', false)|list|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-ban fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bileşen Listesi -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Bileşen Listesi</h6>
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="bulkActionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Toplu İşlemler
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="bulkActionDropdown">
+                    <li><a class="dropdown-item bulk-action" data-action="activate" href="#">Aktifleştir</a></li>
+                    <li><a class="dropdown-item bulk-action" data-action="deactivate" href="#">Pasifleştir</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item bulk-action" data-action="delete" href="#">Sil</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if widgets %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="widgetsTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th width="30">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="selectAll">
+                                </div>
+                            </th>
+                            <th>Başlık</th>
+                            <th>Tür</th>
+                            <th>Pozisyon</th>
+                            <th>Durum</th>
+                            <th width="150">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for widget in widgets %}
+                        <tr data-id="{{ widget.id }}" class="widget-row {% if not widget.is_active %}table-secondary{% endif %}">
+                            <td>
+                                <div class="form-check">
+                                    <input class="form-check-input widget-checkbox" type="checkbox" value="{{ widget.id }}">
+                                </div>
+                            </td>
+                            <td>{{ widget.title }}</td>
+                            <td>{{ widget.type }}</td>
+                            <td>{{ widget.position }}</td>
+                            <td>
+                                {% if widget.is_active %}
+                                <span class="badge bg-success">Aktif</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Pasif</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('admin.widget_edit', id=widget.id) }}" class="btn btn-info">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-primary widget-preview-btn" data-id="{{ widget.id }}" data-bs-toggle="modal" data-bs-target="#previewModal">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger widget-delete-btn" data-id="{{ widget.id }}" data-title="{{ widget.title }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-puzzle-piece fa-4x mb-3 text-muted"></i>
+                <h5>Henüz hiç bileşen eklenmemiş</h5>
+                <p class="text-muted">Sitenize eklemek istediğiniz bileşenleri buradan yönetebilirsiniz.</p>
+                <a href="{{ url_for('admin.widget_create') }}" class="btn btn-primary mt-3">
+                    <i class="fas fa-plus me-1"></i> İlk Bileşeni Ekle
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Önizleme Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalLabel">Bileşen Önizleme</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <div id="widgetPreviewContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Silme Onay Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Bileşeni Sil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bu bileşeni silmek istediğinizden emin misiniz?</p>
+                <p><strong id="deleteWidgetTitle"></strong></p>
+                <p class="text-danger">Bu işlem geri alınamaz!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form id="deleteWidgetForm" method="POST" action="">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">Sil</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Arama işlevi
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('keyup', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#widgetsTable tbody tr');
+        
+        rows.forEach(row => {
+            const title = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const type = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+            
+            if (title.includes(searchTerm) || type.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+    
+    // Tümünü seç/kaldır
+    const selectAllCheckbox = document.getElementById('selectAll');
+    selectAllCheckbox.addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.widget-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+    });
+    
+    // Silme işlemi
+    const deleteButtons = document.querySelectorAll('.widget-delete-btn');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const widgetId = this.dataset.id;
+            const widgetTitle = this.dataset.title;
+            
+            document.getElementById('deleteWidgetTitle').textContent = widgetTitle;
+            document.getElementById('deleteWidgetForm').action = `/admin/widgets/delete/${widgetId}`;
+            
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        });
+    });
+    
+    // Önizleme işlemi
+    const previewButtons = document.querySelectorAll('.widget-preview-btn');
+    previewButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const widgetId = this.dataset.id;
+            
+            // AJAX ile bileşen içeriğini getir
+            fetch(`/admin/widgets/preview/${widgetId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('widgetPreviewContent').innerHTML = data.content;
+                    } else {
+                        document.getElementById('widgetPreviewContent').innerHTML = 
+                            '<div class="alert alert-danger">Bileşen içeriği yüklenemedi.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Önizleme hatası:', error);
+                    document.getElementById('widgetPreviewContent').innerHTML = 
+                        '<div class="alert alert-danger">Bir hata oluştu.</div>';
+                });
+        });
+    });
+    
+    // Filtre işlemi
+    const filterItems = document.querySelectorAll('.filter-item');
+    filterItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const filter = this.dataset.filter;
+            const rows = document.querySelectorAll('#widgetsTable tbody tr');
+            
+            rows.forEach(row => {
+                if (filter === 'all') {
+                    row.style.display = '';
+                } else if (filter === 'active') {
+                    const isActive = row.querySelector('td:nth-child(5) .badge').classList.contains('bg-success');
+                    row.style.display = isActive ? '' : 'none';
+                } else if (filter === 'inactive') {
+                    const isActive = row.querySelector('td:nth-child(5) .badge').classList.contains('bg-success');
+                    row.style.display = !isActive ? '' : 'none';
+                }
+            });
+        });
+    });
+    
+    // Toplu işlemler
+    const bulkActions = document.querySelectorAll('.bulk-action');
+    bulkActions.forEach(action => {
+        action.addEventListener('click', function(e) {
+            e.preventDefault();
+            const actionType = this.dataset.action;
+            const selectedWidgets = Array.from(document.querySelectorAll('.widget-checkbox:checked')).map(cb => cb.value);
+            
+            if (selectedWidgets.length === 0) {
+                alert('Lütfen en az bir bileşen seçin.');
+                return;
+            }
+            
+            if (actionType === 'delete' && !confirm('Seçili bileşenleri silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!')) {
+                return;
+            }
+            
+            // AJAX ile toplu işlemi gerçekleştir
+            fetch('/admin/widgets/bulk-action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+                },
+                body: JSON.stringify({
+                    action: actionType,
+                    widget_ids: selectedWidgets
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('İşlem sırasında bir hata oluştu: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('İşlem hatası:', error);
+                alert('Bir hata oluştu.');
+            });
+        });
+    });
+    
+    // Görünüm değiştirme
+    const viewToggle = document.getElementById('viewToggle');
+    viewToggle.addEventListener('click', function() {
+        const table = document.getElementById('widgetsTable');
+        if (table.classList.contains('table-sm')) {
+            table.classList.remove('table-sm');
+            this.innerHTML = '<i class="fas fa-th-large"></i>';
+        } else {
+            table.classList.add('table-sm');
+            this.innerHTML = '<i class="fas fa-list"></i>';
+        }
+    });
+});
+</script>
+{% endblock %} 

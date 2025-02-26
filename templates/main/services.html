@@ -1,122 +1,214 @@
 {% extends "main/base.html" %}
 
+{% block title %}{{ site_settings.site_title }} - Hizmetlerimiz{% endblock %}
+
 {% block content %}
 <!-- services section start -->
 <div class="services_section layout_padding">
-    <div class="container">
-        <h1 class="services_taital">What We Do</h1>
-        <p class="about_text">It is a long established fact that a reader will be distracted by the readable content of a page when</p>
-        <div class="services_section_2">
-            <div class="row">
-                <div class="col-lg-4">
-                    <div class="icon_box">
-                        <div class="icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/icon-1.png') }}"></div>
-                    </div>
-                    <h4 class="selection_text">Selection of Business</h4>
-                    <p class="ipsum_text">There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised</p>
-                    <div class="icon_box">
-                        <div class="icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/icon-4.png') }}"></div>
-                    </div>
-                    <h4 class="selection_text">Securities Transactions</h4>
-                    <p class="ipsum_text">There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised</p>
-                </div>
-                <div class="col-lg-4">
-                    <div class="icon_box">
-                        <div class="icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/icon-2.png') }}"></div>
-                    </div>
-                    <h4 class="selection_text">Research and Analytics</h4>
-                    <p class="ipsum_text">There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised</p>
-                    <div class="icon_box">
-                        <div class="icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/icon-5.png') }}"></div>
-                    </div>
-                    <h4 class="selection_text">Advisory Activities</h4>
-                    <p class="ipsum_text">There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised</p>
-                </div>
-                <div class="col-lg-4">
-                    <div class="icon_box">
-                        <div class="icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/icon-3.png') }}"></div>
-                    </div>
-                    <h4 class="selection_text">Business Plans</h4>
-                    <p class="ipsum_text">There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised</p>
-                    <div class="icon_box">
-                        <div class="icon_1"><img src="{{ url_for('static', filename='cobsin_template/images/icon-6.png') }}"></div>
-                    </div>
-                    <h4 class="selection_text">Management and Asset</h4>
-                    <p class="ipsum_text">There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised</p>
-                </div>
-            </div>
-        </div>
-    </div>
+   <div class="container">
+      <div class="row">
+         <div class="col-md-8">
+            <h1 class="services_taital">Hizmetlerimiz</h1>
+            <p class="services_text">Size sunduğumuz profesyonel hizmetlerimizi keşfedin</p>
+            <div class="moremore_bt"><a href="{{ url_for('main.contact') }}">İletişime Geçin</a></div>
+         </div>
+         <div class="col-md-4">
+            <div><img src="{{ url_for('static', filename='cobsin_template/images/about-img.png') }}" class="image_1"></div>
+         </div>
+      </div>
+   </div>
 </div>
 <!-- services section end -->
+
+<!-- services list section start -->
+<div class="services_section_2 layout_padding">
+   <div class="container">
+      <div class="row">
+         {% if services %}
+            {% for service in services %}
+               <div class="col-md-6">
+                  <div class="service_box">
+                     <div class="house_icon">
+                        {% if service.icon %}
+                           <img src="{{ service.icon }}" alt="{{ service.title }}">
+                        {% else %}
+                           <img src="{{ url_for('static', filename='cobsin_template/images/icon-1.png') }}" alt="{{ service.title }}">
+                        {% endif %}
+                     </div>
+                     <h3 class="service_text">{{ service.title }}</h3>
+                     <p class="service_desc">{{ service.description }}</p>
+                  </div>
+               </div>
+            {% endfor %}
+         {% else %}
+            <div class="col-md-6">
+               <div class="service_box">
+                  <div class="house_icon">
+                     <img src="{{ url_for('static', filename='cobsin_template/images/icon-1.png') }}">
+                  </div>
+                  <h3 class="service_text">İş Danışmanlığı</h3>
+                  <p class="service_desc">İşletmenizin büyümesi ve gelişmesi için profesyonel danışmanlık hizmetleri sunuyoruz.</p>
+               </div>
+            </div>
+            <div class="col-md-6">
+               <div class="service_box">
+                  <div class="house_icon">
+                     <img src="{{ url_for('static', filename='cobsin_template/images/icon-2.png') }}">
+                  </div>
+                  <h3 class="service_text">Finansal Analiz</h3>
+                  <p class="service_desc">Finansal durumunuzu analiz ederek, işletmenizin mali yapısını güçlendirmenize yardımcı oluyoruz.</p>
+               </div>
+            </div>
+            <div class="col-md-6">
+               <div class="service_box">
+                  <div class="house_icon">
+                     <img src="{{ url_for('static', filename='cobsin_template/images/icon-3.png') }}">
+                  </div>
+                  <h3 class="service_text">Dijital Pazarlama</h3>
+                  <p class="service_desc">Modern dijital pazarlama stratejileri ile markanızın online görünürlüğünü artırıyoruz.</p>
+               </div>
+            </div>
+            <div class="col-md-6">
+               <div class="service_box">
+                  <div class="house_icon">
+                     <img src="{{ url_for('static', filename='cobsin_template/images/icon-4.png') }}">
+                  </div>
+                  <h3 class="service_text">Kurumsal Eğitim</h3>
+                  <p class="service_desc">Çalışanlarınızın becerilerini geliştirmek için özel tasarlanmış eğitim programları sunuyoruz.</p>
+               </div>
+            </div>
+         {% endif %}
+      </div>
+   </div>
+</div>
+<!-- services list section end -->
 {% endblock %}
 
 {% block scripts %}
 <style>
+.services_section {
+   background-color: #f7f7f7;
+   padding: 90px 0 60px 0;
+}
+
+.services_taital {
+   width: 100%;
+   float: left;
+   font-size: 40px;
+   color: #1f1f1f;
+   font-weight: bold;
+   margin-bottom: 10px;
+}
+
+.services_text {
+   width: 100%;
+   float: left;
+   font-size: 16px;
+   color: #1f1f1f;
+   margin: 0px;
+   margin-bottom: 30px;
+}
+
+.moremore_bt {
+   width: 170px;
+   float: left;
+   margin-top: 30px;
+}
+
+.moremore_bt a {
+   width: 100%;
+   float: left;
+   font-size: 16px;
+   color: #ffffff;
+   background-color: #13a25d;
+   text-align: center;
+   padding: 10px 0px;
+   border-radius: 5px;
+   text-transform: uppercase;
+   font-weight: 500;
+   text-decoration: none;
+}
+
+.moremore_bt a:hover {
+   color: #ffffff;
+   background-color: #0f8c4f;
+}
+
+.image_1 {
+   width: 100%;
+   float: left;
+}
+
+.services_section_2 {
+   width: 100%;
+   float: left;
+   padding-bottom: 90px;
+}
+
 .service_box {
-    background: #fff;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    margin-bottom: 30px;
-    transition: all 0.3s ease;
+   width: 100%;
+   background-color: #ffffff;
+   border-radius: 10px;
+   padding: 40px 30px;
+   box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.05);
+   margin-bottom: 30px;
+   min-height: 300px;
+   position: relative;
+   transition: all 0.3s ease;
 }
 
 .service_box:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+   transform: translateY(-5px);
+   box-shadow: 0px 10px 25px 0px rgba(0,0,0,0.1);
 }
 
-.service_img {
-    margin-bottom: 20px;
-    border-radius: 5px;
-    overflow: hidden;
+.house_icon {
+   width: 70px;
+   margin: 0 auto;
+   text-align: center;
+   min-height: 70px;
+   background-color: #13a25d;
+   border-radius: 100%;
+   padding: 15px;
+   margin-bottom: 20px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
 }
 
-.service_img img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    transition: all 0.3s ease;
-}
-
-.service_box:hover .service_img img {
-    transform: scale(1.05);
-}
-
-.service_name {
-    color: #1f1f1f;
-    font-size: 22px;
-    margin-bottom: 15px;
-    font-weight: 600;
+.house_icon img {
+   width: 100%;
+   max-width: 35px;
+   filter: brightness(0) invert(1);
 }
 
 .service_text {
-    color: #666;
-    margin-bottom: 20px;
-    line-height: 1.6;
+   width: 100%;
+   font-size: 24px;
+   color: #13a25d;
+   text-align: center;
+   font-weight: 600;
+   margin-bottom: 15px;
 }
 
-.read_more {
-    display: inline-block;
-    padding: 10px 25px;
-    background: #1f1f1f;
-    color: #fff;
-    border-radius: 5px;
-    text-decoration: none;
-    transition: all 0.3s ease;
+.service_desc {
+   width: 100%;
+   font-size: 16px;
+   color: #1f1f1f;
+   text-align: center;
+   margin: 0;
 }
 
-.read_more:hover {
-    background: #333;
-    color: #fff;
-    text-decoration: none;
+@media (max-width: 991px) {
+   .service_box {
+      min-height: 340px;
+   }
 }
 
-.no_services {
-    text-align: center;
-    padding: 50px 0;
-    color: #666;
+@media (max-width: 767px) {
+   .service_box {
+      min-height: auto;
+   }
 }
 </style>
-{% endblock %}
+{% endblock %} 

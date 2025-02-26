@@ -1,0 +1,55 @@
+{# Form field render macro #}
+{% macro render_field(field, label_class='', field_class='', label=true, placeholder=false) %}
+    {% if field.type != 'BooleanField' and field.type != 'SubmitField' %}
+        {% if label %}
+            <label for="{{ field.id }}" {% if label_class %}class="{{ label_class }}"{% endif %}>
+                {{ field.label.text }} {% if field.flags.required %}<span class="text-danger">*</span>{% endif %}
+            </label>
+        {% endif %}
+        
+        {% if field.errors %}
+            {{ field(class=field_class + ' is-invalid', placeholder=field.label.text if placeholder else '') }}
+            <div class="invalid-feedback">
+                {% for error in field.errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% else %}
+            {{ field(class=field_class, placeholder=field.label.text if placeholder else '') }}
+        {% endif %}
+    {% elif field.type == 'BooleanField' %}
+        <div class="custom-control custom-checkbox">
+            {{ field(class='custom-control-input ' + field_class) }}
+            <label class="custom-control-label" for="{{ field.id }}">{{ field.label.text }}</label>
+        </div>
+    {% elif field.type == 'SubmitField' %}
+        {{ field(class='btn btn-primary ' + field_class) }}
+    {% endif %}
+{% endmacro %}
+
+{# Form errors macro #}
+{% macro render_errors(field) %}
+    {% if field.errors %}
+        <div class="invalid-feedback d-block">
+            {% for error in field.errors %}
+                {{ error }}
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endmacro %}
+
+{# Flash messages macro #}
+{% macro render_flashed_messages() %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+{% endmacro %} 

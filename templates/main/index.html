@@ -1,205 +1,308 @@
-{% extends "main/master.html" %}
+{% extends "main/base.html" %}
 
-{% block styles %}
-{{ super() }}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/slider.css') }}">
-<style>
-:root {
-    --slider-height: {{ settings.slider_height|default('600') }}px;
-    --animation-speed: {{ settings.slider_animation_speed|default('600') }}ms;
-}
-</style>
-{% endblock %}
-
-{% block banner %}
-{# Slider Yüksekliği ve Animasyon Süresi #}
-{% set transition_speed = settings.slider_transition_speed|default('5000') %}
-{% set is_autoplay = settings.slider_is_autoplay|default(true) %}
-
-<div class="banner_section">
-    <div class="container-fluid">
-        <section class="slide-wrapper">
-            <div class="container-fluid">
-                <div id="myCarousel" class="carousel slide" 
-                    data-bs-ride="carousel"
-                    data-transition-speed="{% if settings.slider_is_autoplay|default(true) %}{{ settings.slider_transition_speed|default('5000') }}{% else %}false{% endif %}">
-                    <!-- Indicators -->
-                    {% if settings.slider_show_bullets|default(true) %}
-                    <div class="carousel-indicators">
-                        {% for slide in slides %}
-                        <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="{{ loop.index0 }}" {% if loop.first %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ loop.index }}"></button>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-
-                    <!-- Wrapper for slides -->
-                    <div class="carousel-inner">
-                        {% for slide in slides %}
-                        <div class="carousel-item {% if loop.first %}active{% endif %}">
-                            <div class="container">
-                                <div class="banner_main">
-                                    <h1 class="banner_taital">{{ slide.title }}</h1>
-                                    <p class="banner_text">{{ slide.description }}</p>
-                                    <div class="btn_main">
-                                        {% if slide.button_text and slide.button_url %}
-                                        <div class="contact_bt active"><a href="{{ slide.button_url }}">{{ slide.button_text }}</a></div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                    {% if settings.slider_show_arrows|default(true) %}
-                    <!-- Left and right controls -->
-                    <button class="carousel-control-prev" type="button" data-bs-target="#myCarousel" data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Önceki</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#myCarousel" data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Sonraki</span>
-                    </button>
-                    {% endif %}
-                </div>
-            </div>
-        </section>
-    </div>
-</div>
-{% endblock %}
+{% block title %}{{ site_settings.site_title }} - Ana Sayfa{% endblock %}
 
 {% block content %}
-<!-- about section start -->
-{% if about %}
-<div class="about_section layout_padding">
-    <div class="container">
-        <h1 class="about_taital">{{ about.title }}</h1>
-        <p class="about_text">{{ about.subtitle }}</p>
-        <div class="about_section_2">
-            <div class="row">
-                <div class="col-lg-6">
-                    <div class="about_image">
-                        {% if about.image_path %}
-                        <img src="{{ url_for('static', filename=about.image_path) }}" alt="{{ about.title }}">
-                        {% else %}
-                        <img src="{{ url_for('static', filename='cobsin_template/images/about-img.png') }}" alt="About Us">
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="about_taital_main">
-                        <p class="lorem_text">{{ about.content|safe }}</p>
-                        {% if about.stats_items %}
-                        <div class="about_bt">
-                            {% for stat in about.stats_items %}
-                            <div class="stat_item">
-                                <h2>{{ stat.number }}</h2>
-                                <p>{{ stat.text }}</p>
-                            </div>
-                            {% endfor %}
+<!-- banner section start -->
+<div class="banner_section layout_padding">
+   <div class="container">
+      <div id="my_slider" class="carousel slide" data-ride="carousel">
+         <div class="carousel-inner">
+            {% if slides %}
+               {% for slide in slides %}
+                  <div class="carousel-item {% if loop.first %}active{% endif %}">
+                     <div class="row">
+                        <div class="col-md-6">
+                           <div class="container">
+                              <h1 class="banner_taital">{{ slide.title }}</h1>
+                              <p class="banner_text">{{ slide.description }}</p>
+                              {% if slide.button_text and slide.button_url %}
+                                 <div class="read_bt"><a href="{{ slide.button_url }}">{{ slide.button_text }}</a></div>
+                              {% endif %}
+                           </div>
                         </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+                        <div class="col-md-6">
+                           <div class="banner_img"><img src="{{ slide.image_url or url_for('static', filename='cobsin_template/images/about-img.png') }}"></div>
+                        </div>
+                     </div>
+                  </div>
+               {% endfor %}
+            {% else %}
+               <div class="carousel-item active">
+                  <div class="row">
+                     <div class="col-md-6">
+                        <div class="container">
+                           <h1 class="banner_taital">Cobsin Temasına Hoş Geldiniz</h1>
+                           <p class="banner_text">Modern ve profesyonel web sitesi teması</p>
+                           <div class="read_bt"><a href="{{ url_for('main.contact') }}">İletişime Geçin</a></div>
+                        </div>
+                     </div>
+                     <div class="col-md-6">
+                        <div class="banner_img"><img src="{{ url_for('static', filename='cobsin_template/images/about-img.png') }}"></div>
+                     </div>
+                  </div>
+               </div>
+            {% endif %}
+         </div>
+         <a class="carousel-control-prev" href="#my_slider" role="button" data-slide="prev">
+            <i class="fa fa-angle-left"></i>
+         </a>
+         <a class="carousel-control-next" href="#my_slider" role="button" data-slide="next">
+            <i class="fa fa-angle-right"></i>
+         </a>
+      </div>
+   </div>
 </div>
-{% endif %}
+<!-- banner section end -->
+
+<!-- about section start -->
+<div class="about_section layout_padding">
+   <div class="container">
+      <div class="row">
+         <div class="col-md-6">
+            <div class="about_img"><img src="{{ url_for('static', filename='cobsin_template/images/about-img.png') }}"></div>
+         </div>
+         <div class="col-md-6">
+            <h1 class="about_taital">{{ about.title }}</h1>
+            <p class="about_text">{{ about.subtitle }}</p>
+            <div class="about_content">
+               {{ about.content|safe }}
+            </div>
+            <div class="read_bt"><a href="{{ url_for('main.about') }}">Daha Fazla</a></div>
+         </div>
+      </div>
+   </div>
+</div>
 <!-- about section end -->
 
 <!-- services section start -->
-{% if services %}
 <div class="services_section layout_padding">
-    <div class="container">
-        <h1 class="services_taital">Hizmetlerimiz</h1>
-        <p class="about_text">Size nasıl yardımcı olabiliriz?</p>
-        <div class="services_section_2">
-            <div class="row">
-                {% for service in services %}
-                <div class="col-lg-4">
-                    <div class="icon_box">
-                        <div class="icon_1">
-                            {% if service.icon %}
-                            <i class="{{ service.icon }} fa-3x"></i>
-                            {% else %}
-                            <img src="{{ url_for('static', filename='cobsin_template/images/icon-' ~ loop.index ~ '.png') }}">
-                            {% endif %}
-                        </div>
-                    </div>
-                    <h4 class="selection_text">{{ service.title }}</h4>
-                    <p class="ipsum_text">{{ service.description }}</p>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
+   <div class="container">
+      <div class="row">
+         <div class="col-md-8">
+            <h1 class="services_taital">Hizmetlerimiz</h1>
+            <p class="services_text">Size sunduğumuz profesyonel hizmetlerimizi keşfedin</p>
+            <div class="moremore_bt"><a href="{{ url_for('main.services') }}">Tümünü Gör</a></div>
+         </div>
+         <div class="col-md-4">
+            <div><img src="{{ url_for('static', filename='cobsin_template/images/about-img.png') }}" class="image_1"></div>
+         </div>
+      </div>
+   </div>
 </div>
-{% endif %}
 <!-- services section end -->
 
-<!-- blog section start -->
-{% if blog_posts %}
-<div class="blog_section layout_padding">
-    <div class="container">
-        <h1 class="blog_taital">Son Blog Yazıları</h1>
-        <p class="about_text">Güncel içeriklerimiz</p>
-        <div class="blog_section_2">
-            <div class="row">
-                {% for post in blog_posts %}
-                <div class="col-md-6">
-                    <div class="blog_box">
-                        <div class="blog_img">
-                            {% if post.featured_image %}
-                            <img src="{{ url_for('static', filename=post.featured_image) }}" alt="{{ post.title }}">
-                            {% else %}
-                            <img src="{{ url_for('static', filename='cobsin_template/images/blog-img.png') }}" alt="Blog">
-                            {% endif %}
-                        </div>
-                        <h4 class="date_text">{{ post.published_at.strftime('%d.%m.%Y') if post.published_at }}</h4>
-                        <h4 class="prep_text">{{ post.title }}</h4>
-                        <p class="lorem_blog_text">{{ post.excerpt }}</p>
-                    </div>
-                </div>
-                {% endfor %}
+<!-- services list section start -->
+<div class="services_section_2 layout_padding">
+   <div class="container">
+      <div class="row">
+         {% if services %}
+            {% for service in services %}
+               <div class="col-md-6">
+                  <div class="service_box">
+                     <div class="house_icon">
+                        {% if service.icon %}
+                           <img src="{{ service.icon }}" alt="{{ service.title }}">
+                        {% else %}
+                           <img src="{{ url_for('static', filename='cobsin_template/images/icon-1.png') }}" alt="{{ service.title }}">
+                        {% endif %}
+                     </div>
+                     <h3 class="service_text">{{ service.title }}</h3>
+                     <p class="service_desc">{{ service.description }}</p>
+                  </div>
+               </div>
+            {% endfor %}
+         {% else %}
+            <div class="col-md-6">
+               <div class="service_box">
+                  <div class="house_icon">
+                     <img src="{{ url_for('static', filename='cobsin_template/images/icon-1.png') }}">
+                  </div>
+                  <h3 class="service_text">İş Danışmanlığı</h3>
+                  <p class="service_desc">İşletmenizin büyümesi ve gelişmesi için profesyonel danışmanlık hizmetleri sunuyoruz.</p>
+               </div>
             </div>
-        </div>
-    </div>
+            <div class="col-md-6">
+               <div class="service_box">
+                  <div class="house_icon">
+                     <img src="{{ url_for('static', filename='cobsin_template/images/icon-2.png') }}">
+                  </div>
+                  <h3 class="service_text">Finansal Analiz</h3>
+                  <p class="service_desc">Finansal durumunuzu analiz ederek, işletmenizin mali yapısını güçlendirmenize yardımcı oluyoruz.</p>
+               </div>
+            </div>
+         {% endif %}
+      </div>
+   </div>
 </div>
-{% endif %}
+<!-- services list section end -->
+
+<!-- blog section start -->
+<div class="blog_section layout_padding">
+   <div class="container">
+      <div class="row">
+         <div class="col-md-6">
+            <div class="blog_img"><img src="{{ url_for('static', filename='cobsin_template/images/blog-img.png') }}"></div>
+         </div>
+         <div class="col-md-6">
+            <h1 class="blog_taital">Blog Yazılarımız</h1>
+            <p class="blog_text">En son blog yazılarımızı keşfedin ve güncel bilgilerden haberdar olun</p>
+            <div class="read_bt"><a href="{{ url_for('main.blog') }}">Tümünü Gör</a></div>
+         </div>
+      </div>
+   </div>
+</div>
 <!-- blog section end -->
 
-<!-- video section start -->
-{% if video %}
+<!-- blog posts section start -->
 <div class="events_section layout_padding">
-    <div class="container">
-        <h1 class="events_taital">{{ video.title }}</h1>
-        <p class="about_text">{{ video.description }}</p>
-        <div class="events_section_2">
-            <div class="events_bg">
-                <div class="play_icon">
-                    <a href="{{ video.url }}" class="video-popup">
-                        <img src="{{ url_for('static', filename='cobsin_template/images/play-icon.png') }}">
-                    </a>
-                </div>
+   <div class="container">
+      <div class="row">
+         {% if blog_posts %}
+            {% for post in blog_posts %}
+               <div class="col-md-6 mb-4">
+                  <div class="blog_box">
+                     <div class="blog_img">
+                        <img src="{{ post.image_url or url_for('static', filename='cobsin_template/images/blog-img.png') }}" alt="{{ post.title }}">
+                     </div>
+                     <h4 class="blog_taital_1">{{ post.title }}</h4>
+                     <p class="blog_text_1">{{ post.summary|truncate(100) }}</p>
+                     <div class="read_bt"><a href="{{ url_for('main.blog_detail', slug=post.slug) }}">Devamını Oku</a></div>
+                  </div>
+               </div>
+               {% if loop.index is divisibleby 2 and not loop.last %}
+                  </div><div class="row mt-4">
+               {% endif %}
+            {% endfor %}
+         {% else %}
+            <div class="col-md-12">
+               <p>Henüz blog yazısı bulunmamaktadır.</p>
             </div>
-        </div>
-    </div>
+         {% endif %}
+      </div>
+   </div>
 </div>
-{% endif %}
-<!-- video section end -->
-
-{% if page %}
-<div class="custom_content layout_padding">
-    <div class="container">
-        {{ page.content|safe }}
-    </div>
-</div>
-{% endif %}
+<!-- blog posts section end -->
 {% endblock %}
 
 {% block scripts %}
-{{ super() }}
-<script src="{{ url_for('static', filename='js/slider.js') }}"></script>
+<style>
+.banner_section {
+   padding: 90px 0;
+}
+
+.banner_taital {
+   font-size: 60px;
+   color: #252525;
+   font-weight: bold;
+   line-height: 1.2;
+}
+
+.banner_text {
+   font-size: 18px;
+   color: #555555;
+   margin: 20px 0 30px 0;
+}
+
+.read_bt a {
+   width: 170px;
+   float: left;
+   font-size: 16px;
+   color: #ffffff;
+   background-color: #13a25d;
+   text-align: center;
+   padding: 10px 0px;
+   border-radius: 5px;
+   text-transform: uppercase;
+   font-weight: 500;
+   text-decoration: none;
+}
+
+.read_bt a:hover {
+   background-color: #252525;
+   color: #ffffff;
+}
+
+.banner_img img {
+   width: 100%;
+}
+
+.service_box {
+   background-color: #f8f9fa;
+   border-radius: 10px;
+   padding: 30px 20px;
+   margin-bottom: 30px;
+   transition: all 0.3s ease;
+}
+
+.service_box:hover {
+   transform: translateY(-5px);
+   box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.house_icon {
+   text-align: center;
+   margin-bottom: 20px;
+}
+
+.service_text {
+   font-size: 22px;
+   font-weight: 600;
+   color: #252525;
+   text-align: center;
+   margin-bottom: 15px;
+}
+
+.service_desc {
+   font-size: 16px;
+   color: #555555;
+   text-align: center;
+   line-height: 1.6;
+}
+
+.blog_box {
+   background-color: #ffffff;
+   border-radius: 10px;
+   overflow: hidden;
+   box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+   margin-bottom: 30px;
+   transition: all 0.3s ease;
+}
+
+.blog_box:hover {
+   transform: translateY(-5px);
+   box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.blog_img img {
+   width: 100%;
+   height: 250px;
+   object-fit: cover;
+}
+
+.blog_taital_1 {
+   font-size: 22px;
+   font-weight: 600;
+   color: #252525;
+   padding: 20px 20px 10px 20px;
+}
+
+.blog_text_1 {
+   font-size: 16px;
+   color: #555555;
+   padding: 0 20px 20px 20px;
+}
+
+.blog_box .read_bt {
+   margin: 0 20px 20px 20px;
+   float: none;
+}
+
+.blog_box .read_bt a {
+   width: auto;
+   display: inline-block;
+   float: none;
+   padding: 8px 20px;
+}
+</style>
 {% endblock %}

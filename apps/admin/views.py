@@ -1,6 +1,6 @@
-from flask import render_template, request, redirect, url_for, flash, current_app, jsonify, session
+from flask import render_template, request, redirect, url_for, flash, current_app, jsonify, session, g, send_file, abort
 from flask_login import login_required, current_user
-from apps.models import Page, db, User, Content, Product, ActivityLog, BlogPost, Slide, Service, AboutSection, VideoSection, Category, Order, SiteSettings, Project, TeamMember, Testimonial, ContactInfo, Menu
+from apps.models import Page, db, User, Content, Product, ActivityLog, BlogPost, Slide, Service, AboutSection, VideoSection, Category, Order, SiteSettings, Project, TeamMember, Testimonial, ContactInfo, Menu, Theme, Widget, MenuItem
 from . import admin_bp
 from slugify import slugify
 from datetime import datetime
@@ -12,6 +12,10 @@ from flask_wtf.csrf import generate_csrf
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, BooleanField
 from wtforms.validators import DataRequired
+import json
+import zipfile
+import tempfile
+import sqlite3
 
 def admin_required(f):
     def decorated_function(*args, **kwargs):
@@ -23,14 +27,52 @@ def admin_required(f):
     return decorated_function
 
 def get_admin_stats():
-    """Admin paneli için istatistikleri döndürür"""
-    stats = {
-        'total_users': 0,
-        'total_pages': 0,
-        'total_menus': 0,
-        'low_stock': 0,
-    }
-    return stats
+    """Admin paneli için istatistikleri al"""
+    try:
+        stats = {
+            'users_count': User.query.count(),
+            'pages_count': Page.query.count(),
+            'blog_posts_count': BlogPost.query.count(),
+            'menus_count': Menu.query.count(),
+            'services_count': Service.query.count(),
+            'projects_count': Project.query.count(),
+            'team_count': TeamMember.query.count(),
+            'testimonials_count': Testimonial.query.count(),
+            'slides_count': Slide.query.count()
+        }
+        
+        # Son aktiviteler
+        recent_activities = ActivityLog.query.order_by(ActivityLog.timestamp.desc()).limit(5).all()
+        stats['recent_activities'] = recent_activities
+        
+        # Son blog yazıları
+        recent_posts = BlogPost.query.order_by(BlogPost.created_at.desc()).limit(5).all()
+        stats['recent_posts'] = recent_posts
+        
+        # Son kayıtlı kullanıcılar
+        recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
+        stats['recent_users'] = recent_users
+        
+        # Logları konsola yazdır
+        current_app.logger.info(f"Admin istatistikleri: {stats}")
+        
+        return stats
+    except Exception as e:
+        current_app.logger.error(f"Admin istatistikleri alınırken hata: {str(e)}")
+        return {
+            'users_count': 0,
+            'pages_count': 0,
+            'blog_posts_count': 0,
+            'menus_count': 0,
+            'services_count': 0,
+            'projects_count': 0,
+            'team_count': 0,
+            'testimonials_count': 0,
+            'slides_count': 0,
+            'recent_activities': [],
+            'recent_posts': [],
+            'recent_users': []
+        }
 
 def log_activity(action, status='info', details=None):
     """
@@ -55,2139 +97,1480 @@ def log_activity(action, status='info', details=None):
         current_app.logger.error(f'Aktivite logu oluşturma hatası: {str(e)}')
         db.session.rollback()
 
+def get_db():
+    if 'db' not in g:
+        g.db = db
+    return g.db
+
 @admin_bp.route('/')
 @login_required
 @admin_required
 def index():
+    # İstatistikleri ve son aktiviteleri tek sorguda al
     stats = get_admin_stats()
-    recent_activities = ActivityLog.query.order_by(ActivityLog.timestamp.desc()).limit(5).all()
+    recent_activities = ActivityLog.query.options(
+        db.joinedload(ActivityLog.user)
+    ).order_by(ActivityLog.timestamp.desc()).limit(5).all()
     
     return render_template('admin/index.html', 
                          stats=stats, 
                          recent_activities=recent_activities)
 
+@admin_bp.route('/logs')
+@login_required
+@admin_required
+def logs():
+    """Sistem loglarını görüntüle"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+    
+    # Logları sayfalandırarak getir
+    pagination = ActivityLog.query.order_by(
+        ActivityLog.timestamp.desc()
+    ).paginate(page=page, per_page=per_page)
+    
+    logs = pagination.items
+    stats = get_admin_stats()
+    
+    return render_template('admin/logs.html',
+                         logs=logs,
+                         pagination=pagination,
+                         stats=stats)
+
+def init_admin(admin):
+    """Admin panelini başlat"""
+    pass  # Şimdilik boş bırakıyoruz
+
+def create_default_content():
+    """Varsayılan içerikleri oluşturur"""
+    try:
+        # Ana Sayfa
+        if not Page.query.filter_by(slug='ana-sayfa').first():
+            home_page = Page(
+                title='Ana Sayfa',
+                slug='ana-sayfa',
+                content='KolayCMS\'e Hoş Geldiniz',
+                is_published=True
+            )
+            db.session.add(home_page)
+        
+        # Hakkımızda Sayfası
+        if not Page.query.filter_by(slug='hakkimizda').first():
+            about_page = Page(
+                title='Hakkımızda',
+                slug='hakkimizda',
+                content='Firmamız hakkında bilgiler',
+                is_published=True
+            )
+            db.session.add(about_page)
+        
+        # İletişim Sayfası
+        if not Page.query.filter_by(slug='iletisim').first():
+            contact_page = Page(
+                title='İletişim',
+                slug='iletisim',
+                content='İletişim bilgilerimiz',
+                is_published=True
+            )
+            db.session.add(contact_page)
+        
+        # Ana Menü
+        main_menu = Menu.query.filter_by(title='Ana Menü').first()
+        if not main_menu:
+            # Ana Menü
+            main_menu = Menu(
+                title='Ana Menü',
+                url='#',
+                menu_type='header',
+                order=0
+            )
+            db.session.add(main_menu)
+            db.session.flush()  # ID'yi almak için flush yapıyoruz
+            
+            # Ana Sayfa Menü Öğesi
+            home_menu = Menu(
+                title='Ana Sayfa',
+                url='/',
+                menu_type='header',
+                order=0,
+                parent_id=main_menu.id
+            )
+            db.session.add(home_menu)
+            
+            # Hakkımızda Menü Öğesi
+            about_menu = Menu(
+                title='Hakkımızda',
+                url='/hakkimizda',
+                menu_type='header',
+                order=1,
+                parent_id=main_menu.id
+            )
+            db.session.add(about_menu)
+            
+            # İletişim Menü Öğesi
+            contact_menu = Menu(
+                title='İletişim',
+                url='/iletisim',
+                menu_type='header',
+                order=2,
+                parent_id=main_menu.id
+            )
+            db.session.add(contact_menu)
+        
+        # İletişim Bilgileri
+        if not ContactInfo.query.first():
+            contact_info = ContactInfo(
+                address='Örnek Adres',
+                phone='+90 555 555 5555',
+                email='info@kolaycms.com',
+                working_hours='Pazartesi - Cuma: 09:00 - 18:00'
+            )
+            db.session.add(contact_info)
+        
+        db.session.commit()
+        current_app.logger.info('Varsayılan içerikler başarıyla oluşturuldu')
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f'Varsayılan içerik oluşturma hatası: {str(e)}')
+        raise
+
 @admin_bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def profile():
+    """Admin profil sayfası"""
     if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        current_password = request.form.get('current_password')
-        new_password = request.form.get('new_password')
-        
-        # Kullanıcı adı ve email kontrolü
-        if username != current_user.username:
-            existing_user = User.query.filter_by(username=username).first()
-            if existing_user:
-                flash('Bu kullanıcı adı zaten kullanılıyor.', 'error')
-                return redirect(url_for('admin.profile'))
-                
-        if email != current_user.email:
-            existing_email = User.query.filter_by(email=email).first()
-            if existing_email:
-                flash('Bu e-posta adresi zaten kullanılıyor.', 'error')
-                return redirect(url_for('admin.profile'))
-        
-        # Şifre değişikliği kontrolü
-        if current_password and new_password:
-            if not current_user.check_password(current_password):
-                flash('Mevcut şifreniz yanlış.', 'error')
-                return redirect(url_for('admin.profile'))
-            current_user.set_password(new_password)
-        
-        # Bilgileri güncelle
-        current_user.username = username
-        current_user.email = email
-        
         try:
+            # Profil güncelleme işlemleri
+            current_user.username = request.form.get('username', current_user.username)
+            current_user.email = request.form.get('email', current_user.email)
+            
+            # Şifre değişikliği kontrolü
+            new_password = request.form.get('new_password')
+            if new_password:
+                current_user.set_password(new_password)
+            
             db.session.commit()
-            flash('Profil bilgileriniz başarıyla güncellendi.', 'success')
+            flash('Profil başarıyla güncellendi.', 'success')
+            log_activity('Profil güncellendi', 'success')
+            return redirect(url_for('admin.profile'))
+            
         except Exception as e:
             db.session.rollback()
-            current_app.logger.error(f'Profil güncelleme hatası: {str(e)}')
             flash('Profil güncellenirken bir hata oluştu.', 'error')
+            log_activity('Profil güncelleme hatası', 'error', str(e))
             
-        return redirect(url_for('admin.profile'))
-        
-    return render_template('admin/profile.html')
+    return render_template('admin/profile.html',
+                         user=current_user,
+                         stats=get_admin_stats())
 
 @admin_bp.route('/pages')
 @login_required
 @admin_required
 def pages_list():
-    # Varsayılan sayfaları kontrol et ve ekle
-    default_pages = [
-        {
-            'title': 'Ana Sayfa',
-            'slug': '',
-            'content': 'Ana sayfa içeriği',
-            'is_published': True
-        },
-        {
-            'title': 'Hakkımızda',
-            'slug': 'about',
-            'content': 'Hakkımızda sayfası içeriği',
-            'is_published': True
-        },
-        {
-            'title': 'Hizmetler',
-            'slug': 'services',
-            'content': 'Hizmetler sayfası içeriği',
-            'is_published': True
-        },
-        {
-            'title': 'Blog',
-            'slug': 'blog',
-            'content': 'Blog sayfası içeriği',
-            'is_published': True
-        },
-        {
-            'title': 'İletişim',
-            'slug': 'contact',
-            'content': 'İletişim sayfası içeriği',
-            'is_published': True
-        }
-    ]
-    
-    # Her varsayılan sayfa için kontrol et ve yoksa ekle
-    for page_data in default_pages:
-        page = Page.query.filter_by(slug=page_data['slug']).first()
-        if not page:
-            page = Page(**page_data)
-            db.session.add(page)
-    
-    try:
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f'Varsayılan sayfa ekleme hatası: {str(e)}')
-
-    # Tüm sayfaları getir
+    """Sayfaları listele"""
     pages = Page.query.order_by(Page.created_at.desc()).all()
+    header_menus = Menu.query.filter_by(menu_type='header', parent_id=None).order_by(Menu.order).all()
+    footer_menus = Menu.query.filter_by(menu_type='footer', parent_id=None).order_by(Menu.order).all()
     stats = get_admin_stats()
-    return render_template('admin/pages/list.html', pages=pages, stats=stats, now=datetime.now())
+    return render_template('admin/pages/list.html',
+                         pages=pages,
+                         header_menus=header_menus,
+                         footer_menus=footer_menus,
+                         stats=stats)
 
 @admin_bp.route('/pages/create', methods=['GET', 'POST'])
 @login_required
 @admin_required
-def pages_create():
+def page_create():
+    """Yeni sayfa oluştur"""
     if request.method == 'POST':
-        title = request.form.get('title')
-        content = request.form.get('content')
-        slug = request.form.get('slug') or slugify(title)
-        is_published = bool(request.form.get('is_published'))
-        
-        page = Page(
-            title=title,
-            content=content,
-            slug=slug,
-            is_published=is_published,
-            created_at=datetime.now()
-        )
-        
-        db.session.add(page)
-        db.session.commit()
-        
-        flash('Sayfa başarıyla oluşturuldu.', 'success')
-        return redirect(url_for('admin.pages_list'))
-        
-    stats = get_admin_stats()
-    return render_template('admin/pages/create.html', stats=stats)
-
-class PageForm(FlaskForm):
-    title = StringField('Başlık', validators=[DataRequired()])
-    menu_title = StringField('Menü Başlığı')
-    slug = StringField('SEO URL', validators=[DataRequired()])
-    content = TextAreaField('İçerik')
-    meta_description = StringField('Meta Açıklama')
-    meta_keywords = StringField('Meta Anahtar Kelimeler')
-    is_published = BooleanField('Yayınla')
+        try:
+            title = request.form.get('title')
+            content = request.form.get('content')
+            slug = request.form.get('slug') or slugify(title)
+            is_published = bool(request.form.get('is_published'))
+            
+            page = Page(
+                title=title,
+                content=content,
+                slug=slug,
+                is_published=is_published,
+                created_by=current_user.id
+            )
+            
+            db.session.add(page)
+            db.session.commit()
+            
+            flash('Sayfa başarıyla oluşturuldu.', 'success')
+            log_activity('Yeni sayfa oluşturuldu', 'success', f'Sayfa: {title}')
+            return redirect(url_for('admin.pages_list'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash('Sayfa oluşturulurken bir hata oluştu.', 'error')
+            log_activity('Sayfa oluşturma hatası', 'error', str(e))
+    
+    return render_template('admin/pages/create.html',
+                         stats=get_admin_stats())
 
 @admin_bp.route('/pages/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
-def pages_edit(id):
-    if not current_user.role == 'admin':
-        flash('Bu sayfaya erişim için admin yetkisi gereklidir.', 'error')
-        return redirect(url_for('auth.login'))
-        
+def page_edit(id):
+    """Sayfa düzenle"""
     page = Page.query.get_or_404(id)
-    form = PageForm(obj=page)
     
-    if request.method == 'POST' and form.validate_on_submit():
+    if request.method == 'POST':
         try:
-            # Form verilerini logla
-            current_app.logger.info(f'Gelen form verileri: {request.form}')
+            page.title = request.form.get('title')
+            page.content = request.form.get('content')
+            page.slug = request.form.get('slug') or slugify(page.title)
+            page.is_published = bool(request.form.get('is_published'))
+            page.updated_at = datetime.now()
             
-            # Temel sayfa bilgilerini güncelle
-            form.populate_obj(page)
-            
-            # İletişim sayfası ise iletişim bilgilerini güncelle
-            if page.slug == 'contact':
-                current_app.logger.info('İletişim sayfası güncelleniyor...')
-                
-                if not page.contact_info:
-                    current_app.logger.info('Yeni ContactInfo oluşturuluyor...')
-                    page.contact_info = ContactInfo()
-                
-                # İletişim bilgilerini güncelle
-                contact_info = page.contact_info
-                contact_info.address = request.form.get('contact_info.address', '')
-                contact_info.phone = request.form.get('contact_info.phone', '')
-                contact_info.email = request.form.get('contact_info.email', '')
-                contact_info.working_hours = request.form.get('contact_info.working_hours', '')
-                contact_info.google_maps_embed = request.form.get('contact_info.google_maps', '')
-                
-                # Sosyal medya bilgilerini güncelle
-                contact_info.facebook = request.form.get('contact_info.facebook', '')
-                contact_info.twitter = request.form.get('contact_info.twitter', '')
-                contact_info.instagram = request.form.get('contact_info.instagram', '')
-                contact_info.linkedin = request.form.get('contact_info.linkedin', '')
-                
-                current_app.logger.info(f'Güncellenmiş contact_info: {contact_info.__dict__}')
-                
-                # ContactInfo'yu veritabanına ekle
-                if contact_info not in db.session:
-                    current_app.logger.info('ContactInfo session\'a ekleniyor...')
-                    db.session.add(contact_info)
-            
-            current_app.logger.info('Değişiklikler kaydediliyor...')
             db.session.commit()
             
             flash('Sayfa başarıyla güncellendi.', 'success')
+            log_activity('Sayfa güncellendi', 'success', f'Sayfa: {page.title}')
             return redirect(url_for('admin.pages_list'))
+            
         except Exception as e:
             db.session.rollback()
-            # Detaylı hata mesajını logla
-            import traceback
-            current_app.logger.error(f'Sayfa güncellenirken hata: {str(e)}')
-            current_app.logger.error(f'Hata detayı: {traceback.format_exc()}')
-            flash(f'Sayfa güncellenirken bir hata oluştu: {str(e)}', 'error')
+            flash('Sayfa güncellenirken bir hata oluştu.', 'error')
+            log_activity('Sayfa güncelleme hatası', 'error', str(e))
     
-    # Sayfa istatistiklerini al
-    stats = {
-        'created_at': page.created_at,
-        'updated_at': page.updated_at if hasattr(page, 'updated_at') else None,
-        'view_count': page.view_count if hasattr(page, 'view_count') else 0
-    }
-    
-    return render_template('admin/pages/edit.html', page=page, form=form, stats=stats)
+    return render_template('admin/pages/edit.html',
+                         page=page,
+                         stats=get_admin_stats())
 
 @admin_bp.route('/pages/delete/<int:id>', methods=['POST'])
 @login_required
 @admin_required
-def pages_delete(id):
-    try:
-        page = Page.query.get_or_404(id)
-        
-        # Varsayılan sayfaları silmeyi engelle
-        if page.slug in ['home', 'about', 'contact', 'blog', 'services']:
-            return jsonify({
-                'success': False,
-                'message': 'Varsayılan sayfalar silinemez.'
-            }), 400
-        
-        # Sayfanın iletişim bilgilerini sil
-        if hasattr(page, 'contact_info') and page.contact_info:
-            db.session.delete(page.contact_info)
-            
-        # Sayfayı sil
-        db.session.delete(page)
-        
-        # Değişiklikleri kaydet
-        db.session.commit()
-        
-        # Aktivite logu oluştur
-        log_activity(
-            action=f'Sayfa silindi: {page.title}',
-            status='success',
-            details=f'Sayfa ID: {id}'
-        )
-        
-        return jsonify({
-            'success': True,
-            'message': 'Sayfa başarıyla silindi.'
-        })
-            
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f'Sayfa silme hatası: {str(e)}')
-        log_activity(
-            action=f'Sayfa silme hatası',
-            status='error',
-            details=f'Sayfa ID: {id}, Hata: {str(e)}'
-        )
-        return jsonify({
-            'success': False,
-            'message': 'Sayfa silinirken bir hata oluştu.'
-        }), 500
-
-@admin_bp.route('/pages/preview/<int:id>')
-@login_required
-@admin_required
-def pages_preview(id):
+def page_delete(id):
+    """Sayfa sil"""
     page = Page.query.get_or_404(id)
-    stats = get_admin_stats()
-    return render_template('admin/pages/preview.html', page=page, stats=stats)
-
-@admin_bp.route('/users')
-@login_required
-@admin_required
-def users_list():
-    users = User.query.order_by(User.created_at.desc()).all()
-    stats = get_admin_stats()
-    return render_template('admin/users/list.html', users=users, stats=stats)
-
-@admin_bp.route('/users/create', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def users_create():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        role = request.form.get('role', 'user')
-        is_active = bool(request.form.get('is_active'))
-        
-        # Kullanıcı adı ve email kontrolü
-        if User.query.filter_by(username=username).first():
-            flash('Bu kullanıcı adı zaten kullanılıyor.', 'error')
-            return redirect(url_for('admin.users_create'))
-            
-        if User.query.filter_by(email=email).first():
-            flash('Bu e-posta adresi zaten kullanılıyor.', 'error')
-            return redirect(url_for('admin.users_create'))
-        
-        user = User(
-            username=username,
-            email=email,
-            role=role,
-            is_active=is_active,
-            created_at=datetime.now()
-        )
-        user.set_password(password)
-        
-        try:
-            db.session.add(user)
-            db.session.commit()
-            flash('Kullanıcı başarıyla oluşturuldu.', 'success')
-            return redirect(url_for('admin.users_list'))
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f'Kullanıcı oluşturma hatası: {str(e)}')
-            flash('Kullanıcı oluşturulurken bir hata oluştu.', 'error')
-            
-    stats = get_admin_stats()
-    return render_template('admin/users/create.html', stats=stats)
-
-@admin_bp.route('/users/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def users_edit(id):
-    user = User.query.get_or_404(id)
-    
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        new_password = request.form.get('new_password')
-        role = request.form.get('role')
-        is_active = bool(request.form.get('is_active'))
-        
-        # Kullanıcı adı kontrolü
-        if username != user.username:
-            existing_user = User.query.filter_by(username=username).first()
-            if existing_user:
-                flash('Bu kullanıcı adı zaten kullanılıyor.', 'error')
-                return redirect(url_for('admin.users_edit', id=id))
-        
-        # Email kontrolü
-        if email != user.email:
-            existing_email = User.query.filter_by(email=email).first()
-            if existing_email:
-                flash('Bu e-posta adresi zaten kullanılıyor.', 'error')
-                return redirect(url_for('admin.users_edit', id=id))
-        
-        # Bilgileri güncelle
-        user.username = username
-        user.email = email
-        user.role = role
-        user.is_active = is_active
-        
-        # Şifre değişikliği
-        if new_password:
-            user.set_password(new_password)
-        
-        try:
-            db.session.commit()
-            flash('Kullanıcı başarıyla güncellendi.', 'success')
-            return redirect(url_for('admin.users_list'))
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f'Kullanıcı güncelleme hatası: {str(e)}')
-            flash('Kullanıcı güncellenirken bir hata oluştu.', 'error')
-            
-    stats = get_admin_stats()
-    return render_template('admin/users/edit.html', user=user, stats=stats)
-
-@admin_bp.route('/users/delete/<int:id>', methods=['POST'])
-@login_required
-@admin_required
-def users_delete(id):
-    if current_user.id == id:
-        flash('Kendi hesabınızı silemezsiniz.', 'error')
-        return redirect(url_for('admin.users_list'))
-        
-    user = User.query.get_or_404(id)
     
     try:
-        db.session.delete(user)
+        title = page.title
+        db.session.delete(page)
         db.session.commit()
-        flash('Kullanıcı başarıyla silindi.', 'success')
+        
+        flash('Sayfa başarıyla silindi.', 'success')
+        log_activity('Sayfa silindi', 'success', f'Sayfa: {title}')
+        
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f'Kullanıcı silme hatası: {str(e)}')
-        flash('Kullanıcı silinirken bir hata oluştu.', 'error')
-        
-    return redirect(url_for('admin.users_list'))
+        flash('Sayfa silinirken bir hata oluştu.', 'error')
+        log_activity('Sayfa silme hatası', 'error', str(e))
+    
+    return redirect(url_for('admin.pages_list'))
 
-@admin_bp.route('/contents')
+@admin_bp.route('/pages/bulk-action', methods=['POST'])
 @login_required
 @admin_required
-def contents_list():
-    # Eğer hiç slayt yoksa, varsayılan slaytları ekle
-    if Slide.query.count() == 0:
-        default_slides = [
-            {
-                'title': 'Business Agency Profit Your Marketing',
-                'description': 'It is a long established fact that a reader will be distracted by the readable content of a page when',
-                'button_text': 'Contact Us',
-                'button_url': '/contact',
-                'order': 1,
-                'is_active': True,
-                'image_path': '/static/cobsin_template/images/banner-bg.png'
-            },
-            {
-                'title': 'Grow Your Business With Us',
-                'description': 'We help businesses achieve their goals through innovative solutions and strategic planning',
-                'button_text': 'Read More',
-                'button_url': '/about',
-                'order': 2,
-                'is_active': True,
-                'image_path': '/static/cobsin_template/images/banner-bg.png'
-            }
-        ]
-        
-        # Template'den resimleri kopyala
-        import shutil
-        import os
-        
-        template_path = os.path.join(current_app.root_path, 'static', 'cobsin_template', 'images', 'banner-bg.png')
-        upload_path = os.path.join(current_app.root_path, 'static', 'uploads', 'slides')
-        os.makedirs(upload_path, exist_ok=True)
-        
-        for i, slide_data in enumerate(default_slides, 1):
-            # Resmi kopyala
-            new_filename = f'default-slide-{i}.png'
-            new_path = os.path.join(upload_path, new_filename)
-            try:
-                shutil.copy2(template_path, new_path)
-                slide_data['image_path'] = f'/static/uploads/slides/{new_filename}'
-            except Exception as e:
-                current_app.logger.error(f'Resim kopyalama hatası: {str(e)}')
-                slide_data['image_path'] = '/static/cobsin_template/images/banner-bg.png'
-            
-            slide = Slide(**slide_data)
-            db.session.add(slide)
-        
-        try:
-            db.session.commit()
-            flash('Örnek slaytlar başarıyla eklendi.', 'success')
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f'Slayt ekleme hatası: {str(e)}')
-            flash('Slaytlar eklenirken bir hata oluştu.', 'error')
+def pages_bulk_action():
+    """Sayfalar için toplu işlem yap"""
+    action = request.form.get('action')
+    page_ids = request.form.get('page_ids', '')
     
-    # Eğer hakkımızda bölümü yoksa, varsayılan içeriği ekle
-    about = AboutSection.query.first()
-    if not about:
-        about = AboutSection(
-            title="About Us",
-            subtitle="It is a long established fact that a reader will be distracted by the readable content of a page when",
-            content="There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words",
-            stats_title="Our Statistics",
-            stats_content="Our achievements in numbers",
-            stats_items=[
-                {"number": "100+", "text": "Happy Clients"},
-                {"number": "150+", "text": "Projects Completed"},
-                {"number": "10+", "text": "Years Experience"},
-                {"number": "24/7", "text": "Support"}
-            ],
-            is_active=True
-        )
-        db.session.add(about)
-        db.session.commit()
+    if not page_ids:
+        flash('İşlem yapılacak sayfa seçilmedi.', 'warning')
+        return redirect(url_for('admin.pages_list'))
     
-    # Eğer hiç hizmet yoksa, varsayılan hizmetleri ekle
-    if Service.query.count() == 0:
-        default_services = [
-            {
-                'title': 'Selection of Business',
-                'description': 'There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised',
-                'icon': 'fas fa-briefcase',
-                'order': 1,
-                'is_active': True
-            },
-            {
-                'title': 'Research and Analytics',
-                'description': 'There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised',
-                'icon': 'fas fa-chart-line',
-                'order': 2,
-                'is_active': True
-            },
-            {
-                'title': 'Business Plans',
-                'description': 'There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised',
-                'icon': 'fas fa-file-alt',
-                'order': 3,
-                'is_active': True
-            }
-        ]
-        
-        for service_data in default_services:
-            service = Service(**service_data)
-            db.session.add(service)
-        
-        db.session.commit()
-    
-    # Eğer hiç blog yazısı yoksa, varsayılan blog yazısını ekle
-    if BlogPost.query.count() == 0:
-        blog = BlogPost(
-            title="Easily Grow Your Business Earn More Money",
-            content="There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words There uffered alteration in some form, by injected humour, or randomised words",
-            excerpt="Learn how to grow your business and earn more money with our expert tips and strategies.",
-            slug="grow-your-business",
-            is_published=True,
-            author_id=current_user.id,
-            created_at=datetime.now()
-        )
-        try:
-            db.session.add(blog)
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f'Blog ekleme hatası: {str(e)}')
-    
-    # Eğer video bölümü yoksa, varsayılan video içeriğini ekle
-    video = VideoSection.query.first()
-    if not video:
-        video = VideoSection(
-            title="Follow Our Video For Solved Your Problem",
-            url="https://www.youtube.com/watch?v=example",
-            is_active=True
-        )
-        db.session.add(video)
-        db.session.commit()
-
-    # Mevcut içerikleri getir
-    blog_posts = BlogPost.query.order_by(BlogPost.created_at.desc()).all()
-    slides = Slide.query.order_by(Slide.order.asc()).all()
-    about_sections = AboutSection.query.all()
-    services = Service.query.order_by(Service.order.asc()).all()
-    projects = Project.query.order_by(Project.order.asc()).all()
-    team_members = TeamMember.query.order_by(TeamMember.order.asc()).all()
-    testimonials = Testimonial.query.order_by(Testimonial.order.asc()).all()
-    contact_info = ContactInfo.query.first()
-    video_section = VideoSection.query.first()
-    
-    stats = get_admin_stats()
-    return render_template('admin/contents/list.html', 
-                         blog_posts=blog_posts,
-                         slides=slides,
-                         about_sections=about_sections,
-                         services=services,
-                         projects=projects,
-                         team_members=team_members,
-                         testimonials=testimonials,
-                         contact_info=contact_info,
-                         video_section=video_section,
-                         stats=stats)
-
-@admin_bp.route('/contents/blog/create', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def blog_create():
-    stats = get_admin_stats()
-    csrf_token = generate_csrf()
-    
-    if request.method == 'GET':
-        return render_template('admin/contents/blog/create.html', stats=stats, csrf_token=csrf_token)
-    
-    if request.method == 'POST':
-        title = request.form.get('title')
-        content = request.form.get('content')
-        excerpt = request.form.get('excerpt')
-        slug = request.form.get('slug')
-        is_published = bool(request.form.get('is_published'))
-        meta_title = request.form.get('meta_title')
-        meta_description = request.form.get('meta_description')
-        
-        # Dosya yükleme işlemi
-        featured_image = None
-        if 'featured_image' in request.files:
-            file = request.files['featured_image']
-            if file and allowed_file(file.filename, {'png', 'jpg', 'jpeg', 'gif'}):
-                filename = secure_filename(file.filename)
-                filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], 'blog', filename)
-                os.makedirs(os.path.dirname(filepath), exist_ok=True)
-                file.save(filepath)
-                featured_image = f'/static/uploads/blog/{filename}'
-        
-        blog = BlogPost(
-            title=title,
-            content=content,
-            excerpt=excerpt,
-            featured_image=featured_image,
-            slug=slug,
-            is_published=is_published,
-            meta_title=meta_title,
-            meta_description=meta_description,
-            author_id=current_user.id,
-            created_at=datetime.now(),
-            published_at=datetime.now() if is_published else None
-        )
-        
-        try:
-            db.session.add(blog)
-            db.session.commit()
-            flash('Blog yazısı başarıyla oluşturuldu.', 'success')
-            return redirect(url_for('admin.contents_list'))
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f'Blog oluşturma hatası: {str(e)}')
-            flash('Blog yazısı oluşturulurken bir hata oluştu.', 'error')
-            return render_template('admin/contents/blog/create.html', stats=stats, csrf_token=generate_csrf())
-    
-    return render_template('admin/contents/blog/create.html', stats=stats)
-
-@admin_bp.route('/contents/blog/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def blog_edit(id):
-    stats = get_admin_stats()
-    post = BlogPost.query.get_or_404(id)
-    
-    if request.method == 'POST':
-        title = request.form.get('title')
-        content = request.form.get('content')
-        excerpt = request.form.get('excerpt')
-        is_published = bool(request.form.get('is_published'))
-        
-        try:
-            post.title = title
-            post.content = content
-            post.excerpt = excerpt
-            post.is_published = is_published
-            post.published_at = datetime.now() if is_published else None
-            post.updated_at = datetime.now()
-            db.session.commit()
-            
-            flash('Blog yazısı başarıyla güncellendi.', 'success')
-            return redirect(url_for('admin.contents_list'))
-        except Exception as e:
-            current_app.logger.error(f'Blog yazısı güncelleme hatası: {str(e)}')
-            flash('Blog yazısı güncellenirken bir hata oluştu.', 'error')
-            db.session.rollback()
-            
-    return render_template('admin/contents/blog/edit.html', post=post, stats=stats)
-
-@admin_bp.route('/contents/blog/delete/<int:id>', methods=['POST'])
-@login_required
-@admin_required
-def blog_delete(id):
     try:
-        # Blog yazısını bul
-        blog_post = BlogPost.query.get_or_404(id)
-        if not blog_post:
-            return jsonify({
-                'success': False,
-                'message': 'Blog yazısı bulunamadı.'
-            }), 404
-
-        title = blog_post.title
-
-        # Öne çıkan görseli sil
-        if blog_post.featured_image:
-            try:
-                image_path = os.path.join(current_app.root_path, 'static', blog_post.featured_image.lstrip('/'))
-                if os.path.exists(image_path):
-                    os.remove(image_path)
-            except Exception as e:
-                current_app.logger.error(f'Blog görseli silinirken hata: {str(e)}')
-
-        # Blog yazısını sil
-        db.session.delete(blog_post)
-        db.session.commit()
-
-        # Aktivite logu oluştur
-        log_activity(
-            action=f'Blog yazısı silindi: {title}',
-            status='success',
-            details=f'Blog ID: {id}'
-        )
-
-        return jsonify({
-            'success': True,
-            'message': 'Blog yazısı başarıyla silindi.'
-        })
-
+        ids = [int(id) for id in page_ids.split(',')]
+        pages = Page.query.filter(Page.id.in_(ids)).all()
+        
+        count = len(pages)
+        if action == 'publish':
+            for page in pages:
+                page.is_published = True
+            
+            db.session.commit()
+            flash(f'{count} sayfa başarıyla yayınlandı.', 'success')
+            log_activity(f'{count} sayfa toplu yayınlandı', 'success')
+            
+        elif action == 'draft':
+            for page in pages:
+                page.is_published = False
+            
+            db.session.commit()
+            flash(f'{count} sayfa taslak olarak işaretlendi.', 'success')
+            log_activity(f'{count} sayfa toplu olarak taslak yapıldı', 'success')
+            
+        elif action == 'delete':
+            titles = [page.title for page in pages]
+            for page in pages:
+                db.session.delete(page)
+            
+            db.session.commit()
+            flash(f'{count} sayfa başarıyla silindi.', 'success')
+            log_activity(f'{count} sayfa toplu silindi', 'success', f'Sayfalar: {", ".join(titles)}')
+        
     except Exception as e:
         db.session.rollback()
-        error_msg = str(e)
-        current_app.logger.error(f'Blog silme hatası: {error_msg}')
-        log_activity(
-            action=f'Blog silme hatası',
-            status='error',
-            details=f'Blog ID: {id}, Hata: {error_msg}'
-        )
-        return jsonify({
-            'success': False,
-            'message': 'Blog yazısı silinirken bir hata oluştu.'
-        }), 500
-
-@admin_bp.route('/contents/slide/create', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def slide_create():
-    stats = get_admin_stats()
-    if request.method == 'POST':
-        title = request.form.get('title')
-        description = request.form.get('description')
-        button_text = request.form.get('button_text')
-        button_url = request.form.get('button_url')
-        order = request.form.get('order')
-        is_active = bool(request.form.get('is_active'))
-        
-        slide = Slide(
-            title=title,
-            description=description,
-            button_text=button_text,
-            button_url=button_url,
-            order=order,
-            is_active=is_active
-        )
-        
-        try:
-            slide.save()
-            flash('Slayt başarıyla oluşturuldu.', 'success')
-            return redirect(url_for('admin.contents_list'))
-        except Exception as e:
-            current_app.logger.error(f'Slayt oluşturma hatası: {str(e)}')
-            flash('Slayt oluşturulurken bir hata oluştu.', 'error')
-            
-    return render_template('admin/contents/slide/create.html', stats=stats)
-
-@admin_bp.route('/contents/slide/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def slide_edit(id):
-    stats = get_admin_stats()
-    slide = Slide.query.get_or_404(id)
+        flash('Toplu işlem sırasında bir hata oluştu.', 'error')
+        log_activity('Toplu işlem hatası', 'error', str(e))
     
-    if request.method == 'POST':
-        slide.title = request.form.get('title')
-        slide.description = request.form.get('description')
-        slide.button1_text = request.form.get('button1_text')
-        slide.button1_url = request.form.get('button1_url')
-        slide.button2_text = request.form.get('button2_text')
-        slide.button2_url = request.form.get('button2_url')
-        slide.order = request.form.get('order', type=int, default=0)
-        slide.is_active = bool(request.form.get('is_active'))
-        
-        # Görsel yükleme işlemi
-        if 'image' in request.files:
-            file = request.files['image']
-            if file and file.filename:
-                filename = secure_filename(file.filename)
-                # Benzersiz dosya adı oluştur
-                unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
-                file_path = os.path.join('uploads', 'slides', unique_filename)
-                
-                # Uploads/slides klasörünü oluştur
-                os.makedirs(os.path.join(current_app.static_folder, 'uploads', 'slides'), exist_ok=True)
-                
-                # Eski görseli sil
-                if slide.image:
-                    old_image_path = os.path.join(current_app.static_folder, slide.image)
-                    if os.path.exists(old_image_path):
-                        os.remove(old_image_path)
-                
-                # Yeni görseli kaydet
-                file.save(os.path.join(current_app.static_folder, file_path))
-                slide.image = file_path
-        
-        try:
-            db.session.commit()
-            flash('Slayt başarıyla güncellendi.', 'success')
-            return redirect(url_for('admin.contents_list'))
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f'Slayt güncelleme hatası: {str(e)}')
-            flash('Slayt güncellenirken bir hata oluştu.', 'error')
-    
-    return render_template('admin/contents/slide/edit.html', slide=slide, stats=stats)
-
-@admin_bp.route('/contents/slide/delete/<int:id>', methods=['POST'])
-@login_required
-@admin_required
-def slide_delete(id):
-    stats = get_admin_stats()
-    slide = Slide.query.get_or_404(id)
-    
-    try:
-        slide.delete()
-        flash('Slayt başarıyla silindi.', 'success')
-    except Exception as e:
-        current_app.logger.error(f'Slayt silme hatası: {str(e)}')
-        flash('Slayt silinirken bir hata oluştu.', 'error')
-    
-    return redirect(url_for('admin.contents_list'))
-
-@admin_bp.route('/products')
-@login_required
-@admin_required
-def products_list():
-    products = Product.query.order_by(Product.created_at.desc()).all()
-    categories = Category.query.order_by(Category.name.asc()).all()
-    stats = get_admin_stats()
-    return render_template('admin/products/list.html', 
-                         products=products,
-                         categories=categories,
-                         stats=stats)
-
-@admin_bp.route('/products/create', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def products_create():
-    if request.method == 'POST':
-        name = request.form.get('name')
-        description = request.form.get('description')
-        price = float(request.form.get('price', 0))
-        stock = int(request.form.get('stock', 0))
-        category_id = request.form.get('category_id')
-        is_active = bool(request.form.get('is_active'))
-        is_featured = bool(request.form.get('is_featured'))
-        sku = request.form.get('sku')
-        weight = float(request.form.get('weight', 0))
-        dimensions = request.form.get('dimensions')
-        meta_title = request.form.get('meta_title')
-        meta_description = request.form.get('meta_description')
-        
-        product = Product(
-            name=name,
-            description=description,
-            price=price,
-            stock=stock,
-            category_id=category_id,
-            is_active=is_active,
-            is_featured=is_featured,
-            sku=sku,
-            weight=weight,
-            dimensions=dimensions,
-            meta_title=meta_title,
-            meta_description=meta_description
-        )
-        
-        try:
-            product.save()
-            flash('Ürün başarıyla oluşturuldu.', 'success')
-            return redirect(url_for('admin.products_list'))
-        except Exception as e:
-            current_app.logger.error(f'Ürün oluşturma hatası: {str(e)}')
-            flash('Ürün oluşturulurken bir hata oluştu.', 'error')
-            
-    categories = Category.query.order_by(Category.name.asc()).all()
-    return render_template('admin/products/create.html', categories=categories)
-
-@admin_bp.route('/products/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def products_edit(id):
-    product = Product.query.get_or_404(id)
-    
-    if request.method == 'POST':
-        product.name = request.form.get('name')
-        product.description = request.form.get('description')
-        product.price = float(request.form.get('price', 0))
-        product.stock = int(request.form.get('stock', 0))
-        product.category_id = request.form.get('category_id')
-        product.is_active = bool(request.form.get('is_active'))
-        product.is_featured = bool(request.form.get('is_featured'))
-        product.sku = request.form.get('sku')
-        product.weight = float(request.form.get('weight', 0))
-        product.dimensions = request.form.get('dimensions')
-        product.meta_title = request.form.get('meta_title')
-        product.meta_description = request.form.get('meta_description')
-        
-        try:
-            product.save()
-            flash('Ürün başarıyla güncellendi.', 'success')
-            return redirect(url_for('admin.products_list'))
-        except Exception as e:
-            current_app.logger.error(f'Ürün güncelleme hatası: {str(e)}')
-            flash('Ürün güncellenirken bir hata oluştu.', 'error')
-            
-    categories = Category.query.order_by(Category.name.asc()).all()
-    return render_template('admin/products/edit.html', 
-                         product=product,
-                         categories=categories)
-
-@admin_bp.route('/products/delete/<int:id>', methods=['POST'])
-@login_required
-@admin_required
-def products_delete(id):
-    product = Product.query.get_or_404(id)
-    
-    try:
-        db.session.delete(product)
-        db.session.commit()
-        flash('Ürün başarıyla silindi.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f'Ürün silme hatası: {str(e)}')
-        flash('Ürün silinirken bir hata oluştu.', 'error')
-        
-    return redirect(url_for('admin.products_list'))
-
-@admin_bp.route('/categories')
-@login_required
-@admin_required
-def categories_list():
-    categories = Category.query.order_by(Category.name.asc()).all()
-    return render_template('admin/categories/list.html', categories=categories)
-
-@admin_bp.route('/categories/create', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def categories_create():
-    if request.method == 'POST':
-        name = request.form.get('name')
-        description = request.form.get('description')
-        parent_id = request.form.get('parent_id')
-        
-        category = Category(
-            name=name,
-            description=description,
-            parent_id=parent_id if parent_id else None
-        )
-        
-        try:
-            category.save()
-            flash('Kategori başarıyla oluşturuldu.', 'success')
-            return redirect(url_for('admin.categories_list'))
-        except Exception as e:
-            current_app.logger.error(f'Kategori oluşturma hatası: {str(e)}')
-            flash('Kategori oluşturulurken bir hata oluştu.', 'error')
-            
-    categories = Category.query.order_by(Category.name.asc()).all()
-    return render_template('admin/categories/create.html', categories=categories)
-
-@admin_bp.route('/categories/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def categories_edit(id):
-    category = Category.query.get_or_404(id)
-    
-    if request.method == 'POST':
-        category.name = request.form.get('name')
-        category.description = request.form.get('description')
-        parent_id = request.form.get('parent_id')
-        category.parent_id = parent_id if parent_id else None
-        
-        try:
-            category.save()
-            flash('Kategori başarıyla güncellendi.', 'success')
-            return redirect(url_for('admin.categories_list'))
-        except Exception as e:
-            current_app.logger.error(f'Kategori güncelleme hatası: {str(e)}')
-            flash('Kategori güncellenirken bir hata oluştu.', 'error')
-            
-    categories = Category.query.filter(Category.id != id).order_by(Category.name.asc()).all()
-    return render_template('admin/categories/edit.html', 
-                         category=category,
-                         categories=categories)
-
-@admin_bp.route('/categories/delete/<int:id>', methods=['POST'])
-@login_required
-@admin_required
-def categories_delete(id):
-    category = Category.query.get_or_404(id)
-    
-    # Kategoriye ait ürünleri kontrol et
-    if category.products.count() > 0:
-        flash('Bu kategoriye ait ürünler var. Önce ürünleri başka bir kategoriye taşıyın.', 'error')
-        return redirect(url_for('admin.categories_list'))
-    
-    try:
-        db.session.delete(category)
-        db.session.commit()
-        flash('Kategori başarıyla silindi.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f'Kategori silme hatası: {str(e)}')
-        flash('Kategori silinirken bir hata oluştu.', 'error')
-        
-    return redirect(url_for('admin.categories_list'))
-
-@admin_bp.route('/orders')
-@login_required
-@admin_required
-def orders_list():
-    orders = Order.query.order_by(Order.created_at.desc()).all()
-    stats = get_admin_stats()
-    return render_template('admin/orders/list.html', orders=orders, stats=stats)
-
-@admin_bp.route('/orders/view/<int:id>')
-@login_required
-@admin_required
-def orders_view(id):
-    order = Order.query.get_or_404(id)
-    return render_template('admin/orders/view.html', order=order)
-
-@admin_bp.route('/orders/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def orders_edit(id):
-    order = Order.query.get_or_404(id)
-    
-    if request.method == 'POST':
-        order.status = request.form.get('status')
-        order.payment_status = request.form.get('payment_status')
-        order.shipping_method = request.form.get('shipping_method')
-        order.tracking_number = request.form.get('tracking_number')
-        order.notes = request.form.get('notes')
-        
-        try:
-            db.session.commit()
-            
-            # Aktivite logu oluştur
-            activity = ActivityLog(
-                user_id=current_user.id,
-                action=f'Sipariş #{order.id} güncellendi',
-                details=f'Durum: {order.status}, Ödeme Durumu: {order.payment_status}'
-            )
-            db.session.add(activity)
-            db.session.commit()
-            
-            flash('Sipariş başarıyla güncellendi.', 'success')
-            return redirect(url_for('admin.orders_list'))
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f'Sipariş güncelleme hatası: {str(e)}')
-            flash('Sipariş güncellenirken bir hata oluştu.', 'error')
-            
-    return render_template('admin/orders/edit.html', order=order)
-
-@admin_bp.route('/orders/delete/<int:id>', methods=['POST'])
-@login_required
-@admin_required
-def orders_delete(id):
-    order = Order.query.get_or_404(id)
-    
-    try:
-        # Aktivite logu oluştur
-        activity = ActivityLog(
-            user_id=current_user.id,
-            action=f'Sipariş #{order.id} silindi',
-            details=f'Toplam: {order.total} TL, Müşteri: {order.user.username}'
-        )
-        
-        db.session.delete(order)
-        db.session.add(activity)
-        db.session.commit()
-        
-        flash('Sipariş başarıyla silindi.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f'Sipariş silme hatası: {str(e)}')
-        flash('Sipariş silinirken bir hata oluştu.', 'error')
-        
-    return redirect(url_for('admin.orders_list'))
-
-@admin_bp.route('/settings', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def settings():
-    settings = SiteSettings.query.first()
-    stats = get_admin_stats()
-    
-    if request.method == 'POST':
-        # Temel Ayarlar
-        settings.site_title = request.form.get('site_title')
-        settings.site_description = request.form.get('site_description')
-        settings.meta_keywords = request.form.get('meta_keywords')
-        
-        # Tema Ayarları
-        settings.navbar_bg_color = request.form.get('navbar_bg_color', '#ffffff')
-        settings.navbar_text_color = request.form.get('navbar_text_color', '#000000')
-        settings.navbar_active_color = request.form.get('navbar_active_color', '#007bff')
-        settings.navbar_hover_color = request.form.get('navbar_hover_color', '#0056b3')
-        settings.navbar_is_fixed = bool(request.form.get('navbar_is_fixed'))
-        settings.navbar_is_transparent = bool(request.form.get('navbar_is_transparent'))
-        
-        settings.body_bg_color = request.form.get('body_bg_color', '#ffffff')
-        settings.body_text_color = request.form.get('body_text_color', '#212529')
-        settings.body_link_color = request.form.get('body_link_color', '#007bff')
-        settings.body_font_family = request.form.get('body_font_family', 'Poppins')
-        settings.body_font_size = request.form.get('body_font_size', '14px')
-        
-        settings.footer_bg_color = request.form.get('footer_bg_color', '#343a40')
-        settings.footer_text_color = request.form.get('footer_text_color', '#ffffff')
-        settings.footer_link_color = request.form.get('footer_link_color', '#ffffff')
-        
-        # İletişim Bilgileri
-        settings.footer_about = request.form.get('footer_about')
-        settings.address = request.form.get('address')
-        settings.phone = request.form.get('phone')
-        settings.email = request.form.get('email')
-        
-        # Sosyal Medya
-        settings.facebook_url = request.form.get('facebook_url')
-        settings.twitter_url = request.form.get('twitter_url')
-        settings.instagram_url = request.form.get('instagram_url')
-        
-        # Özel CSS ve JS
-        settings.custom_css = request.form.get('custom_css')
-        settings.custom_js = request.form.get('custom_js')
-        
-        # Logo ve Favicon
-        logo = request.files.get('logo')
-        favicon = request.files.get('favicon')
-        
-        if logo and allowed_file(logo.filename):
-            filename = secure_filename(logo.filename)
-            logo_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'logos', filename)
-            os.makedirs(os.path.dirname(logo_path), exist_ok=True)
-            logo.save(logo_path)
-            settings.logo_path = f'/static/uploads/logos/{filename}'
-            
-        if favicon and allowed_file(favicon.filename):
-            filename = secure_filename(favicon.filename)
-            favicon_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'favicons', filename)
-            os.makedirs(os.path.dirname(favicon_path), exist_ok=True)
-            favicon.save(favicon_path)
-            settings.favicon_path = f'/static/uploads/favicons/{filename}'
-        
-        try:
-            db.session.commit()
-            
-            # Aktivite logu oluştur
-            activity = ActivityLog(
-                user_id=current_user.id,
-                action='Site ayarları güncellendi',
-                details='Genel site ayarları ve tema ayarları güncellendi'
-            )
-            db.session.add(activity)
-            db.session.commit()
-            
-            flash('Site ayarları başarıyla güncellendi.', 'success')
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f'Ayar güncelleme hatası: {str(e)}')
-            flash('Ayarlar güncellenirken bir hata oluştu.', 'error')
-            
-    return render_template('admin/settings.html', settings=settings, stats=stats)
-
-@admin_bp.route('/settings/backup', methods=['POST'])
-@login_required
-@admin_required
-def settings_backup():
-    try:
-        # Veritabanı yedeği al
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        backup_path = os.path.join(current_app.root_path, 'backups')
-        if not os.path.exists(backup_path):
-            os.makedirs(backup_path)
-            
-        backup_file = os.path.join(backup_path, f'backup_{timestamp}.sql')
-        
-        # SQLite veritabanını yedekle
-        with open(backup_file, 'w') as f:
-            for line in current_app.db.engine.raw_connection().iterdump():
-                f.write('%s\n' % line)
-        
-        # Aktivite logu oluştur
-        activity = ActivityLog(
-            user_id=current_user.id,
-            action='Veritabanı yedeği alındı',
-            details=f'Yedek dosyası: backup_{timestamp}.sql'
-        )
-        db.session.add(activity)
-        db.session.commit()
-        
-        flash('Veritabanı yedeği başarıyla alındı.', 'success')
-    except Exception as e:
-        current_app.logger.error(f'Yedekleme hatası: {str(e)}')
-        flash('Yedekleme işlemi sırasında bir hata oluştu.', 'error')
-        
-    return redirect(url_for('admin.settings'))
-
-@admin_bp.route('/settings/restore/<filename>', methods=['POST'])
-@login_required
-@admin_required
-def settings_restore(filename):
-    try:
-        backup_file = os.path.join(current_app.config['BACKUP_FOLDER'], filename)
-        if not os.path.exists(backup_file):
-            flash('Yedek dosyası bulunamadı.', 'error')
-            return redirect(url_for('admin.settings'))
-
-        with open(backup_file, 'r') as f:
-            current_app.db.engine.raw_connection().executescript(f.read())
-        
-        # Aktivite logu oluştur
-        activity = ActivityLog(
-            user_id=current_user.id,
-            action='Veritabanı geri yüklendi',
-            details=f'Yedek dosyası: {filename}'
-        )
-        db.session.add(activity)
-        db.session.commit()
-        
-        flash('Veritabanı yedeği başarıyla geri yüklendi.', 'success')
-    except Exception as e:
-        current_app.logger.error(f'Geri yükleme hatası: {str(e)}')
-        flash('Geri yükleme işlemi sırasında bir hata oluştu.', 'error')
-    
-    return redirect(url_for('admin.settings'))
-
-@admin_bp.route('/settings/maintenance', methods=['POST'])
-@login_required
-@admin_required
-def settings_maintenance():
-    try:
-        # Geçici dosyaları temizle
-        cache_path = os.path.join(current_app.root_path, 'static', 'cache')
-        if os.path.exists(cache_path):
-            shutil.rmtree(cache_path)
-            os.makedirs(cache_path)
-        
-        # Eski log dosyalarını temizle
-        log_path = os.path.join(current_app.root_path, 'logs')
-        for file in os.listdir(log_path):
-            if file.endswith('.log') and file != 'kolaycms.log':
-                os.remove(os.path.join(log_path, file))
-        
-        # Aktivite logu oluştur
-        activity = ActivityLog(
-            user_id=current_user.id,
-            action='Bakım yapıldı',
-            details='Geçici dosyalar ve eski loglar temizlendi'
-        )
-        db.session.add(activity)
-        db.session.commit()
-        
-        flash('Bakım işlemleri başarıyla tamamlandı.', 'success')
-    except Exception as e:
-        current_app.logger.error(f'Bakım hatası: {str(e)}')
-        flash('Bakım işlemi sırasında bir hata oluştu.', 'error')
-        
-    return redirect(url_for('admin.settings'))
-
-@admin_bp.route('/settings/theme', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def theme_settings():
-    settings = SiteSettings.query.first()
-    stats = get_admin_stats()
-    
-    if not settings:
-        settings = SiteSettings()
-        db.session.add(settings)
-        db.session.commit()
-
-    if request.method == 'POST':
-        # Tema ayarlarını güncelle
-        settings.primary_color = request.form.get('primary_color')
-        settings.secondary_color = request.form.get('secondary_color')
-        settings.is_dark_mode = 'is_dark_mode' in request.form
-        settings.enable_animations = 'enable_animations' in request.form
-        settings.body_bg_color = request.form.get('body_bg_color')
-        settings.body_text_color = request.form.get('body_text_color')
-        settings.body_link_color = request.form.get('body_link_color')
-        settings.body_font_family = request.form.get('body_font_family')
-        settings.body_font_size = request.form.get('body_font_size')
-        settings.navbar_bg_color = request.form.get('navbar_bg_color')
-        settings.navbar_text_color = request.form.get('navbar_text_color')
-        settings.navbar_active_color = request.form.get('navbar_active_color')
-        settings.navbar_hover_color = request.form.get('navbar_hover_color')
-        settings.footer_bg_color = request.form.get('footer_bg_color')
-        settings.footer_text_color = request.form.get('footer_text_color')
-        settings.footer_link_color = request.form.get('footer_link_color')
-        settings.banner_bg_color = request.form.get('banner_bg_color')
-        settings.banner_title_color = request.form.get('banner_title_color')
-        settings.banner_text_color = request.form.get('banner_text_color')
-        settings.banner_button_bg_color = request.form.get('banner_button_bg_color')
-        settings.banner_button_text_color = request.form.get('banner_button_text_color')
-        settings.banner_button_hover_bg_color = request.form.get('banner_button_hover_bg_color')
-        settings.banner_button_hover_text_color = request.form.get('banner_button_hover_text_color')
-        settings.banner_indicator_color = request.form.get('banner_indicator_color')
-        settings.banner_arrow_color = request.form.get('banner_arrow_color')
-        settings.about_bg_color = request.form.get('about_bg_color')
-        settings.about_title_color = request.form.get('about_title_color')
-        settings.about_subtitle_color = request.form.get('about_subtitle_color')
-        settings.about_text_color = request.form.get('about_text_color')
-        settings.about_stats_number_color = request.form.get('about_stats_number_color')
-        settings.about_stats_text_color = request.form.get('about_stats_text_color')
-        settings.services_bg_color = request.form.get('services_bg_color')
-        settings.services_title_color = request.form.get('services_title_color')
-        settings.services_subtitle_color = request.form.get('services_subtitle_color')
-        settings.services_card_bg_color = request.form.get('services_card_bg_color')
-        settings.services_icon_color = request.form.get('services_icon_color')
-        settings.services_card_title_color = request.form.get('services_card_title_color')
-        settings.services_card_text_color = request.form.get('services_card_text_color')
-
-        try:
-            db.session.commit()
-            flash('Tema ayarları başarıyla güncellendi.', 'success')
-        except Exception as e:
-            db.session.rollback()
-            flash('Tema ayarları güncellenirken bir hata oluştu.', 'error')
-
-    return render_template('admin/settings/theme.html', settings=settings, stats=stats)
-
-@admin_bp.route('/settings/theme/reset/<section>', methods=['POST'])
-@login_required
-@admin_required
-def theme_settings_reset_section(section):
-    try:
-        settings = SiteSettings.query.first()
-        if settings:
-            if section == 'navbar':
-                # Navbar varsayılan ayarları
-                settings.navbar_bg_color = '#ffffff'
-                settings.navbar_text_color = '#000000'
-                settings.navbar_active_color = '#007bff'
-                settings.navbar_hover_color = '#0056b3'
-                settings.navbar_is_fixed = True
-                settings.navbar_is_transparent = False
-                settings.navbar_font_family = 'inherit'
-                settings.navbar_font_size = '1rem'
-            
-            elif section == 'body':
-                # Body varsayılan ayarları
-                settings.body_bg_color = '#ffffff'
-                settings.body_text_color = '#212529'
-                settings.body_link_color = '#007bff'
-                settings.body_font_family = 'Poppins'
-                settings.body_font_size = '16px'
-                settings.body_heading_color = '#212529'
-                settings.primary_color = '#007bff'
-                settings.secondary_color = '#6c757d'
-                settings.is_dark_mode = False
-                settings.enable_animations = True
-            
-            elif section == 'banner':
-                # Banner varsayılan ayarları
-                settings.banner_bg_color = '#f8f9fa'
-                settings.banner_title_color = '#212529'
-                settings.banner_text_color = '#6c757d'
-                settings.banner_button_bg_color = '#007bff'
-                settings.banner_button_text_color = '#ffffff'
-                settings.banner_indicator_color = '#007bff'
-            
-            elif section == 'about':
-                # Hakkımızda varsayılan ayarları
-                settings.about_bg_color = '#ffffff'
-                settings.about_title_color = '#212529'
-                settings.about_text_color = '#6c757d'
-                settings.about_stats_number_color = '#007bff'
-                settings.about_stats_text_color = '#6c757d'
-                settings.about_box_bg_color = '#f8f9fa'
-            
-            elif section == 'services':
-                # Hizmetler varsayılan ayarları
-                settings.services_bg_color = '#ffffff'
-                settings.services_title_color = '#212529'
-                settings.services_card_bg_color = '#f8f9fa'
-                settings.services_icon_color = '#007bff'
-                settings.services_card_title_color = '#212529'
-                settings.services_card_text_color = '#6c757d'
-            
-            elif section == 'blog':
-                # Blog varsayılan ayarları
-                settings.blog_bg_color = '#ffffff'
-                settings.blog_title_color = '#212529'
-                settings.blog_card_bg_color = '#f8f9fa'
-                settings.blog_date_color = '#6c757d'
-                settings.blog_post_title_color = '#212529'
-                settings.blog_excerpt_color = '#6c757d'
-            
-            elif section == 'contact':
-                # İletişim varsayılan ayarları
-                settings.contact_bg_color = '#ffffff'
-                settings.contact_title_color = '#212529'
-                settings.contact_text_color = '#6c757d'
-                settings.contact_form_bg_color = '#f8f9fa'
-                settings.contact_button_bg_color = '#007bff'
-                settings.contact_button_text_color = '#ffffff'
-                settings.contact_info_bg_color = '#f8f9fa'
-                settings.contact_info_border_color = '#dee2e6'
-                settings.contact_info_icon_color = '#007bff'
-                settings.contact_form_border_color = '#dee2e6'
-                settings.contact_input_bg_color = '#ffffff'
-                settings.contact_input_text_color = '#495057'
-                settings.contact_input_border_color = '#ced4da'
-                settings.contact_button_hover_bg_color = '#0056b3'
-                settings.contact_button_hover_text_color = '#ffffff'
-            
-            elif section == 'video':
-                # Video varsayılan ayarları
-                settings.video_bg_color = '#ffffff'
-                settings.video_title_color = '#212529'
-                settings.video_play_button_color = '#007bff'
-                settings.video_overlay_color = '#000000'
-                settings.video_overlay_opacity = 50
-                settings.video_play_button_bg_color = '#ffffff'
-                settings.video_play_button_hover_color = '#0056b3'
-                settings.video_play_button_hover_bg_color = '#ffffff'
-            
-            elif section == 'footer':
-                # Footer varsayılan ayarları
-                settings.footer_bg_color = '#212529'
-                settings.footer_text_color = '#ffffff'
-                settings.footer_link_color = '#ffffff'
-                settings.footer_font_family = 'inherit'
-                settings.footer_font_size = '1rem'
-            
-            db.session.commit()
-            return jsonify({'status': 'success', 'message': f'{section} bölümü varsayılan ayarlara döndürüldü.'})
-        
-        return jsonify({'status': 'error', 'message': 'Ayarlar bulunamadı.'})
-    
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)})
-
-@admin_bp.route('/settings/slider', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def slider_settings():
-    settings = SiteSettings.query.first()
-    stats = get_admin_stats()
-    
-    if not settings:
-        settings = SiteSettings()
-        db.session.add(settings)
-        db.session.commit()
-
-    if request.method == 'POST':
-        # Slider ayarlarını güncelle
-        settings.slider_height = request.form.get('slider_height', type=int)
-        settings.slider_transition_speed = request.form.get('slider_transition_speed', type=int)
-        settings.slider_animation_speed = request.form.get('slider_animation_speed', type=int)
-        settings.slider_is_autoplay = 'slider_is_autoplay' in request.form
-        settings.slider_show_arrows = 'slider_show_arrows' in request.form
-        settings.slider_show_bullets = 'slider_show_bullets' in request.form
-
-        try:
-            db.session.commit()
-            flash('Slider ayarları başarıyla güncellendi.', 'success')
-        except Exception as e:
-            db.session.rollback()
-            flash('Slider ayarları güncellenirken bir hata oluştu.', 'error')
-
-    return render_template('admin/settings/slider.html', settings=settings, stats=stats)
-
-@admin_bp.route('/settings/slider/reset', methods=['POST'])
-@login_required
-@admin_required
-def slider_settings_reset():
-    try:
-        settings = SiteSettings.query.first()
-        if settings:
-            # Slider ayarlarını varsayılan değerlere sıfırla
-            settings.slider_height = 600
-            settings.slider_transition_speed = 5000
-            settings.slider_animation_speed = 600
-            settings.slider_is_autoplay = True
-            settings.slider_show_arrows = True
-            settings.slider_show_bullets = True
-
-            db.session.commit()
-            flash('Slider ayarları başarıyla varsayılan değerlere döndürüldü.', 'success')
-        else:
-            flash('Ayarlar bulunamadı.', 'error')
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f'Slider ayarları sıfırlama hatası: {str(e)}')
-        flash('Slider ayarları sıfırlanırken bir hata oluştu.', 'error')
-
-    return redirect(url_for('admin.slider_settings'))
-
-@admin_bp.route('/settings/reset', methods=['POST'])
-@login_required
-@admin_required
-def settings_reset():
-    try:
-        settings = SiteSettings.query.first()
-        if settings:
-            # Genel site ayarlarını varsayılan değerlere döndür
-            settings.site_title = 'KolayCMS'
-            settings.site_description = 'Modern ve Kolay Yönetilebilir İçerik Yönetim Sistemi'
-            settings.meta_keywords = 'cms, içerik yönetim sistemi, web sitesi'
-            settings.footer_about = 'KolayCMS ile web sitenizi kolayca yönetin'
-            settings.address = 'Örnek Adres'
-            settings.phone = '+90 555 555 55 55'
-            settings.email = 'info@example.com'
-            settings.facebook_url = '#'
-            settings.twitter_url = '#'
-            settings.instagram_url = '#'
-            settings.custom_css = ''
-            settings.custom_js = ''
-            
-            # Logo ve favicon yollarını varsayılana döndür
-            settings.logo_path = '/static/cobsin_template/images/logo.png'
-            settings.favicon_path = '/static/cobsin_template/images/favicon.ico'
-            
-            db.session.commit()
-            flash('Site ayarları başarıyla varsayılan değerlere döndürüldü.', 'success')
-            return jsonify({'success': True}), 200
-        else:
-            flash('Ayarlar bulunamadı.', 'error')
-            return jsonify({'success': False, 'message': 'Ayarlar bulunamadı.'}), 404
-            
-    except Exception as e:
-        db.session.rollback()
-        flash('Bir hata oluştu. Lütfen tekrar deneyin.', 'error')
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-def allowed_file(filename, allowed_extensions):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
-
-# Hakkımızda Bölümü
-@admin_bp.route('/contents/about/edit', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def about_edit():
-    about = AboutSection.query.first()
-    stats = get_admin_stats()
-    
-    if not about:
-        # Varsayılan içeriği oluştur
-        about = AboutSection(
-            title="About Us",
-            subtitle="It is a long established fact that a reader will be distracted by the readable content of a page when",
-            content="There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words",
-            stats_title="Our Statistics",
-            stats_content="Our achievements in numbers",
-            stats_items=[
-                {"number": "100+", "text": "Happy Clients"},
-                {"number": "150+", "text": "Projects Completed"},
-                {"number": "10+", "text": "Years Experience"},
-                {"number": "24/7", "text": "Support"}
-            ],
-            is_active=True
-        )
-        db.session.add(about)
-        db.session.commit()
-    
-    if request.method == 'POST':
-        about.title = request.form.get('title')
-        about.subtitle = request.form.get('subtitle')
-        about.content = request.form.get('content')
-        about.stats_title = request.form.get('stats_title')
-        about.stats_content = request.form.get('stats_content')
-        
-        # İstatistikleri güncelle
-        stats_count = int(request.form.get('stats_count', 0))
-        stats_items = []
-        for i in range(stats_count):
-            number = request.form.get(f'stats_number_{i}')
-            text = request.form.get(f'stats_text_{i}')
-            if number and text:
-                stats_items.append({"number": number, "text": text})
-        about.stats_items = stats_items
-        
-        # Görsel yükleme
-        if 'image' in request.files:
-            file = request.files['image']
-            if file and allowed_file(file.filename, {'png', 'jpg', 'jpeg', 'gif'}):
-                filename = secure_filename(file.filename)
-                filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], 'about', filename)
-                os.makedirs(os.path.dirname(filepath), exist_ok=True)
-                file.save(filepath)
-                about.image_path = f'/static/uploads/about/{filename}'
-        
-        db.session.commit()
-        flash('Hakkımızda bilgileri başarıyla güncellendi.', 'success')
-        return redirect(url_for('admin.about_edit'))
-    
-    return render_template('admin/contents/about/edit.html', about=about, stats=stats)
-
-# Hizmetler
-@admin_bp.route('/contents/services')
-@login_required
-@admin_required
-def services_list():
-    # Eğer hiç hizmet yoksa, varsayılan hizmetleri ekle
-    if Service.query.count() == 0:
-        default_services = [
-            {
-                'title': 'Selection of Business',
-                'description': 'There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised',
-                'icon': 'fas fa-briefcase',
-                'order': 1,
-                'is_active': True
-            },
-            {
-                'title': 'Research and Analytics',
-                'description': 'There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised',
-                'icon': 'fas fa-chart-line',
-                'order': 2,
-                'is_active': True
-            },
-            {
-                'title': 'Business Plans',
-                'description': 'There are many variations of passages of Lorem Ipsum available, but the form, by injected humour, or randomised',
-                'icon': 'fas fa-file-alt',
-                'order': 3,
-                'is_active': True
-            }
-        ]
-        
-        for service_data in default_services:
-            service = Service(**service_data)
-            db.session.add(service)
-        
-        db.session.commit()
-    
-    services = Service.query.order_by(Service.order).all()
-    stats = get_admin_stats()
-    return render_template('admin/contents/services/list.html', services=services, stats=stats)
-
-@admin_bp.route('/contents/services/create', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def services_create():
-    stats = get_admin_stats()
-    if request.method == 'POST':
-        service = Service(
-            title=request.form.get('title'),
-            description=request.form.get('description'),
-            icon=request.form.get('icon'),
-            order=int(request.form.get('order', 0)),
-            is_active=bool(request.form.get('is_active'))
-        )
-        
-        if 'image' in request.files:
-            image = request.files['image']
-            if image and allowed_file(image.filename, {'png', 'jpg', 'jpeg', 'gif'}):
-                filename = secure_filename(image.filename)
-                image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'services', filename)
-                image.save(image_path)
-                service.image_path = f'/static/uploads/services/{filename}'
-        
-        try:
-            db.session.add(service)
-            db.session.commit()
-            flash('Hizmet başarıyla eklendi.', 'success')
-            return redirect(url_for('admin.services_list'))
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f'Hizmet ekleme hatası: {str(e)}')
-            flash('Hizmet eklenirken bir hata oluştu.', 'error')
-    
-    return render_template('admin/contents/services/create.html', stats=stats)
-
-@admin_bp.route('/contents/services/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def services_edit(id):
-    stats = get_admin_stats()
-    service = Service.query.get_or_404(id)
-    
-    if request.method == 'POST':
-        service.title = request.form.get('title')
-        service.description = request.form.get('description')
-        service.icon = request.form.get('icon')
-        service.order = int(request.form.get('order', 0))
-        service.is_active = bool(request.form.get('is_active'))
-        
-        if 'image' in request.files:
-            image = request.files['image']
-            if image and allowed_file(image.filename, {'png', 'jpg', 'jpeg', 'gif'}):
-                filename = secure_filename(image.filename)
-                image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'services', filename)
-                image.save(image_path)
-                service.image_path = f'/static/uploads/services/{filename}'
-        
-        try:
-            db.session.commit()
-            flash('Hizmet başarıyla güncellendi.', 'success')
-            return redirect(url_for('admin.services_list'))
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f'Hizmet güncelleme hatası: {str(e)}')
-            flash('Hizmet güncellenirken bir hata oluştu.', 'error')
-    
-    return render_template('admin/contents/services/edit.html', service=service, stats=stats)
-
-@admin_bp.route('/contents/services/delete/<int:id>', methods=['POST'])
-@login_required
-@admin_required
-def services_delete(id):
-    stats = get_admin_stats()
-    service = Service.query.get_or_404(id)
-    
-    try:
-        db.session.delete(service)
-        db.session.commit()
-        flash('Hizmet başarıyla silindi.', 'success')
-    except Exception as e:
-        current_app.logger.error(f'Hizmet silme hatası: {str(e)}')
-        flash('Hizmet silinirken bir hata oluştu.', 'error')
-    
-    return redirect(url_for('admin.services_list'))
-
-# Projeler
-@admin_bp.route('/contents/projects')
-@login_required
-@admin_required
-def projects_list():
-    projects = Project.query.order_by(Project.order.asc()).all()
-    stats = get_admin_stats()
-    return render_template('admin/contents/projects/list.html', projects=projects, stats=stats)
-
-@admin_bp.route('/contents/projects/create', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def projects_create():
-    stats = get_admin_stats()
-    if request.method == 'POST':
-        project = Project(
-            title=request.form.get('title'),
-            description=request.form.get('description'),
-            category=request.form.get('category'),
-            client=request.form.get('client'),
-            completion_date=datetime.strptime(request.form.get('completion_date'), '%Y-%m-%d').date(),
-            technologies=request.form.get('technologies'),
-            project_url=request.form.get('project_url'),
-            order=int(request.form.get('order', 0)),
-            is_active=bool(request.form.get('is_active'))
-        )
-        
-        if 'image' in request.files:
-            image = request.files['image']
-            if image and allowed_file(image.filename, {'png', 'jpg', 'jpeg', 'gif'}):
-                filename = secure_filename(image.filename)
-                image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'projects', filename)
-                image.save(image_path)
-                project.image_path = f'/static/uploads/projects/{filename}'
-        
-        try:
-            db.session.add(project)
-            db.session.commit()
-            flash('Proje başarıyla eklendi.', 'success')
-            return redirect(url_for('admin.projects_list'))
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f'Proje ekleme hatası: {str(e)}')
-            flash('Proje eklenirken bir hata oluştu.', 'error')
-    
-    return render_template('admin/contents/projects/create.html', stats=stats)
-
-@admin_bp.route('/contents/projects/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def projects_edit(id):
-    stats = get_admin_stats()
-    project = Project.query.get_or_404(id)
-    
-    if request.method == 'POST':
-        project.title = request.form.get('title')
-        project.description = request.form.get('description')
-        project.category = request.form.get('category')
-        project.client = request.form.get('client')
-        project.completion_date = datetime.strptime(request.form.get('completion_date'), '%Y-%m-%d').date()
-        project.technologies = request.form.get('technologies')
-        project.project_url = request.form.get('project_url')
-        project.order = int(request.form.get('order', 0))
-        project.is_active = bool(request.form.get('is_active'))
-        
-        if 'image' in request.files:
-            image = request.files['image']
-            if image and allowed_file(image.filename, {'png', 'jpg', 'jpeg', 'gif'}):
-                filename = secure_filename(image.filename)
-                image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'projects', filename)
-                image.save(image_path)
-                project.image_path = f'/static/uploads/projects/{filename}'
-        
-        try:
-            db.session.commit()
-            flash('Proje başarıyla güncellendi.', 'success')
-            return redirect(url_for('admin.projects_list'))
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f'Proje güncelleme hatası: {str(e)}')
-            flash('Proje güncellenirken bir hata oluştu.', 'error')
-    
-    return render_template('admin/contents/projects/edit.html', project=project, stats=stats)
-
-@admin_bp.route('/contents/projects/delete/<int:id>', methods=['POST'])
-@login_required
-@admin_required
-def projects_delete(id):
-    stats = get_admin_stats()
-    project = Project.query.get_or_404(id)
-    
-    try:
-        db.session.delete(project)
-        db.session.commit()
-        flash('Proje başarıyla silindi.', 'success')
-    except Exception as e:
-        current_app.logger.error(f'Proje silme hatası: {str(e)}')
-        flash('Proje silinirken bir hata oluştu.', 'error')
-    
-    return redirect(url_for('admin.projects_list'))
-
-# Ekip Üyeleri
-@admin_bp.route('/contents/team')
-@login_required
-@admin_required
-def team_list():
-    team_members = TeamMember.query.order_by(TeamMember.order.asc()).all()
-    stats = get_admin_stats()
-    return render_template('admin/contents/team/list.html', team_members=team_members, stats=stats)
-
-@admin_bp.route('/contents/team/create', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def team_create():
-    stats = get_admin_stats()
-    if request.method == 'POST':
-        member = TeamMember(
-            name=request.form.get('name'),
-            title=request.form.get('title'),
-            bio=request.form.get('bio'),
-            email=request.form.get('email'),
-            phone=request.form.get('phone'),
-            linkedin_url=request.form.get('linkedin_url'),
-            github_url=request.form.get('github_url'),
-            twitter_url=request.form.get('twitter_url'),
-            order=int(request.form.get('order', 0)),
-            is_active=bool(request.form.get('is_active'))
-        )
-
-        if 'image' in request.files:
-            image = request.files['image']
-            if image and allowed_file(image.filename, {'png', 'jpg', 'jpeg', 'gif'}):
-                filename = secure_filename(image.filename)
-                image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'team', filename)
-                os.makedirs(os.path.dirname(image_path), exist_ok=True)
-                image.save(image_path)
-                member.image_path = f'/static/uploads/team/{filename}'
-
-        try:
-            db.session.add(member)
-            db.session.commit()
-            flash('Ekip üyesi başarıyla eklendi.', 'success')
-            return redirect(url_for('admin.team_list'))
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f'Ekip üyesi ekleme hatası: {str(e)}')
-            flash('Ekip üyesi eklenirken bir hata oluştu.', 'error')
-
-    return render_template('admin/contents/team/create.html', stats=stats)
-
-@admin_bp.route('/settings/theme/reset/all', methods=['POST'])
-@login_required
-@admin_required
-def theme_settings_reset_all():
-    try:
-        settings = SiteSettings.query.first()
-        if settings:
-            # Navbar Ayarları
-            settings.navbar_bg_color = '#ffffff'
-            settings.navbar_text_color = '#000000'
-            settings.navbar_active_color = '#007bff'
-            settings.navbar_hover_color = '#0056b3'
-            settings.navbar_is_fixed = True
-            settings.navbar_is_transparent = False
-            settings.navbar_font_family = 'inherit'
-            settings.navbar_font_size = '1rem'
-            
-            # Body Ayarları
-            settings.body_bg_color = '#ffffff'
-            settings.body_text_color = '#212529'
-            settings.body_link_color = '#007bff'
-            settings.body_font_family = 'Poppins'
-            settings.body_font_size = '16px'
-            settings.body_heading_color = '#212529'
-            settings.primary_color = '#007bff'
-            settings.secondary_color = '#6c757d'
-            settings.is_dark_mode = False
-            settings.enable_animations = True
-            
-            # Banner Ayarları
-            settings.banner_bg_color = '#f8f9fa'
-            settings.banner_title_color = '#212529'
-            settings.banner_text_color = '#6c757d'
-            settings.banner_button_bg_color = '#007bff'
-            settings.banner_button_text_color = '#ffffff'
-            settings.banner_indicator_color = '#007bff'
-            
-            # Hakkımızda Ayarları
-            settings.about_bg_color = '#ffffff'
-            settings.about_title_color = '#212529'
-            settings.about_text_color = '#6c757d'
-            settings.about_stats_number_color = '#007bff'
-            settings.about_stats_text_color = '#6c757d'
-            settings.about_box_bg_color = '#f8f9fa'
-            
-            # Hizmetler Ayarları
-            settings.services_bg_color = '#ffffff'
-            settings.services_title_color = '#212529'
-            settings.services_card_bg_color = '#f8f9fa'
-            settings.services_icon_color = '#007bff'
-            settings.services_card_title_color = '#212529'
-            settings.services_card_text_color = '#6c757d'
-            
-            # Blog Ayarları
-            settings.blog_bg_color = '#ffffff'
-            settings.blog_title_color = '#212529'
-            settings.blog_card_bg_color = '#f8f9fa'
-            settings.blog_date_color = '#6c757d'
-            settings.blog_post_title_color = '#212529'
-            settings.blog_excerpt_color = '#6c757d'
-            
-            # İletişim Ayarları
-            settings.contact_bg_color = '#ffffff'
-            settings.contact_title_color = '#212529'
-            settings.contact_text_color = '#6c757d'
-            settings.contact_form_bg_color = '#f8f9fa'
-            settings.contact_button_bg_color = '#007bff'
-            settings.contact_button_text_color = '#ffffff'
-            settings.contact_info_bg_color = '#f8f9fa'
-            settings.contact_info_border_color = '#dee2e6'
-            settings.contact_info_icon_color = '#007bff'
-            settings.contact_form_border_color = '#dee2e6'
-            settings.contact_input_bg_color = '#ffffff'
-            settings.contact_input_text_color = '#495057'
-            settings.contact_input_border_color = '#ced4da'
-            settings.contact_button_hover_bg_color = '#0056b3'
-            settings.contact_button_hover_text_color = '#ffffff'
-            
-            # Video Ayarları
-            settings.video_bg_color = '#ffffff'
-            settings.video_title_color = '#212529'
-            settings.video_play_button_color = '#007bff'
-            settings.video_overlay_color = '#000000'
-            settings.video_overlay_opacity = 50
-            settings.video_play_button_bg_color = '#ffffff'
-            settings.video_play_button_hover_color = '#0056b3'
-            settings.video_play_button_hover_bg_color = '#ffffff'
-            
-            # Footer Ayarları
-            settings.footer_bg_color = '#212529'
-            settings.footer_text_color = '#ffffff'
-            settings.footer_link_color = '#ffffff'
-            settings.footer_font_family = 'inherit'
-            settings.footer_font_size = '1rem'
-            
-            db.session.commit()
-            return jsonify({'status': 'success'})
-        
-        return jsonify({'status': 'error', 'message': 'Ayarlar bulunamadı.'})
-    
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)})
+    return redirect(url_for('admin.pages_list'))
 
 @admin_bp.route('/menus')
 @login_required
 @admin_required
 def menus():
-    try:
-        # Eğer hiç menü yoksa varsayılan menüleri ekle
-        if Menu.query.count() == 0:
-            default_menus = [
-                {
-                    'title': 'Ana Sayfa',
-                    'url': '/',
-                    'order': 1,
-                    'menu_type': 'header',
-                    'is_active': True
-                },
-                {
-                    'title': 'Hakkımızda',
-                    'url': '/about',
-                    'order': 2,
-                    'menu_type': 'header',
-                    'is_active': True
-                },
-                {
-                    'title': 'Hizmetler',
-                    'url': '/services',
-                    'order': 3,
-                    'menu_type': 'header',
-                    'is_active': True
-                },
-                {
-                    'title': 'Blog',
-                    'url': '/blog',
-                    'order': 4,
-                    'menu_type': 'header',
-                    'is_active': True
-                },
-                {
-                    'title': 'İletişim',
-                    'url': '/contact',
-                    'order': 5,
-                    'menu_type': 'header',
-                    'is_active': True
-                }
-            ]
-            
-            for menu_data in default_menus:
-                menu = Menu(**menu_data)
-                db.session.add(menu)
-            
-            try:
-                db.session.commit()
-                flash('Varsayılan menüler başarıyla oluşturuldu.', 'success')
-            except Exception as e:
-                db.session.rollback()
-                current_app.logger.error(f'Varsayılan menü oluşturma hatası: {str(e)}')
-        
-        # İstatistikleri getir
-        stats = get_admin_stats()
-        
-        # Tüm menüleri sıralı bir şekilde getir
-        menus = Menu.query.order_by(Menu.order.asc()).all()
-        
-        # Template'i render et
-        return render_template('admin/menus/index.html', menus=menus, stats=stats)
-        
-    except Exception as e:
-        # Hata detaylarını logla
-        current_app.logger.error(f'Menü listeleme hatası: {str(e)}')
-        # Kullanıcıya hata mesajı göster
-        flash('Menüler listelenirken bir hata oluştu: ' + str(e), 'danger')
-        # Ana sayfaya yönlendir
-        return redirect(url_for('admin.index'))
+    """Menüleri listele"""
+    header_menus = Menu.query.filter_by(menu_type='header', parent_id=None).order_by(Menu.order).all()
+    footer_menus = Menu.query.filter_by(menu_type='footer', parent_id=None).order_by(Menu.order).all()
+    
+    stats = get_admin_stats()
+    return render_template('admin/menus/list.html',
+                         header_menus=header_menus,
+                         footer_menus=footer_menus,
+                         stats=stats)
 
 @admin_bp.route('/menus/create', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def menu_create():
-    # İstatistikleri getir
-    stats = get_admin_stats()
-    
-    # Yetki seçenekleri
-    permission_choices = [
-        ('', 'Herkes'),
-        ('admin', 'Sadece Admin'),
-        ('editor', 'Editör ve Admin'),
-        ('user', 'Üyeler'),
-        ('guest', 'Ziyaretçiler')
-    ]
+    """Yeni menü oluştur"""
+    parent_menus = Menu.query.filter_by(parent_id=None).all()
+    pages = Page.query.filter_by(is_published=True).order_by(Page.title).all()
     
     if request.method == 'POST':
-        title = request.form.get('title')
-        url = request.form.get('url')
-        parent_id = request.form.get('parent_id')
-        order = request.form.get('order', 0, type=int)
-        is_active = request.form.get('is_active') == 'on'
-        menu_type = request.form.get('menu_type', 'header')
-        icon = request.form.get('icon')
-        permission = request.form.get('permission')
-        css_class = request.form.get('css_class')
-        
-        menu = Menu(
-            title=title,
-            url=url,
-            parent_id=parent_id if parent_id else None,
-            order=order,
-            is_active=is_active,
-            menu_type=menu_type,
-            icon=icon,
-            permission=permission,
-            css_class=css_class
-        )
-        
         try:
+            title = request.form.get('title')
+            url = request.form.get('url')
+            menu_type = request.form.get('menu_type')
+            parent_id = request.form.get('parent_id')
+            order = request.form.get('order', 0, type=int)
+            
+            # Sayfa seçildiyse URL'yi güncelle
+            page_id = request.form.get('page_id')
+            if page_id:
+                page = Page.query.get(page_id)
+                if page:
+                    url = f'/page/{page.slug}'
+            
+            if parent_id == "0":
+                parent_id = None
+            
+            menu = Menu(
+                title=title,
+                url=url,
+                menu_type=menu_type,
+                parent_id=parent_id,
+                order=order
+            )
+            
             db.session.add(menu)
             db.session.commit()
+            
             flash('Menü başarıyla oluşturuldu.', 'success')
+            log_activity('Yeni menü oluşturuldu', 'success', f'Menü: {title}')
             return redirect(url_for('admin.menus'))
+            
         except Exception as e:
             db.session.rollback()
-            flash('Menü oluşturulurken bir hata oluştu.', 'danger')
-            current_app.logger.error(f'Menü oluşturma hatası: {str(e)}')
+            flash('Menü oluşturulurken bir hata oluştu.', 'error')
+            log_activity('Menü oluşturma hatası', 'error', str(e))
     
-    parent_menus = Menu.query.filter_by(parent_id=None).all()
-    return render_template('admin/menus/form.html', 
-                         parent_menus=parent_menus, 
-                         stats=stats,
-                         permission_choices=permission_choices)
+    return render_template('admin/menus/create.html',
+                         parent_menus=parent_menus,
+                         pages=pages,
+                         stats=get_admin_stats())
 
-@admin_bp.route('/menus/<int:id>/edit', methods=['GET', 'POST'])
+@admin_bp.route('/menus/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def menu_edit(id):
-    # İstatistikleri getir
-    stats = get_admin_stats()
-    
-    # Yetki seçenekleri
-    permission_choices = [
-        ('', 'Herkes'),
-        ('admin', 'Sadece Admin'),
-        ('editor', 'Editör ve Admin'),
-        ('user', 'Üyeler'),
-        ('guest', 'Ziyaretçiler')
-    ]
-    
+    """Menü düzenle"""
     menu = Menu.query.get_or_404(id)
+    parent_menus = Menu.query.filter(Menu.id != id).filter_by(parent_id=None).all()
+    pages = Page.query.filter_by(is_published=True).order_by(Page.title).all()
     
     if request.method == 'POST':
-        menu.title = request.form.get('title')
-        menu.url = request.form.get('url')
-        menu.parent_id = request.form.get('parent_id') if request.form.get('parent_id') else None
-        menu.order = request.form.get('order', 0, type=int)
-        menu.is_active = request.form.get('is_active') == 'on'
-        menu.menu_type = request.form.get('menu_type', 'header')
-        menu.icon = request.form.get('icon')
-        menu.permission = request.form.get('permission')
-        menu.css_class = request.form.get('css_class')
-        
         try:
+            menu.title = request.form.get('title')
+            menu.url = request.form.get('url')
+            menu.menu_type = request.form.get('menu_type')
+            
+            # Sayfa seçildiyse URL'yi güncelle
+            page_id = request.form.get('page_id')
+            if page_id:
+                page = Page.query.get(page_id)
+                if page:
+                    menu.url = f'/page/{page.slug}'
+            
+            parent_id = request.form.get('parent_id')
+            if parent_id == "0":
+                menu.parent_id = None
+            else:
+                # Kendisinin altında olan bir menüyü parent olarak seçmesini engelle
+                if int(parent_id) != id and not is_child_menu(int(parent_id), id):
+                    menu.parent_id = parent_id
+            
+            menu.order = request.form.get('order', 0, type=int)
+            
             db.session.commit()
+            
             flash('Menü başarıyla güncellendi.', 'success')
+            log_activity('Menü güncellendi', 'success', f'Menü: {menu.title}')
             return redirect(url_for('admin.menus'))
+            
         except Exception as e:
             db.session.rollback()
-            flash('Menü güncellenirken bir hata oluştu.', 'danger')
-            current_app.logger.error(f'Menü güncelleme hatası: {str(e)}')
+            flash('Menü güncellenirken bir hata oluştu.', 'error')
+            log_activity('Menü güncelleme hatası', 'error', str(e))
     
-    parent_menus = Menu.query.filter(Menu.id != id, Menu.parent_id == None).all()
-    return render_template('admin/menus/form.html', 
-                         menu=menu, 
-                         parent_menus=parent_menus, 
-                         stats=stats,
-                         permission_choices=permission_choices)
+    return render_template('admin/menus/edit.html',
+                         menu=menu,
+                         parent_menus=parent_menus,
+                         pages=pages,
+                         stats=get_admin_stats())
 
-@admin_bp.route('/menus/<int:id>/delete', methods=['POST'])
+@admin_bp.route('/menus/delete/<int:id>', methods=['POST'])
 @login_required
 @admin_required
 def menu_delete(id):
+    """Menü sil"""
     menu = Menu.query.get_or_404(id)
     
     try:
-        db.session.delete(menu)
-        db.session.commit()
+        # Alt menüleri de silme işlemi
+        title = menu.title
+        delete_menu_recursively(menu)
+        
         flash('Menü başarıyla silindi.', 'success')
+        log_activity('Menü silindi', 'success', f'Menü: {title}')
+        
     except Exception as e:
         db.session.rollback()
-        flash('Menü silinirken bir hata oluştu.', 'danger')
-        current_app.logger.error(f'Menü silme hatası: {str(e)}')
+        flash('Menü silinirken bir hata oluştu.', 'error')
+        log_activity('Menü silme hatası', 'error', str(e))
     
     return redirect(url_for('admin.menus'))
+
+def delete_menu_recursively(menu):
+    """Menüyü ve alt menüleri recursive olarak sil"""
+    children = Menu.query.filter_by(parent_id=menu.id).all()
+    
+    for child in children:
+        delete_menu_recursively(child)
+    
+    db.session.delete(menu)
+    db.session.commit()
+
+def is_child_menu(parent_id, menu_id):
+    """Bir menünün, belirtilen menünün alt menüsü olup olmadığını kontrol eder"""
+    children = Menu.query.filter_by(parent_id=menu_id).all()
+    
+    for child in children:
+        if child.id == parent_id or is_child_menu(parent_id, child.id):
+            return True
+    
+    return False
+
+@admin_bp.route('/menus/reorder', methods=['POST'])
+@login_required
+@admin_required
+def menu_reorder():
+    """Menü sıralama düzeni güncelleme"""
+    try:
+        menu_order = request.json
+        
+        for item in menu_order:
+            menu = Menu.query.get(item['id'])
+            if menu:
+                menu.parent_id = item['parent_id'] if item['parent_id'] != 0 else None
+                menu.order = item['order']
+        
+        db.session.commit()
+        log_activity('Menü sıralaması güncellendi', 'success')
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        db.session.rollback()
+        log_activity('Menü sıralama hatası', 'error', str(e))
+        return jsonify({'success': False, 'error': str(e)})
+
+@admin_bp.route('/contents')
+@login_required
+@admin_required
+def contents_list():
+    """İçerik yönetimi sayfası"""
+    try:
+        # Sayfalar - web sitesindeki sayfaları da göster
+        pages = Page.query.order_by(Page.title).all()
+        
+        # Blog yazıları
+        blog_posts = BlogPost.query.order_by(BlogPost.created_at.desc()).all()
+        
+        # Menüler
+        menus = Menu.query.order_by(Menu.menu_type, Menu.order).all()
+        
+        # Hakkımızda bölümü
+        about_sections = AboutSection.query.all()
+        
+        # Hizmetler
+        services = Service.query.order_by(Service.order).all()
+        
+        # Projeler
+        projects = Project.query.order_by(Project.order).all()
+        
+        # Ekip üyeleri
+        team_members = TeamMember.query.order_by(TeamMember.order).all()
+        
+        # Müşteri yorumları
+        testimonials = Testimonial.query.order_by(Testimonial.order).all()
+        
+        # İletişim bilgileri
+        contact_info = ContactInfo.query.first()
+        
+        # Slider
+        slides = Slide.query.order_by(Slide.order).all()
+        
+        # İstatistikleri al
+        stats = get_admin_stats()
+        
+        # Aktiviteyi logla
+        log_activity("İçerik yönetimi sayfası görüntülendi")
+        
+        return render_template('admin/contents/list.html',
+                             pages=pages,
+                             blog_posts=blog_posts,
+                             menus=menus,
+                             about_sections=about_sections,
+                             services=services,
+                             projects=projects,
+                             team_members=team_members,
+                             testimonials=testimonials,
+                             contact_info=contact_info,
+                             slides=slides,
+                             stats=stats)
+    except Exception as e:
+        current_app.logger.error(f"İçerik listesi gösterilirken hata: {str(e)}")
+        flash(f"İçerik listesi yüklenirken bir hata oluştu: {str(e)}", "danger")
+        return redirect(url_for('admin.index'))
+
+# Hakkımızda bölümü için route'lar
+@admin_bp.route('/contents/about')
+@login_required
+@admin_required
+def about_info():
+    """Hakkımızda bölümünü göster"""
+    try:
+        about = AboutSection.query.first()
+        stats = get_admin_stats()
+        return render_template('admin/contents/about/edit.html', 
+                              about=about,
+                              stats=stats)
+    except Exception as e:
+        current_app.logger.error(f"Hakkımızda bölümü gösterilirken hata: {str(e)}")
+        flash(f"Hakkımızda bölümü yüklenirken bir hata oluştu: {str(e)}", "danger")
+        return redirect(url_for('admin.contents_list'))
+
+@admin_bp.route('/contents/about/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def about_edit():
+    """Hakkımızda bölümünü düzenle"""
+    try:
+        about = AboutSection.query.first()
+        if not about:
+            about = AboutSection()
+            db.session.add(about)
+        
+        if request.method == 'POST':
+            about.title = request.form.get('title')
+            about.subtitle = request.form.get('subtitle')
+            about.content = request.form.get('content')
+            about.stats_title = request.form.get('stats_title')
+            about.stats_content = request.form.get('stats_content')
+            about.is_active = 'is_active' in request.form
+            
+            # İstatistik öğelerini işle
+            stats_items = []
+            stats_numbers = request.form.getlist('stats_number[]')
+            stats_texts = request.form.getlist('stats_text[]')
+            for number, text in zip(stats_numbers, stats_texts):
+                if number and text:
+                    stats_items.append({"number": number, "text": text})
+            about.stats_items = stats_items
+            
+            # Görsel yükleme işlemleri
+            if 'image' in request.files and request.files['image'].filename:
+                image = request.files['image']
+                if image and allowed_file(image.filename):
+                    # Eski görseli sil (eğer varsa)
+                    if about.image_path and os.path.exists(os.path.join(current_app.static_folder, about.image_path)):
+                        os.remove(os.path.join(current_app.static_folder, about.image_path))
+                    
+                    # Güvenli dosya adı oluştur
+                    from werkzeug.utils import secure_filename
+                    import os
+                    filename = secure_filename(image.filename)
+                    # Dosya yolunu oluştur
+                    image_path = os.path.join('uploads', 'about', filename)
+                    # Dizin yoksa oluştur
+                    os.makedirs(os.path.join(current_app.static_folder, 'uploads', 'about'), exist_ok=True)
+                    # Dosyayı kaydet
+                    image.save(os.path.join(current_app.static_folder, image_path))
+                    # Veri tabanında güncelle
+                    about.image_path = image_path
+            
+            # Veri tabanında güncelle
+            about.updated_at = datetime.utcnow()
+            db.session.commit()
+            
+            # Aktiviteyi logla
+            log_activity("Hakkımızda bölümü güncellendi")
+            
+            flash('Hakkımızda bölümü başarıyla güncellendi!', 'success')
+            return redirect(url_for('admin.about_info'))
+            
+        return render_template('admin/contents/about/edit.html', about=about)
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Hakkımızda bölümü düzenlenirken hata: {str(e)}")
+        flash(f"Hakkımızda bölümü düzenlenirken bir hata oluştu: {str(e)}", "danger")
+        return redirect(url_for('admin.contents_list'))
+
+# Hizmetler için route'lar
+@admin_bp.route('/contents/services')
+@login_required
+@admin_required
+def services_list():
+    """Hizmetleri listele"""
+    try:
+        # Servisleri sıraya göre getir
+        services = Service.query.order_by(Service.order).all()
+        # Admin istatistiklerini al
+        stats = get_admin_stats()
+        # İçerik türlerine göre sayıları al
+        services_count = Service.query.count()
+        projects_count = Project.query.count()
+        team_count = TeamMember.query.count()
+        testimonials_count = Testimonial.query.count()
+        slides_count = Slide.query.count()
+        
+        # Ana içerik sayfasını göster, burada tüm içerik kartları var
+        return render_template('admin/contents/list.html', 
+                              services=services,
+                              stats=stats,
+                              services_count=services_count,
+                              projects_count=projects_count,
+                              team_count=team_count,
+                              testimonials_count=testimonials_count,
+                              slides_count=slides_count)
+    except Exception as e:
+        current_app.logger.error(f"Hizmetler listelenirken hata: {str(e)}")
+        flash(f"Hizmetler listelenirken bir hata oluştu: {str(e)}", "danger")
+        return redirect(url_for('admin.index'))
+
+# Blog yazıları için route'lar
+@admin_bp.route('/contents/blog')
+@login_required
+@admin_required
+def blog_list():
+    """Blog yazılarını listele"""
+    try:
+        blog_posts = BlogPost.query.order_by(BlogPost.created_at.desc()).all()
+        stats = get_admin_stats()
+        return render_template('admin/contents/blog/list.html', 
+                              blog_posts=blog_posts,
+                              stats=stats)
+    except Exception as e:
+        current_app.logger.error(f"Blog yazıları listelenirken hata: {str(e)}")
+        flash(f"Blog yazıları listelenirken bir hata oluştu: {str(e)}", "danger")
+        return redirect(url_for('admin.contents_list'))
+
+@admin_bp.route('/contents/blog/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def blog_create():
+    """Yeni blog yazısı oluştur"""
+    try:
+        if request.method == 'POST':
+            title = request.form.get('title')
+            content = request.form.get('content')
+            excerpt = request.form.get('excerpt')
+            slug = request.form.get('slug') or slugify(title)
+            is_published = 'is_published' in request.form
+            image_path = None
+            
+            # Görsel yükleme işlemleri
+            if 'image' in request.files and request.files['image'].filename:
+                image = request.files['image']
+                if image and allowed_file(image.filename):
+                    # Güvenli dosya adı oluştur
+                    from werkzeug.utils import secure_filename
+                    import os
+                    filename = secure_filename(image.filename)
+                    # Dosya yolunu oluştur
+                    image_path = os.path.join('uploads', 'blog', filename)
+                    # Dizin yoksa oluştur
+                    os.makedirs(os.path.join(current_app.static_folder, 'uploads', 'blog'), exist_ok=True)
+                    # Dosyayı kaydet
+                    image.save(os.path.join(current_app.static_folder, image_path))
+            
+            # Yeni blog yazısı oluştur
+            new_post = BlogPost(
+                title=title,
+                content=content,
+                excerpt=excerpt,
+                slug=slug,
+                image_path=image_path,
+                is_published=is_published,
+                author_id=current_user.id
+            )
+            db.session.add(new_post)
+            db.session.commit()
+            
+            # Aktiviteyi logla
+            log_activity(f"Yeni blog yazısı oluşturuldu: {title}")
+            
+            flash('Blog yazısı başarıyla oluşturuldu!', 'success')
+            return redirect(url_for('admin.blog_list'))
+            
+        return render_template('admin/contents/blog/create.html')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Blog yazısı oluşturulurken hata: {str(e)}")
+        flash(f"Blog yazısı oluşturulurken bir hata oluştu: {str(e)}", "danger")
+        return redirect(url_for('admin.blog_list'))
+
+@admin_bp.route('/contents/blog/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def blog_edit(id):
+    """Blog yazısı düzenle"""
+    try:
+        post = BlogPost.query.get_or_404(id)
+        
+        if request.method == 'POST':
+            post.title = request.form.get('title')
+            post.content = request.form.get('content')
+            post.excerpt = request.form.get('excerpt')
+            post.slug = request.form.get('slug') or slugify(post.title)
+            post.is_published = 'is_published' in request.form
+            
+            # Görsel yükleme işlemleri
+            if 'image' in request.files and request.files['image'].filename:
+                image = request.files['image']
+                if image and allowed_file(image.filename):
+                    # Eski görseli sil (eğer varsa)
+                    if post.image_path and os.path.exists(os.path.join(current_app.static_folder, post.image_path)):
+                        os.remove(os.path.join(current_app.static_folder, post.image_path))
+                    
+                    # Güvenli dosya adı oluştur
+                    from werkzeug.utils import secure_filename
+                    import os
+                    filename = secure_filename(image.filename)
+                    # Dosya yolunu oluştur
+                    image_path = os.path.join('uploads', 'blog', filename)
+                    # Dizin yoksa oluştur
+                    os.makedirs(os.path.join(current_app.static_folder, 'uploads', 'blog'), exist_ok=True)
+                    # Dosyayı kaydet
+                    image.save(os.path.join(current_app.static_folder, image_path))
+                    # Veri tabanında güncelle
+                    post.image_path = image_path
+            
+            # Veri tabanında güncelle
+            post.updated_at = datetime.utcnow()
+            db.session.commit()
+            
+            # Aktiviteyi logla
+            log_activity(f"Blog yazısı düzenlendi: {post.title}")
+            
+            flash('Blog yazısı başarıyla güncellendi!', 'success')
+            return redirect(url_for('admin.blog_list'))
+            
+        return render_template('admin/contents/blog/edit.html', post=post)
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Blog yazısı düzenlenirken hata: {str(e)}")
+        flash(f"Blog yazısı düzenlenirken bir hata oluştu: {str(e)}", "danger")
+        return redirect(url_for('admin.blog_list'))
+
+@admin_bp.route('/contents/blog/delete/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def blog_delete(id):
+    """Blog yazısı sil"""
+    try:
+        post = BlogPost.query.get_or_404(id)
+        
+        # Blog görseli varsa silme işlemi
+        if post.image_path and os.path.exists(os.path.join(current_app.static_folder, post.image_path)):
+            os.remove(os.path.join(current_app.static_folder, post.image_path))
+        
+        # Blog başlığını geçici olarak sakla
+        post_title = post.title
+        
+        # Veritabanından sil
+        db.session.delete(post)
+        db.session.commit()
+        
+        # Aktiviteyi logla
+        log_activity(f"Blog yazısı silindi: {post_title}")
+        
+        flash('Blog yazısı başarıyla silindi!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Blog yazısı silinirken hata: {str(e)}")
+        flash(f"Blog yazısı silinirken bir hata oluştu: {str(e)}", "danger")
+    
+    return redirect(url_for('admin.blog_list'))
+
+# Sayfalar için route'lar
+@admin_bp.route('/contents/pages')
+@login_required
+@admin_required
+def content_pages_list():
+    """Sayfaları listele"""
+    try:
+        pages = Page.query.order_by(Page.title).all()
+        stats = get_admin_stats()
+        return render_template('admin/contents/pages/list.html', 
+                              pages=pages,
+                              stats=stats)
+    except Exception as e:
+        current_app.logger.error(f"Sayfalar listelenirken hata: {str(e)}")
+        flash(f"Sayfalar listelenirken bir hata oluştu: {str(e)}", "danger")
+        return redirect(url_for('admin.contents_list'))
+
+@admin_bp.route('/contents/pages/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def pages_create():
+    """Yeni sayfa oluştur"""
+    try:
+        if request.method == 'POST':
+            title = request.form.get('title')
+            content = request.form.get('content')
+            slug = request.form.get('slug') or slugify(title)
+            is_published = 'is_published' in request.form
+            
+            # Yeni sayfa oluştur
+            new_page = Page(
+                title=title,
+                content=content,
+                slug=slug,
+                is_published=is_published,
+                author_id=current_user.id
+            )
+            db.session.add(new_page)
+            db.session.commit()
+            
+            # Aktiviteyi logla
+            log_activity(f"Yeni sayfa oluşturuldu: {title}")
+            
+            flash('Sayfa başarıyla oluşturuldu!', 'success')
+            return redirect(url_for('admin.pages_list'))
+            
+        return render_template('admin/contents/pages/create.html')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Sayfa oluşturulurken hata: {str(e)}")
+        flash(f"Sayfa oluşturulurken bir hata oluştu: {str(e)}", "danger")
+        return redirect(url_for('admin.pages_list'))
+
+@admin_bp.route('/contents/pages/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def pages_edit(id):
+    """Sayfa düzenle"""
+    try:
+        page = Page.query.get_or_404(id)
+        
+        if request.method == 'POST':
+            page.title = request.form.get('title')
+            page.content = request.form.get('content')
+            page.slug = request.form.get('slug') or slugify(page.title)
+            page.is_published = 'is_published' in request.form
+            
+            # Veri tabanında güncelle
+            page.updated_at = datetime.utcnow()
+            db.session.commit()
+            
+            # Aktiviteyi logla
+            log_activity(f"Sayfa düzenlendi: {page.title}")
+            
+            flash('Sayfa başarıyla güncellendi!', 'success')
+            return redirect(url_for('admin.pages_list'))
+            
+        return render_template('admin/contents/pages/edit.html', page=page)
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Sayfa düzenlenirken hata: {str(e)}")
+        flash(f"Sayfa düzenlenirken bir hata oluştu: {str(e)}", "danger")
+        return redirect(url_for('admin.pages_list'))
+
+@admin_bp.route('/contents/pages/delete/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def pages_delete(id):
+    """Sayfa sil"""
+    try:
+        page = Page.query.get_or_404(id)
+        
+        # Sayfa başlığını geçici olarak sakla
+        page_title = page.title
+        
+        # Veritabanından sil
+        db.session.delete(page)
+        db.session.commit()
+        
+        # Aktiviteyi logla
+        log_activity(f"Sayfa silindi: {page_title}")
+        
+        flash('Sayfa başarıyla silindi!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Sayfa silinirken hata: {str(e)}")
+        flash(f"Sayfa silinirken bir hata oluştu: {str(e)}", "danger")
+    
+    return redirect(url_for('admin.pages_list'))
+
+# Menüler için route'lar
+@admin_bp.route('/contents/menus')
+@login_required
+@admin_required
+def menus_list():
+    """Menüleri listele"""
+    try:
+        menus = Menu.query.order_by(Menu.menu_type, Menu.order).all()
+        stats = get_admin_stats()
+        return render_template('admin/contents/menus/list.html', 
+                              menus=menus,
+                              stats=stats)
+    except Exception as e:
+        current_app.logger.error(f"Menüler listelenirken hata: {str(e)}")
+        flash(f"Menüler listelenirken bir hata oluştu: {str(e)}", "danger")
+        return redirect(url_for('admin.contents_list'))
+
+@admin_bp.route('/contents/menus/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def menus_create():
+    """Yeni menü oluştur"""
+    try:
+        if request.method == 'POST':
+            title = request.form.get('title')
+            url = request.form.get('url')
+            menu_type = request.form.get('menu_type')
+            parent_id = request.form.get('parent_id')
+            order = request.form.get('order', 0, type=int)
+            is_active = 'is_active' in request.form
+            
+            # Sayfa seçildiyse URL'yi güncelle
+            page_id = request.form.get('page_id')
+            if page_id:
+                page = Page.query.get(page_id)
+                if page:
+                    url = f'/page/{page.slug}'
+            
+            if parent_id == "0":
+                parent_id = None
+            
+            # Yeni menü oluştur
+            new_menu = Menu(
+                title=title,
+                url=url,
+                menu_type=menu_type,
+                parent_id=parent_id,
+                order=order,
+                is_active=is_active
+            )
+            db.session.add(new_menu)
+            db.session.commit()
+            
+            # Aktiviteyi logla
+            log_activity(f"Yeni menü oluşturuldu: {title}")
+            
+            flash('Menü başarıyla oluşturuldu!', 'success')
+            return redirect(url_for('admin.menus_list'))
+            
+        # Form için gerekli veriler
+        parent_menus = Menu.query.filter_by(parent_id=None).all()
+        pages = Page.query.filter_by(is_published=True).order_by(Page.title).all()
+        return render_template('admin/contents/menus/create.html',
+                             parent_menus=parent_menus,
+                             pages=pages)
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Menü oluşturulurken hata: {str(e)}")
+        flash(f"Menü oluşturulurken bir hata oluştu: {str(e)}", "danger")
+        return redirect(url_for('admin.menus_list'))
+
+@admin_bp.route('/contents/menus/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def menus_edit(id):
+    """Menü düzenle"""
+    try:
+        menu = Menu.query.get_or_404(id)
+        
+        if request.method == 'POST':
+            menu.title = request.form.get('title')
+            menu.url = request.form.get('url')
+            menu.menu_type = request.form.get('menu_type')
+            menu.parent_id = request.form.get('parent_id')
+            menu.order = request.form.get('order', 0, type=int)
+            menu.is_active = 'is_active' in request.form
+            
+            # Sayfa seçildiyse URL'yi güncelle
+            page_id = request.form.get('page_id')
+            if page_id:
+                page = Page.query.get(page_id)
+                if page:
+                    menu.url = f'/page/{page.slug}'
+            
+            if menu.parent_id == "0":
+                menu.parent_id = None
+            
+            # Veri tabanında güncelle
+            menu.updated_at = datetime.utcnow()
+            db.session.commit()
+            
+            # Aktiviteyi logla
+            log_activity(f"Menü düzenlendi: {menu.title}")
+            
+            flash('Menü başarıyla güncellendi!', 'success')
+            return redirect(url_for('admin.menus_list'))
+            
+        # Form için gerekli veriler
+        parent_menus = Menu.query.filter(Menu.id != id, Menu.parent_id == None).all()
+        pages = Page.query.filter_by(is_published=True).order_by(Page.title).all()
+        return render_template('admin/contents/menus/edit.html',
+                             menu=menu,
+                             parent_menus=parent_menus,
+                             pages=pages)
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Menü düzenlenirken hata: {str(e)}")
+        flash(f"Menü düzenlenirken bir hata oluştu: {str(e)}", "danger")
+        return redirect(url_for('admin.menus_list'))
+
+@admin_bp.route('/contents/menus/delete/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def menus_delete(id):
+    """Menü sil"""
+    try:
+        menu = Menu.query.get_or_404(id)
+        
+        # Alt menüleri de sil
+        sub_menus = Menu.query.filter_by(parent_id=id).all()
+        for sub_menu in sub_menus:
+            db.session.delete(sub_menu)
+        
+        # Menü başlığını geçici olarak sakla
+        menu_title = menu.title
+        
+        # Veritabanından sil
+        db.session.delete(menu)
+        db.session.commit()
+        
+        # Aktiviteyi logla
+        log_activity(f"Menü silindi: {menu_title}")
+        
+        flash('Menü başarıyla silindi!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Menü silinirken hata: {str(e)}")
+        flash(f"Menü silinirken bir hata oluştu: {str(e)}", "danger")
+    
+    return redirect(url_for('admin.menus_list'))
+
+@admin_bp.route('/contents/menus/reorder', methods=['POST'])
+@login_required
+@admin_required
+def menus_reorder():
+    """Menü sıralamasını güncelle"""
+    try:
+        menu_orders = request.get_json()
+        for menu_id, order in menu_orders.items():
+            menu = Menu.query.get(menu_id)
+            if menu:
+                menu.order = order
+        
+        db.session.commit()
+        
+        # Aktiviteyi logla
+        log_activity("Menü sıralaması güncellendi")
+        
+        return jsonify({"status": "success"})
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Menü sıralaması güncellenirken hata: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# İçerik sıralama için genel route
+@admin_bp.route('/contents/<string:content_type>/reorder', methods=['POST'])
+@login_required
+@admin_required
+def content_reorder(content_type):
+    """İçerik sıralamasını güncelle"""
+    try:
+        content_orders = request.get_json()
+        
+        # İçerik türüne göre model seç
+        model_map = {
+            'services': Service,
+            'projects': Project,
+            'team': TeamMember,
+            'testimonials': Testimonial,
+            'slides': Slide,
+            'videos': VideoSection
+        }
+        
+        model = model_map.get(content_type)
+        if not model:
+            return jsonify({"status": "error", "message": "Geçersiz içerik türü"}), 400
+        
+        # Sıralamayı güncelle
+        for content_id, order in content_orders.items():
+            content = model.query.get(content_id)
+            if content:
+                content.order = order
+        
+        db.session.commit()
+        
+        # Aktiviteyi logla
+        log_activity(f"{content_type.capitalize()} sıralaması güncellendi")
+        
+        return jsonify({"status": "success"})
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"İçerik sıralaması güncellenirken hata: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@admin_bp.route('/users')
+@login_required
+@admin_required
+def users_list():
+    """Kullanıcıları listele"""
+    try:
+        users = User.query.order_by(User.created_at.desc()).all()
+        stats = get_admin_stats()
+        return render_template('admin/users/list.html', 
+                            users=users,
+                            stats=stats)
+    except Exception as e:
+        current_app.logger.error(f"Kullanıcılar listelenirken hata: {str(e)}")
+        flash(f"Kullanıcılar listelenirken bir hata oluştu: {str(e)}", "danger")
+        return redirect(url_for('admin.index'))
+
+@admin_bp.route('/users/create', methods=['POST'])
+@login_required
+@admin_required
+def user_create():
+    """Yeni kullanıcı oluştur"""
+    try:
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        role = request.form.get('role', 'user')
+        
+        # Kullanıcı adı ve email kontrolü
+        if User.query.filter_by(username=username).first():
+            flash('Bu kullanıcı adı zaten kullanılıyor.', 'error')
+            return redirect(url_for('admin.users_list'))
+            
+        if User.query.filter_by(email=email).first():
+            flash('Bu e-posta adresi zaten kullanılıyor.', 'error')
+            return redirect(url_for('admin.users_list'))
+        
+        # Yeni kullanıcı oluştur
+        user = User(
+            username=username,
+            email=email,
+            role=role,
+            is_active=True
+        )
+        user.set_password(password)
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        flash('Kullanıcı başarıyla oluşturuldu.', 'success')
+        log_activity(f'Yeni kullanıcı oluşturuldu: {username}', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Kullanıcı oluşturulurken bir hata oluştu: {str(e)}', 'error')
+        log_activity('Kullanıcı oluşturma hatası', 'error', str(e))
+        
+    return redirect(url_for('admin.users_list'))
+
+@admin_bp.route('/users/<int:id>/edit', methods=['POST'])
+@login_required
+@admin_required
+def user_edit(id):
+    """Kullanıcı düzenle"""
+    try:
+        user = User.query.get_or_404(id)
+        
+        # Mevcut kullanıcı kendisini admin rolünden çıkaramaz
+        if current_user.id == user.id and user.role == 'admin' and request.form.get('role') != 'admin':
+            flash('Kendi admin rolünüzü değiştiremezsiniz.', 'error')
+            return redirect(url_for('admin.users_list'))
+        
+        # Kullanıcı adı değişikliği kontrolü
+        new_username = request.form.get('username')
+        if new_username != user.username and User.query.filter_by(username=new_username).first():
+            flash('Bu kullanıcı adı zaten kullanılıyor.', 'error')
+            return redirect(url_for('admin.users_list'))
+        
+        # Email değişikliği kontrolü
+        new_email = request.form.get('email')
+        if new_email != user.email and User.query.filter_by(email=new_email).first():
+            flash('Bu e-posta adresi zaten kullanılıyor.', 'error')
+            return redirect(url_for('admin.users_list'))
+        
+        # Kullanıcı bilgilerini güncelle
+        user.username = new_username
+        user.email = new_email
+        user.role = request.form.get('role', user.role)
+        
+        # Şifre değişikliği varsa uygula
+        new_password = request.form.get('password')
+        if new_password:
+            user.set_password(new_password)
+        
+        db.session.commit()
+        flash('Kullanıcı başarıyla güncellendi.', 'success')
+        log_activity(f'Kullanıcı güncellendi: {user.username}', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Kullanıcı güncellenirken bir hata oluştu: {str(e)}', 'error')
+        log_activity('Kullanıcı güncelleme hatası', 'error', str(e))
+        
+    return redirect(url_for('admin.users_list'))
+
+@admin_bp.route('/users/<int:id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def user_delete(id):
+    """Kullanıcı sil"""
+    try:
+        user = User.query.get_or_404(id)
+        
+        # Kullanıcı kendisini silmeye çalışıyorsa engelle
+        if current_user.id == user.id:
+            flash('Kendinizi silemezsiniz.', 'error')
+            return redirect(url_for('admin.users_list'))
+        
+        username = user.username
+        db.session.delete(user)
+        db.session.commit()
+        
+        flash('Kullanıcı başarıyla silindi.', 'success')
+        log_activity(f'Kullanıcı silindi: {username}', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Kullanıcı silinirken bir hata oluştu: {str(e)}', 'error')
+        log_activity('Kullanıcı silme hatası', 'error', str(e))
+        
+    return redirect(url_for('admin.users_list'))
+
+@admin_bp.route('/template-editor')
+@login_required
+@admin_required
+def template_editor():
+    """Şablon düzenleyici sayfası"""
+    try:
+        # Aktif temayı al
+        settings = SiteSettings.query.first()
+        active_theme = settings.active_theme if settings else None
+        
+        # Tüm temaları al
+        themes = Theme.query.all()
+        
+        return render_template('admin/theme/template_editor.html',
+                            active_theme=active_theme,
+                            themes=themes,
+                            stats=get_admin_stats())
+    except Exception as e:
+        current_app.logger.error(f"Şablon düzenleyici gösterilirken hata: {str(e)}")
+        flash(f"Şablon düzenleyici yüklenirken bir hata oluştu: {str(e)}", "danger")
+        return redirect(url_for('admin.index'))
+
+@admin_bp.route('/template-editor/save', methods=['POST'])
+@login_required
+@admin_required
+def save_template():
+    """Şablon değişikliklerini kaydet"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'Veri bulunamadı'}), 400
+            
+        content = data.get('content')
+        section = data.get('section')
+        content_type = data.get('type')
+        
+        if not all([content, section, content_type]):
+            return jsonify({'error': 'Eksik parametreler'}), 400
+            
+        # Aktif temayı al
+        settings = SiteSettings.query.first()
+        if not settings or not settings.active_theme:
+            return jsonify({'error': 'Aktif tema bulunamadı'}), 404
+            
+        theme = Theme.query.get(settings.active_theme)
+        if not theme:
+            return jsonify({'error': 'Tema bulunamadı'}), 404
+            
+        # Tema içeriğini güncelle
+        if content_type == 'html':
+            theme.template = json.dumps(content)
+        elif content_type == 'css':
+            theme.css = json.dumps(content)
+        elif content_type == 'js':
+            theme.js = json.dumps(content)
+            
+        db.session.commit()
+        
+        # Aktiviteyi logla
+        log_activity(f"Tema şablonu güncellendi: {section} - {content_type}")
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Şablon kaydedilirken hata: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/template-editor/preview')
+@login_required
+@admin_required
+def preview_template():
+    """Şablon önizleme sayfası"""
+    try:
+        # Aktif temayı al
+        settings = SiteSettings.query.first()
+        if not settings or not settings.active_theme:
+            flash('Aktif tema bulunamadı.', 'error')
+            return redirect(url_for('admin.template_editor'))
+            
+        theme = Theme.query.get(settings.active_theme)
+        if not theme:
+            flash('Tema bulunamadı.', 'error')
+            return redirect(url_for('admin.template_editor'))
+            
+        # Tema içeriğini yükle
+        template_content = json.loads(theme.template) if theme.template else {}
+        css_content = json.loads(theme.css) if theme.css else {}
+        js_content = json.loads(theme.js) if theme.js else {}
+        
+        return render_template('admin/theme/preview.html',
+                            template=template_content,
+                            css=css_content,
+                            js=js_content)
+                            
+    except Exception as e:
+        current_app.logger.error(f"Şablon önizleme gösterilirken hata: {str(e)}")
+        flash(f"Şablon önizleme yüklenirken bir hata oluştu: {str(e)}", "danger")
+        return redirect(url_for('admin.template_editor'))
+
+@admin_bp.route('/settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def settings():
+    """Site ayarları sayfası"""
+    try:
+        settings = SiteSettings.query.first()
+        if not settings:
+            settings = SiteSettings(
+                site_title='KolayCMS',
+                site_description='Modern ve Kolay Yönetilebilir İçerik Yönetim Sistemi',
+                theme_version='1.0',
+                theme_name='default',
+                is_customized=False
+            )
+            db.session.add(settings)
+            db.session.commit()
+            
+        if request.method == 'POST':
+            # Genel ayarlar
+            settings.site_title = request.form.get('site_title')
+            settings.site_description = request.form.get('site_description')
+            settings.meta_keywords = request.form.get('meta_keywords')
+            settings.meta_description = request.form.get('meta_description')
+            settings.google_analytics = request.form.get('google_analytics')
+            settings.facebook_pixel = request.form.get('facebook_pixel')
+            settings.custom_css = request.form.get('custom_css')
+            settings.custom_js = request.form.get('custom_js')
+            
+            # Logo yükleme
+            if 'logo' in request.files and request.files['logo'].filename:
+                logo = request.files['logo']
+                if logo and allowed_file(logo.filename):
+                    # Eski logoyu sil
+                    if settings.logo_path and os.path.exists(os.path.join(current_app.static_folder, settings.logo_path)):
+                        os.remove(os.path.join(current_app.static_folder, settings.logo_path))
+                    
+                    # Yeni logoyu kaydet
+                    filename = secure_filename(logo.filename)
+                    logo_path = os.path.join('uploads', 'logos', filename)
+                    os.makedirs(os.path.join(current_app.static_folder, 'uploads', 'logos'), exist_ok=True)
+                    logo.save(os.path.join(current_app.static_folder, logo_path))
+                    settings.logo_path = logo_path
+            
+            # Favicon yükleme
+            if 'favicon' in request.files and request.files['favicon'].filename:
+                favicon = request.files['favicon']
+                if favicon and allowed_file(favicon.filename):
+                    # Eski favicon'u sil
+                    if settings.favicon_path and os.path.exists(os.path.join(current_app.static_folder, settings.favicon_path)):
+                        os.remove(os.path.join(current_app.static_folder, settings.favicon_path))
+                    
+                    # Yeni favicon'u kaydet
+                    filename = secure_filename(favicon.filename)
+                    favicon_path = os.path.join('uploads', 'favicon', filename)
+                    os.makedirs(os.path.join(current_app.static_folder, 'uploads', 'favicon'), exist_ok=True)
+                    favicon.save(os.path.join(current_app.static_folder, favicon_path))
+                    settings.favicon_path = favicon_path
+            
+            # İletişim bilgileri
+            settings.contact_email = request.form.get('contact_email')
+            settings.contact_phone = request.form.get('contact_phone')
+            settings.contact_address = request.form.get('contact_address')
+            settings.contact_map = request.form.get('contact_map')
+            
+            # Sosyal medya
+            settings.facebook_url = request.form.get('facebook_url')
+            settings.twitter_url = request.form.get('twitter_url')
+            settings.instagram_url = request.form.get('instagram_url')
+            settings.linkedin_url = request.form.get('linkedin_url')
+            settings.youtube_url = request.form.get('youtube_url')
+            
+            # SMTP ayarları
+            settings.smtp_host = request.form.get('smtp_host')
+            settings.smtp_port = request.form.get('smtp_port')
+            settings.smtp_user = request.form.get('smtp_user')
+            settings.smtp_pass = request.form.get('smtp_pass')
+            settings.smtp_from_name = request.form.get('smtp_from_name')
+            settings.smtp_from_email = request.form.get('smtp_from_email')
+            
+            db.session.commit()
+            flash('Ayarlar başarıyla güncellendi.', 'success')
+            log_activity('Site ayarları güncellendi', 'success')
+            return redirect(url_for('admin.settings'))
+            
+        return render_template('admin/settings.html',
+                             settings=settings,
+                             stats=get_admin_stats())
+                             
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Site ayarları gösterilirken hata: {str(e)}")
+        flash(f"Site ayarları yüklenirken bir hata oluştu: {str(e)}", "danger")
+        return redirect(url_for('admin.index'))

@@ -1,55 +1,50 @@
 {% extends "main/base.html" %}
 
+{% block title %}{{ site_settings.site_title }} - İletişim{% endblock %}
+
 {% block content %}
 <!-- contact section start -->
-<div class="contact_section py-5">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-8 text-center">
-                <h1 class="display-4 text-white mb-3">{{ page.title if page and page.title else 'İletişim' }}</h1>
-                <p class="lead text-white mb-5">{{ page.content|striptags if page and page.content else 'Bizimle iletişime geçin' }}</p>
+<div class="contact_section layout_padding">
+   <div class="container">
+      <h1 class="contact_taital">İletişime Geçin</h1>
+      <div class="contact_section_2">
+         <div class="row">
+            <div class="col-md-6">
+               <div class="mail_section_1">
+                  <form action="{{ url_for('main.contact') }}" method="post">
+                     {{ form.csrf_token }}
+                     <div class="form-group">
+                        <input type="text" class="mail_text" placeholder="Ad Soyad" name="name" required>
+                     </div>
+                     <div class="form-group">
+                        <input type="text" class="mail_text" placeholder="Telefon Numarası" name="phone">
+                     </div>
+                     <div class="form-group">
+                        <input type="email" class="mail_text" placeholder="E-posta Adresi" name="email" required>
+                     </div>
+                     <div class="form-group">
+                        <textarea class="massage-bt" placeholder="Mesajınız" rows="5" name="message" required></textarea>
+                     </div>
+                     <div class="send_bt">
+                        <button type="submit" class="btn btn-primary">Gönder</button>
+                     </div>
+                  </form>
+               </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body p-4">
-                        <form id="contact-form" method="post">
-                            {{ form.csrf_token }}
-                            <div class="mb-3">
-                                {{ form.name(class="form-control form-control-lg", placeholder="Adınız Soyadınız") }}
-                            </div>
-                            <div class="mb-3">
-                                {{ form.email(class="form-control form-control-lg", placeholder="E-posta Adresiniz") }}
-                            </div>
-                            <div class="mb-3">
-                                {{ form.phone(class="form-control form-control-lg", placeholder="Telefon Numaranız") }}
-                            </div>
-                            <div class="mb-4">
-                                {{ form.message(class="form-control form-control-lg", placeholder="Mesajınız", rows=5) }}
-                            </div>
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-lg">Gönder</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+            <div class="col-md-6">
+               <div class="map_main">
+                  <div class="map-responsive">
+                     {% if contact_info and contact_info.map_embed %}
+                        {{ contact_info.map_embed|safe }}
+                     {% else %}
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3008.9633698339308!2d28.979530776854755!3d41.03684491790788!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14cab7650656bd63%3A0x8ca058b28c20b6c3!2zVGFrc2ltIE1leWRhbsSxLCBHw7xtw7zFn3N1eXUsIDM0NDM1IEJleW_En2x1L8Swc3RhbmJ1bA!5e0!3m2!1str!2str!4v1701234567890!5m2!1str!2str" width="600" height="400" frameborder="0" style="border:0; width: 100%;" allowfullscreen></iframe>
+                     {% endif %}
+                  </div>
+               </div>
             </div>
-            <div class="col-lg-6">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body p-0">
-                        <div class="map-responsive">
-                            {% if contact_info and contact_info.google_maps_embed %}
-                            {{ contact_info.google_maps_embed|safe }}
-                            {% else %}
-                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3019.9625874562394!2d29.0213233!3d41.0250823!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDHCsDAxJzMwLjMiTiAyOcKwMDEnMTYuOCJF!5e0!3m2!1str!2str!4v1625000000000!5m2!1str!2str" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+         </div>
+      </div>
+   </div>
 </div>
 <!-- contact section end -->
 {% endblock %}
@@ -57,45 +52,87 @@
 {% block scripts %}
 <style>
 .contact_section {
-    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url("{{ url_for('static', filename='cobsin_template/images/contact-bg.png') }}");
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
+   background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url("{{ url_for('static', filename='cobsin_template/images/contact-bg.png') }}");
+   background-size: cover;
+   background-position: center;
+   background-attachment: fixed;
+   padding: 90px 0;
+   color: #ffffff;
 }
 
-.map-responsive {
-    overflow: hidden;
-    padding-bottom: 100%;
-    position: relative;
-    height: 0;
+.contact_taital {
+   font-size: 40px;
+   font-weight: bold;
+   color: #ffffff;
+   margin-bottom: 40px;
+   text-align: center;
 }
 
-.map-responsive iframe {
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 100%;
-    position: absolute;
-    border-radius: 0.25rem;
+.mail_text {
+   width: 100%;
+   float: left;
+   font-size: 16px;
+   color: #2a2a2a;
+   border: 1px solid #e1e1e1;
+   background-color: #ffffff;
+   padding: 15px;
+   margin-bottom: 20px;
+   border-radius: 5px;
 }
 
-.form-control {
-    border: 1px solid #dee2e6;
+.massage-bt {
+   width: 100%;
+   float: left;
+   font-size: 16px;
+   color: #2a2a2a;
+   border: 1px solid #e1e1e1;
+   background-color: #ffffff;
+   padding: 15px;
+   height: 150px;
+   margin-bottom: 20px;
+   border-radius: 5px;
 }
 
-.form-control:focus {
-    border-color: #80bdff;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+.send_bt {
+   margin-top: 20px;
 }
 
 .btn-primary {
-    background-color: #13a25d;
-    border-color: #13a25d;
+   background-color: #13a25d;
+   border-color: #13a25d;
+   padding: 12px 40px;
+   font-size: 16px;
+   font-weight: 500;
+   border-radius: 5px;
 }
 
 .btn-primary:hover {
-    background-color: #0f8c4f;
-    border-color: #0f8c4f;
+   background-color: #0f8c4f;
+   border-color: #0f8c4f;
+}
+
+.map-responsive {
+   overflow: hidden;
+   padding-bottom: 100%;
+   position: relative;
+   height: 0;
+   border-radius: 5px;
+   box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.map-responsive iframe {
+   left: 0;
+   top: 0;
+   height: 100%;
+   width: 100%;
+   position: absolute;
+   border-radius: 5px;
+}
+
+@media (max-width: 767px) {
+   .map_main {
+      margin-top: 40px;
+   }
 }
 </style>
-{% endblock %}
+{% endblock %} 

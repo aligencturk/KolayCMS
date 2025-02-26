@@ -1,7 +1,142 @@
+/* Slider Stilleri */
 .banner_section {
-    height: var(--slider-height, 600px);
+    position: relative;
+    height: var(--slider-height);
+    overflow: hidden;
+    background-color: var(--banner-bg-color);
 }
 
 .carousel-item {
-    transition-duration: var(--animation-speed, 600ms);
+    height: var(--slider-height);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.banner_main {
+    position: relative;
+    z-index: 1;
+    padding: 100px 0;
+    text-align: center;
+    color: var(--banner-text-color);
+}
+
+.banner_taital {
+    font-size: 48px;
+    color: var(--banner-title-color);
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.banner_text {
+    font-size: 18px;
+    color: var(--banner-text-color);
+    margin-bottom: 40px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.btn_main {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.contact_bt {
+    display: inline-block;
+}
+
+.contact_bt a {
+    display: inline-block;
+    padding: 12px 45px;
+    background-color: var(--banner-button-bg-color);
+    color: var(--banner-button-text-color) !important;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.contact_bt a:hover {
+    background-color: var(--banner-button-hover-bg-color);
+    color: var(--banner-button-hover-text-color) !important;
+    transform: translateY(-2px);
+}
+
+/* Carousel Kontrolleri */
+.carousel-control-prev,
+.carousel-control-next {
+    width: 50px;
+    height: 50px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.carousel-control-prev {
+    left: 20px;
+}
+
+.carousel-control-next {
+    right: 20px;
+}
+
+.banner_section:hover .carousel-control-prev,
+.banner_section:hover .carousel-control-next {
+    opacity: 1;
+}
+
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Carousel İndikatörleri */
+.carousel-indicators {
+    bottom: 20px;
+}
+
+.carousel-indicators [data-bs-target] {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--banner-indicator-color);
+    border: 2px solid #fff;
+    opacity: 0.5;
+    transition: all 0.3s ease;
+}
+
+.carousel-indicators .active {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+/* Responsive Ayarlar */
+@media (max-width: 991px) {
+    .banner_taital {
+        font-size: 36px;
+    }
+    
+    .banner_text {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 767px) {
+    .banner_taital {
+        font-size: 28px;
+    }
+    
+    .banner_text {
+        font-size: 14px;
+    }
+    
+    .contact_bt a {
+        padding: 10px 30px;
+    }
 } 

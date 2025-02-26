@@ -1,0 +1,155 @@
+{% extends 'admin/master.html' %}
+
+{% block title %}Menü Düzenle - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-edit"></i> Menü Düzenle
+        </h1>
+        <a href="{{ url_for('admin.menus') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Geri Dön
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.menu_edit', id=menu.id) }}" 
+                          id="menuForm" 
+                          data-menu-id="{{ menu.id }}" 
+                          data-menu-parent-id="{{ menu.parent_id|default('0', true) }}"
+                          data-parent-menus="{{ parent_menus|tojson|safe }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Menü Başlığı</label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                   value="{{ menu.title }}" required autofocus>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="url" class="form-label">URL</label>
+                            <input type="text" class="form-control" id="url" name="url" 
+                                   value="{{ menu.url }}" placeholder="örn: /hakkimizda veya https://example.com">
+                            <div class="form-text">
+                                İç linkler için sadece yolu yazın (örn: /iletisim), dış linkler için tam URL yazın.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="page_id" class="form-label">Sayfa Seçimi</label>
+                            <select class="form-select" id="page_id" name="page_id">
+                                <option value="">Sayfa seçin (isteğe bağlı)</option>
+                                {% for page in pages %}
+                                <option value="{{ page.id }}" data-slug="/page/{{ page.slug }}" {% if menu.url == '/page/' + page.slug %}selected{% endif %}>
+                                    {{ page.title }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">
+                                Bir sayfa seçerseniz, URL otomatik olarak güncellenecektir.
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="menu_type" class="form-label">Menü Tipi</label>
+                                    <select class="form-select" id="menu_type" name="menu_type" required>
+                                        <option value="header" {% if menu.menu_type == 'header' %}selected{% endif %}>Header Menüsü</option>
+                                        <option value="footer" {% if menu.menu_type == 'footer' %}selected{% endif %}>Footer Menüsü</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="parent_id" class="form-label">Üst Menü</label>
+                                    <select class="form-select" id="parent_id" name="parent_id">
+                                        <option value="0" {% if menu.parent_id is none %}selected{% endif %}>Ana Menü (Üst menü yok)</option>
+                                        {% for parent in parent_menus %}
+                                        <option value="{{ parent.id }}" {% if menu.parent_id == parent.id %}selected{% endif %}>{{ parent.title }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="order" class="form-label">Sıralama</label>
+                            <input type="number" class="form-control" id="order" name="order" 
+                                   value="{{ menu.order }}" min="0">
+                            <div class="form-text">
+                                Menülerin görüntülenme sırası (küçük değerler önce gösterilir).
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Değişiklikleri Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const menuForm = document.getElementById('menuForm');
+    const menuId = parseInt(menuForm.dataset.menuId);
+    const menuParentId = menuForm.dataset.menuParentId;
+    const parentMenus = JSON.parse(menuForm.dataset.parentMenus);
+    
+    const menuTypeSelect = document.getElementById('menu_type');
+    const parentSelect = document.getElementById('parent_id');
+    const pageSelect = document.getElementById('page_id');
+    const urlInput = document.getElementById('url');
+    
+    // Sayfa seçildiğinde URL'yi otomatik güncelle
+    pageSelect.addEventListener('change', function() {
+        const selectedOption = pageSelect.options[pageSelect.selectedIndex];
+        if (selectedOption.value) {
+            urlInput.value = selectedOption.dataset.slug;
+        }
+    });
+    
+    // Menü tipi değiştiğinde uygun üst menüleri göster
+    menuTypeSelect.addEventListener('change', function() {
+        updateParentOptions();
+    });
+    
+    function updateParentOptions() {
+        const menuType = menuTypeSelect.value;
+        const options = parentSelect.options;
+        
+        // İlk seçeneği her zaman tut (Ana Menü)
+        while (options.length > 1) {
+            options.remove(1);
+        }
+        
+        // Seçilen tipe göre üst menüleri ekle
+        for (const parent of parentMenus) {
+            if (parent.menu_type === menuType && parent.id !== menuId) {
+                const option = new Option(parent.title, parent.id);
+                if (parent.id.toString() === menuParentId.toString()) {
+                    option.selected = true;
+                }
+                parentSelect.add(option);
+            }
+        }
+    }
+    
+    // Sayfa yüklendiğinde çalıştır
+    updateParentOptions();
+});
+</script>
+{% endblock %} 

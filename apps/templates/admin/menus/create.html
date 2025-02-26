@@ -1,0 +1,68 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Yeni Menü{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Yeni Menü</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Panel</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.menus_list') }}">Menüler</a></li>
+        <li class="breadcrumb-item active">Yeni Menü</li>
+    </ol>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-plus me-1"></i>
+            Yeni Menü Oluştur
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="mb-3">
+                    <label for="title" class="form-label">Başlık</label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="url" class="form-label">URL</label>
+                    <input type="text" class="form-control" id="url" name="url" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="menu_type" class="form-label">Menü Konumu</label>
+                    <select class="form-select" id="menu_type" name="menu_type" required>
+                        <option value="header">Üst Menü</option>
+                        <option value="footer">Alt Menü</option>
+                        <option value="sidebar">Yan Menü</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="position" class="form-label">Sıra</label>
+                    <input type="number" class="form-control" id="position" name="position" value="0" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="parent_id" class="form-label">Üst Menü</label>
+                    <select class="form-select" id="parent_id" name="parent_id">
+                        <option value="">Ana Menü</option>
+                        {% for menu in parent_menus %}
+                        <option value="{{ menu.id }}">{{ menu.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active" checked>
+                    <label class="form-check-label" for="is_active">Aktif</label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Kaydet</button>
+                <a href="{{ url_for('admin.menus_list') }}" class="btn btn-secondary">İptal</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

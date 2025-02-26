@@ -1,0 +1,127 @@
+{% extends "admin/master.html" %}
+
+{% block title %}İletişim Bilgileri - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-address-book"></i> İletişim Bilgileri
+        </h1>
+        <a href="{{ url_for('admin.settings') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Ayarlar Menüsüne Dön
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">İletişim Bilgilerinizi Düzenleyin</h6>
+                </div>
+                <div class="card-body">
+                    {% include 'admin/partials/messages.html' %}
+                    
+                    <form method="POST" action="{{ url_for('admin.settings_contact') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Adres</label>
+                                    <textarea class="form-control" id="address" name="address" 
+                                              rows="3">{{ contact_info.address if contact_info else '' }}</textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Telefon</label>
+                                    <input type="text" class="form-control" id="phone" name="phone" 
+                                           value="{{ contact_info.phone if contact_info else '' }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">E-posta</label>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           value="{{ contact_info.email if contact_info else '' }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="working_hours" class="form-label">Çalışma Saatleri</label>
+                                    <input type="text" class="form-control" id="working_hours" name="working_hours" 
+                                           value="{{ contact_info.working_hours if contact_info else '' }}"
+                                           placeholder="Örn: Pazartesi-Cuma: 09:00-18:00">
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label for="google_maps_embed" class="form-label">Google Harita Kodu</label>
+                                    <textarea class="form-control" id="google_maps_embed" name="google_maps_embed" 
+                                              rows="5" placeholder="<iframe src='...'></iframe>">{{ contact_info.google_maps_embed if contact_info else '' }}</textarea>
+                                    <div class="form-text">
+                                        Google Haritalar'dan aldığınız iframe kodunu yapıştırın
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="contact_form_email" class="form-label">İletişim Formu E-postası</label>
+                                    <input type="email" class="form-control" id="contact_form_email" name="contact_form_email" 
+                                           value="{{ contact_info.contact_form_email if contact_info else '' }}"
+                                           placeholder="İletişim formundan gelen mesajların gönderileceği e-posta">
+                                    <div class="form-text">
+                                        İletişim formundan gelen mesajların gönderileceği e-posta adresi
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="whatsapp" class="form-label">WhatsApp Numarası</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">+90</span>
+                                        <input type="text" class="form-control" id="whatsapp" name="whatsapp" 
+                                               value="{{ contact_info.whatsapp if contact_info else '' }}"
+                                               placeholder="5XX XXX XX XX">
+                                    </div>
+                                    <div class="form-text">
+                                        WhatsApp iletişim butonu için kullanılacak numara
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Bilgileri Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            {% if contact_info and contact_info.google_maps_embed %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Harita Önizleme</h6>
+                </div>
+                <div class="card-body">
+                    <div class="embed-responsive">
+                        {{ contact_info.google_maps_embed|safe }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Form gönderildiğinde kullanıcıya bilgi ver
+    document.querySelector('form').addEventListener('submit', function() {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kaydediliyor...';
+        submitBtn.disabled = true;
+    });
+</script>
+{% endblock %} 

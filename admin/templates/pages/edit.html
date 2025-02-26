@@ -1,0 +1,142 @@
+{% extends 'admin/master.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Sayfayı Düzenle</h2>
+        </div>
+        <div class="col text-end">
+            <a href="{{ url_for('admin.content_pages_list') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" id="editPageForm">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    {{ form.title.label(class="form-label") }}
+                    {{ form.title(class="form-control") }}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.menu_title.label(class="form-label") }}
+                    {{ form.menu_title(class="form-control", placeholder="Boş bırakılırsa sayfa başlığı kullanılır") }}
+                    <small class="form-text text-muted">Menüde görünecek başlık. Boş bırakırsanız sayfa başlığı kullanılacaktır.</small>
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.slug.label(class="form-label") }}
+                    {{ form.slug(class="form-control") }}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.content.label(class="form-label") }}
+                    {{ form.content(class="form-control", rows="10") }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.meta_description.label(class="form-label") }}
+                    {{ form.meta_description(class="form-control") }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.meta_keywords.label(class="form-label") }}
+                    {{ form.meta_keywords(class="form-control") }}
+                </div>
+
+                {% if page.slug == 'contact' %}
+                <!-- İletişim Bilgileri -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">İletişim Bilgileri</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Adres</label>
+                            <input type="text" class="form-control" id="address" name="contact_info.address" 
+                                   value="{{ page.contact_info.address if page.contact_info else '' }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Telefon</label>
+                            <input type="text" class="form-control" id="phone" name="contact_info.phone" 
+                                   value="{{ page.contact_info.phone if page.contact_info else '' }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">E-posta</label>
+                            <input type="email" class="form-control" id="email" name="contact_info.email" 
+                                   value="{{ page.contact_info.email if page.contact_info else '' }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="working_hours" class="form-label">Çalışma Saatleri</label>
+                            <input type="text" class="form-control" id="working_hours" name="contact_info.working_hours" 
+                                   value="{{ page.contact_info.working_hours if page.contact_info else '' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="google_maps" class="form-label">Google Maps Embed Kodu</label>
+                            <textarea class="form-control" id="google_maps" name="contact_info.google_maps" rows="3">{{ page.contact_info.google_maps_embed if page.contact_info else '' }}</textarea>
+                        </div>
+
+                        <h5 class="mt-4">Sosyal Medya</h5>
+                        <div class="mb-3">
+                            <label for="facebook" class="form-label">Facebook</label>
+                            <input type="url" class="form-control" id="facebook" name="contact_info.facebook" 
+                                   value="{{ page.contact_info.facebook if page.contact_info else '' }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="twitter" class="form-label">Twitter</label>
+                            <input type="url" class="form-control" id="twitter" name="contact_info.twitter" 
+                                   value="{{ page.contact_info.twitter if page.contact_info else '' }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="instagram" class="form-label">Instagram</label>
+                            <input type="url" class="form-control" id="instagram" name="contact_info.instagram" 
+                                   value="{{ page.contact_info.instagram if page.contact_info else '' }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="linkedin" class="form-label">LinkedIn</label>
+                            <input type="url" class="form-control" id="linkedin" name="contact_info.linkedin" 
+                                   value="{{ page.contact_info.linkedin if page.contact_info else '' }}">
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="mb-3 form-check">
+                    {{ form.is_published(class="form-check-input") }}
+                    {{ form.is_published.label(class="form-check-label") }}
+                </div>
+                
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                    <a href="{{ url_for('admin.content_pages_list') }}" class="btn btn-secondary">İptal</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    ClassicEditor
+        .create(document.querySelector('#content'))
+        .catch(error => {
+            console.error(error);
+        });
+});
+</script>
+{% endblock %} 

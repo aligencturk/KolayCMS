@@ -9,7 +9,7 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'gizli-anahtar-buraya'
     
     # Veritabanı Yapılandırması
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///instance/kolaycms.db'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///kolaycms.db?cache=shared&journal_mode=WAL&synchronous=NORMAL'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_size': 10,
@@ -24,8 +24,9 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(days=1)
     
     # Upload Yapılandırması
-    UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/uploads')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max-limit
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
     
     # Cache Yapılandırması
     CACHE_TYPE = 'simple'
@@ -45,6 +46,11 @@ class Config:
     # CDN ayarları
     CDN_DOMAIN = os.getenv('CDN_DOMAIN')
     CDN_HTTPS = True
+    
+    # Flask-WTF
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_SECRET_KEY = os.environ.get('WTF_CSRF_SECRET_KEY') or 'csrf-secret-key'
+    WTF_CSRF_TIME_LIMIT = None
     
     @staticmethod
     def init_app(app):

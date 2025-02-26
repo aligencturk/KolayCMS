@@ -1,6 +1,10 @@
 from flask import render_template, send_from_directory
 from apps import app
-from apps.models import SiteSettings, Slider, AboutSection, Service, BlogPost, VideoSection
+from apps.models import SiteSettings, Slider, AboutSection, Service, BlogPost, VideoSection, Page
+from flask_sqlalchemy import SQLAlchemy
+import json
+
+db = SQLAlchemy()
 
 @app.route('/')
 def index():
@@ -22,7 +26,34 @@ def index():
 @app.route('/about')
 def about():
     settings = SiteSettings.query.first()
-    return render_template('main/about.html', settings=settings)
+    page = Page.query.filter_by(slug='about').first()
+    if not page:
+        page = Page(
+            title='Hakkımızda',
+            slug='about',
+            content='Hakkımızda sayfası içeriği',
+            is_published=True
+        )
+        db.session.add(page)
+        db.session.commit()
+    
+    about_section = AboutSection.query.first()
+    if not about_section:
+        about_section = AboutSection(
+            title='Hakkımızda',
+            subtitle='Profesyonel Çözümler',
+            content='Uzun yıllara dayanan tecrübemizle müşterilerimize en iyi hizmeti sunuyoruz.',
+            stats_items=json.dumps([
+                {'number': '1234', 'text': 'Mutlu Müşteri'},
+                {'number': '123', 'text': 'Tamamlanan Proje'},
+                {'number': '12', 'text': 'Yıllık Tecrübe'}
+            ]),
+            is_active=True
+        )
+        db.session.add(about_section)
+        db.session.commit()
+    
+    return render_template('main/about.html', settings=settings, page=page, about_section=about_section)
 
 @app.route('/services')
 def services():

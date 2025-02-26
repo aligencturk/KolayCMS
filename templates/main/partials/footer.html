@@ -1,0 +1,61 @@
+<!-- CobSin Tema - Footer Bölümü -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-info">
+                <div class="footer-logo">
+                    {% if settings.logo_url %}
+                    <img src="{{ settings.logo_url }}" alt="{{ settings.site_title }}">
+                    {% else %}
+                    <h3>{{ settings.site_title }}</h3>
+                    {% endif %}
+                </div>
+                <p class="footer-description">{{ settings.site_description }}</p>
+                <div class="social-links">
+                    {% if contact_info.facebook %}
+                    <a href="{{ contact_info.facebook }}" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                    {% endif %}
+                    {% if contact_info.twitter %}
+                    <a href="{{ contact_info.twitter }}" target="_blank"><i class="fab fa-twitter"></i></a>
+                    {% endif %}
+                    {% if contact_info.instagram %}
+                    <a href="{{ contact_info.instagram }}" target="_blank"><i class="fab fa-instagram"></i></a>
+                    {% endif %}
+                    {% if contact_info.linkedin %}
+                    <a href="{{ contact_info.linkedin }}" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>Hızlı Bağlantılar</h4>
+                <ul>
+                    <li><a href="/">Ana Sayfa</a></li>
+                    <li><a href="/hakkimizda">Hakkımızda</a></li>
+                    <li><a href="/hizmetler">Hizmetlerimiz</a></li>
+                    <li><a href="/blog">Blog</a></li>
+                    <li><a href="/iletisim">İletişim</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>İletişim Bilgileri</h4>
+                <ul>
+                    {% if contact_info.address %}
+                    <li><i class="fas fa-map-marker-alt"></i> {{ contact_info.address }}</li>
+                    {% endif %}
+                    {% if contact_info.phone %}
+                    <li><i class="fas fa-phone"></i> {{ contact_info.phone }}</li>
+                    {% endif %}
+                    {% if contact_info.email %}
+                    <li><i class="fas fa-envelope"></i> {{ contact_info.email }}</li>
+                    {% endif %}
+                    {% if contact_info.working_hours %}
+                    <li><i class="fas fa-clock"></i> {{ contact_info.working_hours }}</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; {{ now.year }} {{ settings.site_title }}. Tüm hakları saklıdır.</p>
+        </div>
+    </div>
+</footer> 

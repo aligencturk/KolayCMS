@@ -30,7 +30,7 @@ class User(UserMixin, db.Model):
     def is_admin(self):
         return self.role == 'admin'
 
-class SiteSetting(db.Model):
+class SiteSettings(db.Model):
     __tablename__ = 'site_settings'
     id = db.Column(db.Integer, primary_key=True)
     site_name = db.Column(db.String(100), nullable=False)
@@ -40,6 +40,8 @@ class SiteSetting(db.Model):
     site_favicon = db.Column(db.String(200))
     footer_text = db.Column(db.String(200))
     google_analytics = db.Column(db.String(50))
+    active_theme = db.Column(db.String(100), nullable=False, default='default')
+    theme_settings = db.Column(db.JSON)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -165,18 +167,6 @@ class Order(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user = db.relationship('User', backref=db.backref('orders', lazy=True))
-
-class Slide(db.Model):
-    __tablename__ = 'slides'
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200))
-    description = db.Column(db.Text)
-    image = db.Column(db.String(200))
-    link = db.Column(db.String(200))
-    order = db.Column(db.Integer, default=0)
-    is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class AboutSection(db.Model):
     __tablename__ = 'about_sections'

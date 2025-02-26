@@ -1,0 +1,41 @@
+<!-- CobSin Tema - Slider Bölümü -->
+<section class="slider-section">
+    <div class="slider-container">
+        {% if slides %}
+        <div class="slider">
+            {% for slide in slides %}
+            <div class="slide">
+                <div class="slide-image" style="background-image: url('{{ slide.image_url }}');">
+                    <div class="slide-content">
+                        <h2>{{ slide.title }}</h2>
+                        <p>{{ slide.description }}</p>
+                        {% if slide.button_text and slide.button_url %}
+                        <a href="{{ slide.button_url }}" class="btn btn-primary">{{ slide.button_text }}</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="slider-controls">
+            <button class="slider-prev"><i class="fas fa-chevron-left"></i></button>
+            <button class="slider-next"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="slider-dots">
+            {% for slide in slides %}
+            <span class="dot {% if loop.first %}active{% endif %}"></span>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="slide">
+            <div class="slide-image" style="background-image: url('/static/img/default-slide.jpg');">
+                <div class="slide-content">
+                    <h2>Cobsin Temasına Hoş Geldiniz</h2>
+                    <p>Modern ve profesyonel web sitesi teması</p>
+                    <a href="/iletisim" class="btn btn-primary">Bize Ulaşın</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section> 

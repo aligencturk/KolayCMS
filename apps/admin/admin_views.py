@@ -5,8 +5,8 @@ from flask_admin import BaseView, expose, Admin, AdminIndexView
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, BooleanField
 from wtforms.validators import DataRequired
-from app import db
-from models import (
+from apps import db
+from apps.models import (
     User, SiteSettings, Page, Widget, Menu, Content,
     ActivityLog, Theme, Product, Category, Order
 )
@@ -130,10 +130,13 @@ class SiteSettingsView(AdminModelView):
 
 # Menü yönetimi
 class MenuView(AdminModelView):
-    column_list = ['name', 'parent_id', 'url', 'position', 'is_mega_menu']
-    form_columns = ['name', 'parent_id', 'url', 'position', 'settings', 'is_mega_menu']
-    column_searchable_list = ['name']
-    column_filters = ['is_mega_menu']
+    column_list = ['title', 'url', 'order', 'parent_id', 'menu_type', 'is_active']
+    form_columns = ['title', 'url', 'order', 'parent_id', 'menu_type', 'icon', 'permission', 'css_class', 'is_active']
+    column_searchable_list = ['title', 'url']
+    column_filters = ['menu_type', 'is_active']
+
+    def __init__(self):
+        super(MenuView, self).__init__(Menu, db.session)
 
 # Tema yönetimi
 class ThemeView(AdminModelView):
@@ -228,4 +231,16 @@ def page_edit(id):
             flash('Sayfa güncellenirken bir hata oluştu.', 'error')
             current_app.logger.error(f'Sayfa güncellenirken hata: {str(e)}')
     
-    return render_template('admin/pages/edit.html', page=page, form=form) 
+    return render_template('admin/pages/edit.html', page=page, form=form)
+
+def init_admin(admin):
+    # Admin görünümlerini kaydet
+    admin.add_view(MenuView())
+    admin.add_view(PageView(db.session))
+    admin.add_view(WidgetView(db.session))
+    admin.add_view(SiteSettingsView(db.session))
+    admin.add_view(ThemeView(db.session))
+    admin.add_view(ActivityLogView(db.session))
+    admin.add_view(ProductView(db.session))
+    admin.add_view(CategoryView(db.session))
+    admin.add_view(OrderView(db.session)) 

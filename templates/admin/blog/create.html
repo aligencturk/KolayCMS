@@ -1,0 +1,207 @@
+{% extends "admin/master.html" %}
+
+{% block title %}Yeni Blog Yazısı - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-blog me-2"></i> Yeni Blog Yazısı
+        </h1>
+        <a href="{{ url_for('admin.blog_posts_list') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Blog Yazılarına Dön
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Yazı Detayları</h6>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('admin.blog_post_create') }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Başlık</label>
+                            <input type="text" class="form-control" id="title" name="title" required 
+                                   placeholder="Blog yazısı başlığı" autofocus>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="slug" class="form-label">Slug (URL)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">/blog/</span>
+                                <input type="text" class="form-control" id="slug" name="slug" 
+                                       placeholder="Otomatik oluşturulacak veya özel değer girin">
+                            </div>
+                            <div class="form-text">Boş bırakırsanız başlıktan otomatik oluşturulur.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="excerpt" class="form-label">Özet</label>
+                            <textarea class="form-control" id="excerpt" name="excerpt" rows="3" 
+                                      placeholder="Yazınızın kısa özeti (isteğe bağlı)"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Kapak Görseli</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                            <div class="form-text">Önerilen boyut: 1200x630px</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="card mt-3">
+                                <div class="card-body">
+                                    <div class="image-preview text-center p-3 bg-light rounded">
+                                        <img id="imagePreview" src="" alt="Görsel Önizleme" style="max-width: 100%; max-height: 200px; display: none;">
+                                        <div id="noImageText" class="text-muted">
+                                            <i class="fas fa-image fa-4x mb-2"></i>
+                                            <p>Görsel önizlemesi</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_published" name="is_published" checked>
+                                <label class="form-check-label" for="is_published">Hemen Yayınla</label>
+                            </div>
+                            <div class="form-text">Kapalıysa taslak olarak kaydedilir.</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="content" class="form-label">İçerik</label>
+                    <textarea class="form-control summernote" id="content" name="content" rows="10" required></textarea>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Kaydet
+                    </button>
+                    <div>
+                        <a href="{{ url_for('admin.blog_posts_list') }}" class="btn btn-secondary me-2">
+                            <i class="fas fa-times me-1"></i> İptal
+                        </a>
+                        <button type="submit" name="save_draft" value="1" class="btn btn-warning">
+                            <i class="fas fa-save me-1"></i> Taslak Olarak Kaydet
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Başlıktan slug oluşturma
+    const titleInput = document.getElementById('title');
+    const slugInput = document.getElementById('slug');
+    
+    titleInput.addEventListener('keyup', function() {
+        if (slugInput.value === '') {
+            slugInput.value = slugify(this.value);
+        }
+    });
+    
+    // Slug fonksiyonu
+    function slugify(text) {
+        return text
+            .toString()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, '-')
+            .replace(/[^\w-]+/g, '')
+            .replace(/--+/g, '-');
+    }
+    
+    // Görsel önizleme
+    const imageInput = document.getElementById('image');
+    const imagePreview = document.getElementById('imagePreview');
+    const noImageText = document.getElementById('noImageText');
+    
+    imageInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block';
+                noImageText.style.display = 'none';
+            }
+            reader.readAsDataURL(this.files[0]);
+        } else {
+            imagePreview.style.display = 'none';
+            noImageText.style.display = 'block';
+        }
+    });
+    
+    // Summernote editörü başlat
+    if (typeof $.fn.summernote !== 'undefined') {
+        $('.summernote').summernote({
+            height: 300,
+            placeholder: 'İçeriğinizi buraya yazın...',
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'underline', 'clear']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['table', ['table']],
+                ['insert', ['link', 'picture', 'video']],
+                ['view', ['fullscreen', 'codeview', 'help']]
+            ],
+            lang: 'tr-TR',
+            callbacks: {
+                onImageUpload: function(files) {
+                    // Burada resim yükleme işlemi yapılabilir
+                    for (let i = 0; i < files.length; i++) {
+                        sendFile(files[i], this);
+                    }
+                }
+            }
+        });
+    } else {
+        console.warn('Summernote yüklenemedi. Basit metin alanı kullanılıyor.');
+    }
+    
+    // Summernote resim yükleme fonksiyonu
+    function sendFile(file, editor) {
+        const data = new FormData();
+        data.append("file", file);
+        data.append("csrf_token", "{{ csrf_token() }}");
+        
+        fetch('/admin/upload-image', {
+            method: "POST",
+            body: data,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                $(editor).summernote('insertImage', data.url);
+            } else {
+                console.error('Resim yükleme hatası:', data.message);
+                alert('Resim yüklenirken bir hata oluştu: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Resim yükleme hatası:', error);
+            alert('Resim yüklenirken bir hata oluştu.');
+        });
+    }
+});
+</script>
+{% endblock %} 

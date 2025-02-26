@@ -1,17 +1,273 @@
 {% extends "main/base.html" %}
 
+{% block title %}{{ site_settings.site_title }} - Etkinlikler{% endblock %}
+
 {% block content %}
 <!-- events section start -->
 <div class="events_section layout_padding">
-    <div class="container">
-        <h1 class="events_taital">Follow Our Video For Solved Your Problem</h1>
-        <div class="events_section_2">
-            <div class="events_bg">
-                <div class="play_icon"><a href="#"><img src="{{ url_for('static', filename='main/images/play-icon.png') }}"></a></div>
+   <div class="container">
+      <div class="row">
+         <div class="col-md-12">
+            <h1 class="events_taital">Etkinliklerimiz</h1>
+            <p class="events_text">Yaklaşan ve geçmiş etkinliklerimizi keşfedin</p>
+         </div>
+      </div>
+      
+      <div class="row mt-5">
+         {% if events %}
+            {% for event in events %}
+               <div class="col-md-6 mb-4">
+                  <div class="event_box">
+                     <div class="event_img">
+                        <img src="{{ event.image_url or url_for('static', filename='cobsin_template/images/event-img.png') }}" alt="{{ event.title }}">
+                        <div class="event_date">
+                           <span class="date">{{ event.date.strftime('%d') }}</span>
+                           <span class="month">{{ event.date.strftime('%b') }}</span>
+                        </div>
+                     </div>
+                     <div class="event_content">
+                        <h3 class="event_title">{{ event.title }}</h3>
+                        <div class="event_meta">
+                           <span><i class="fa fa-clock-o"></i> {{ event.time }}</span>
+                           <span><i class="fa fa-map-marker"></i> {{ event.location }}</span>
+                        </div>
+                        <p class="event_description">{{ event.description|truncate(150) }}</p>
+                        {% if event.button_text and event.button_url %}
+                           <div class="read_bt"><a href="{{ event.button_url }}">{{ event.button_text }}</a></div>
+                        {% else %}
+                           <div class="read_bt"><a href="{{ url_for('main.event_detail', slug=event.slug) }}">Detaylar</a></div>
+                        {% endif %}
+                     </div>
+                  </div>
+               </div>
+               {% if loop.index is divisibleby 2 and not loop.last %}
+                  </div><div class="row mt-4">
+               {% endif %}
+            {% endfor %}
+         {% else %}
+            <div class="col-md-12">
+               <div class="no_events">
+                  <p>Şu anda planlanmış etkinlik bulunmamaktadır.</p>
+                  <p>Lütfen daha sonra tekrar kontrol edin veya bültenimize abone olun.</p>
+               </div>
             </div>
-        </div>
-        <div class="seemore_bt"><a href="#">See More</a></div>
-    </div>
+         {% endif %}
+      </div>
+      
+      {% if events and events|length > 6 %}
+      <div class="row mt-4">
+         <div class="col-md-12">
+            <div class="pagination_container">
+               <nav aria-label="Etkinlik sayfaları">
+                  <ul class="pagination justify-content-center">
+                     {% if pagination.has_prev %}
+                        <li class="page-item">
+                           <a class="page-link" href="{{ url_for('main.events', page=pagination.prev_num) }}" aria-label="Önceki">
+                              <span aria-hidden="true">&laquo;</span>
+                           </a>
+                        </li>
+                     {% else %}
+                        <li class="page-item disabled">
+                           <span class="page-link" aria-hidden="true">&laquo;</span>
+                        </li>
+                     {% endif %}
+                     
+                     {% for page in pagination.iter_pages() %}
+                        {% if page %}
+                           <li class="page-item {% if page == pagination.page %}active{% endif %}">
+                              <a class="page-link" href="{{ url_for('main.events', page=page) }}">{{ page }}</a>
+                           </li>
+                        {% else %}
+                           <li class="page-item disabled">
+                              <span class="page-link">...</span>
+                           </li>
+                        {% endif %}
+                     {% endfor %}
+                     
+                     {% if pagination.has_next %}
+                        <li class="page-item">
+                           <a class="page-link" href="{{ url_for('main.events', page=pagination.next_num) }}" aria-label="Sonraki">
+                              <span aria-hidden="true">&raquo;</span>
+                           </a>
+                        </li>
+                     {% else %}
+                        <li class="page-item disabled">
+                           <span class="page-link" aria-hidden="true">&raquo;</span>
+                        </li>
+                     {% endif %}
+                  </ul>
+               </nav>
+            </div>
+         </div>
+      </div>
+      {% endif %}
+   </div>
 </div>
 <!-- events section end -->
+{% endblock %}
+
+{% block scripts %}
+<style>
+.events_section {
+   padding: 90px 0;
+}
+
+.events_taital {
+   font-size: 40px;
+   color: #252525;
+   font-weight: bold;
+   text-align: center;
+   margin-bottom: 20px;
+}
+
+.events_text {
+   font-size: 16px;
+   color: #555555;
+   text-align: center;
+   margin-bottom: 50px;
+}
+
+.event_box {
+   background-color: #ffffff;
+   border-radius: 10px;
+   overflow: hidden;
+   box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+   margin-bottom: 30px;
+   transition: all 0.3s ease;
+   height: 100%;
+   display: flex;
+   flex-direction: column;
+}
+
+.event_box:hover {
+   transform: translateY(-5px);
+   box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.event_img {
+   position: relative;
+}
+
+.event_img img {
+   width: 100%;
+   height: 250px;
+   object-fit: cover;
+}
+
+.event_date {
+   position: absolute;
+   top: 20px;
+   left: 20px;
+   background-color: #13a25d;
+   color: #ffffff;
+   text-align: center;
+   padding: 10px 15px;
+   border-radius: 5px;
+}
+
+.event_date .date {
+   display: block;
+   font-size: 24px;
+   font-weight: bold;
+   line-height: 1;
+}
+
+.event_date .month {
+   display: block;
+   font-size: 14px;
+   text-transform: uppercase;
+}
+
+.event_content {
+   padding: 25px;
+   flex-grow: 1;
+   display: flex;
+   flex-direction: column;
+}
+
+.event_title {
+   font-size: 22px;
+   font-weight: 600;
+   color: #252525;
+   margin-bottom: 15px;
+}
+
+.event_meta {
+   margin-bottom: 15px;
+   color: #777777;
+}
+
+.event_meta span {
+   margin-right: 20px;
+   font-size: 14px;
+}
+
+.event_meta i {
+   margin-right: 5px;
+}
+
+.event_description {
+   font-size: 16px;
+   color: #555555;
+   line-height: 1.6;
+   margin-bottom: 20px;
+   flex-grow: 1;
+}
+
+.read_bt {
+   margin-top: auto;
+}
+
+.read_bt a {
+   display: inline-block;
+   font-size: 16px;
+   color: #ffffff;
+   background-color: #13a25d;
+   text-align: center;
+   padding: 10px 25px;
+   border-radius: 5px;
+   text-transform: uppercase;
+   font-weight: 500;
+   text-decoration: none;
+}
+
+.read_bt a:hover {
+   background-color: #252525;
+   color: #ffffff;
+}
+
+.no_events {
+   text-align: center;
+   padding: 50px 0;
+   background-color: #f8f9fa;
+   border-radius: 10px;
+}
+
+.no_events p {
+   font-size: 18px;
+   color: #555555;
+   margin-bottom: 10px;
+}
+
+.pagination_container {
+   margin-top: 30px;
+}
+
+.pagination .page-link {
+   color: #13a25d;
+   border-color: #dee2e6;
+}
+
+.pagination .page-item.active .page-link {
+   background-color: #13a25d;
+   border-color: #13a25d;
+   color: #ffffff;
+}
+
+.pagination .page-link:hover {
+   color: #0d8549;
+   background-color: #e9ecef;
+   border-color: #dee2e6;
+}
+</style>
 {% endblock %}

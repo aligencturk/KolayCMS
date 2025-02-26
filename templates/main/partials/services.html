@@ -1,0 +1,51 @@
+<!-- CobSin Tema - Hizmetler Bölümü -->
+<section class="services-section" id="services">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Hizmetlerimiz</h2>
+            <p class="section-subtitle">Size sunduğumuz çözümler</p>
+        </div>
+        <div class="services-container">
+            {% if services %}
+            {% for service in services %}
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="{{ service.icon|default('fas fa-cogs') }}"></i>
+                </div>
+                <h3 class="service-title">{{ service.title }}</h3>
+                <p class="service-description">{{ service.description }}</p>
+                {% if service.url %}
+                <a href="{{ service.url }}" class="service-link">Detaylı Bilgi <i class="fas fa-arrow-right"></i></a>
+                {% endif %}
+            </div>
+            {% endfor %}
+            {% else %}
+            <!-- Varsayılan hizmetler -->
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-laptop-code"></i>
+                </div>
+                <h3 class="service-title">Web Tasarım</h3>
+                <p class="service-description">Modern ve kullanıcı dostu web siteleri tasarlıyoruz.</p>
+                <a href="#" class="service-link">Detaylı Bilgi <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3 class="service-title">Mobil Uyumluluk</h3>
+                <p class="service-description">Tüm cihazlarda mükemmel görünen responsive tasarımlar.</p>
+                <a href="#" class="service-link">Detaylı Bilgi <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3 class="service-title">SEO Optimizasyonu</h3>
+                <p class="service-description">Arama motorlarında üst sıralarda yer almanızı sağlıyoruz.</p>
+                <a href="#" class="service-link">Detaylı Bilgi <i class="fas fa-arrow-right"></i></a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section> 

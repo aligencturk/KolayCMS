@@ -1,0 +1,268 @@
+{% extends "themes/cobsin/base.html" %}
+
+{% block title %}İletişim - {{ site_title }}{% endblock %}
+{% block description %}{{ site_title }} ile iletişime geçin. Sorularınız, önerileriniz veya işbirliği talepleriniz için bize ulaşın.{% endblock %}
+
+{% block page_title %}İletişim{% endblock %}
+
+{% block content %}
+<!-- Contact Section -->
+<section class="contact-section py-5">
+    <div class="container">
+        <div class="section-header text-center mb-5 animate-on-scroll">
+            <h1 class="section-title">Bizimle İletişime Geçin</h1>
+            <p class="section-subtitle">Sorularınız veya önerileriniz için bize ulaşabilirsiniz</p>
+        </div>
+        
+        <div class="row">
+            <!-- Contact Information -->
+            <div class="col-lg-4 mb-4 mb-lg-0 animate-on-scroll">
+                <div class="contact-info">
+                    <h3>İletişim Bilgileri</h3>
+                    <p>Aşağıdaki iletişim kanallarından bize ulaşabilir veya formu doldurarak mesaj gönderebilirsiniz.</p>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="contact-text">
+                            <h4>Adres</h4>
+                            <p>{{ contact_info.address if contact_info and contact_info.address else 'Örnek Mahallesi, Örnek Caddesi No:123, İstanbul, Türkiye' }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="contact-text">
+                            <h4>Telefon</h4>
+                            <p>{{ contact_info.phone if contact_info and contact_info.phone else '+90 555 123 4567' }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="contact-text">
+                            <h4>E-posta</h4>
+                            <p>{{ contact_info.email if contact_info and contact_info.email else 'info@kolaycms.com' }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="contact-text">
+                            <h4>Çalışma Saatleri</h4>
+                            <p>{{ contact_info.working_hours if contact_info and contact_info.working_hours else 'Pazartesi - Cuma: 09:00 - 18:00' }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="social-links mt-4">
+                        {% if contact_info and contact_info.facebook %}
+                        <a href="{{ contact_info.facebook }}" class="social-link" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                        {% else %}
+                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                        {% endif %}
+                        
+                        {% if contact_info and contact_info.twitter %}
+                        <a href="{{ contact_info.twitter }}" class="social-link" target="_blank"><i class="fab fa-twitter"></i></a>
+                        {% else %}
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        {% endif %}
+                        
+                        {% if contact_info and contact_info.instagram %}
+                        <a href="{{ contact_info.instagram }}" class="social-link" target="_blank"><i class="fab fa-instagram"></i></a>
+                        {% else %}
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        {% endif %}
+                        
+                        {% if contact_info and contact_info.linkedin %}
+                        <a href="{{ contact_info.linkedin }}" class="social-link" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                        {% else %}
+                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contact Form -->
+            <div class="col-lg-8 animate-on-scroll">
+                <div class="contact-form-container">
+                    <h3>Bize Mesaj Gönderin</h3>
+                    
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <form id="contactForm" action="{{ url_for('contact') }}" method="post" class="contact-form">
+                        {{ form.csrf_token }}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="name">Adınız Soyadınız <span class="text-danger">*</span></label>
+                                    {{ form.name(class="form-control", placeholder="Adınız Soyadınız", required=true) }}
+                                    {% if form.name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.name.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="email">E-posta Adresiniz <span class="text-danger">*</span></label>
+                                    {{ form.email(class="form-control", placeholder="E-posta Adresiniz", required=true) }}
+                                    {% if form.email.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.email.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-group">
+                                <label for="subject">Konu <span class="text-danger">*</span></label>
+                                {{ form.subject(class="form-control", placeholder="Konu", required=true) }}
+                                {% if form.subject.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.subject.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-group">
+                                <label for="message">Mesajınız <span class="text-danger">*</span></label>
+                                {{ form.message(class="form-control", rows=5, placeholder="Mesajınız", required=true) }}
+                                {% if form.message.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.message.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">Gönder</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Map Section -->
+<section class="map-section">
+    <div class="container-fluid p-0">
+        <div class="map-container animate-on-scroll">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d192698.6596245466!2d28.871754966295835!3d41.005495809728905!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14caa7040068086b%3A0xe1ccfe98bc01b0d0!2zxLBzdGFuYnVs!5e0!3m2!1str!2str!4v1623324324354!5m2!1str!2str" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq-section py-5 bg-light">
+    <div class="container">
+        <div class="section-header text-center mb-5 animate-on-scroll">
+            <h2 class="section-title">Sık Sorulan Sorular</h2>
+            <p class="section-subtitle">İletişim kurmadan önce sık sorulan soruları inceleyebilirsiniz</p>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8 animate-on-scroll">
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                KolayCMS nedir?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                KolayCMS, web sitesi oluşturma ve yönetme sürecini kolaylaştıran bir içerik yönetim sistemidir. Kullanıcı dostu arayüzü ve güçlü özellikleriyle, teknik bilgi gerektirmeden profesyonel web siteleri oluşturmanızı sağlar.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                KolayCMS'i nasıl kullanabilirim?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                KolayCMS'i kullanmak için öncelikle bir hesap oluşturmanız gerekiyor. Kayıt olduktan sonra, kullanıcı dostu yönetim paneli üzerinden web sitenizi oluşturmaya ve özelleştirmeye başlayabilirsiniz.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                KolayCMS ücretli mi?
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                KolayCMS'in hem ücretsiz hem de ücretli planları bulunmaktadır. Ücretsiz plan ile temel özelliklere erişebilir, ücretli planlar ile daha gelişmiş özelliklerden yararlanabilirsiniz.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                Teknik destek alabilir miyim?
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Evet, tüm kullanıcılarımıza teknik destek sunuyoruz. İletişim formunu kullanarak veya destek e-posta adresimize yazarak teknik destek ekibimize ulaşabilirsiniz.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFive">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                                Özel bir tema tasarımı yaptırabilir miyim?
+                            </button>
+                        </h2>
+                        <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Evet, özel tema tasarımı hizmeti sunuyoruz. İhtiyaçlarınıza ve markanıza uygun özel bir tema tasarımı için bizimle iletişime geçebilirsiniz.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form validation
+        validateForm('contactForm');
+    });
+</script>
+{% endblock %} 

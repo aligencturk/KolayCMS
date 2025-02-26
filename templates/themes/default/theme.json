@@ -1,0 +1,15 @@
+{
+    "name": "default",
+    "title": "Varsayılan Tema",
+    "description": "KolayCMS için varsayılan tema",
+    "version": "1.0.0",
+    "author": "KolayCMS",
+    "settings": {
+        "primary_color": "#4e73df",
+        "secondary_color": "#1cc88a",
+        "font_family": "Nunito",
+        "header_style": "default",
+        "footer_style": "default",
+        "sidebar_style": "default"
+    }
+} 

@@ -363,13 +363,17 @@ jQuery(document).ready(function($) {
         });
 
         // Video popup
-        $('.video-popup').magnificPopup({
-            type: 'iframe',
-            mainClass: 'mfp-fade',
-            removalDelay: 160,
-            preloader: false,
-            fixedContentPos: false
-        });
+        if ($.fn.magnificPopup) {
+            $('.video-popup').magnificPopup({
+                type: 'iframe',
+                mainClass: 'mfp-fade',
+                removalDelay: 160,
+                preloader: false,
+                fixedContentPos: false
+            });
+        } else {
+            console.log("Magnific Popup kütüphanesi yüklenemedi!");
+        }
 
         // Smooth scroll
         $('a[href*="#"]').on('click', function (e) {
