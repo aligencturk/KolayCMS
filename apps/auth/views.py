@@ -53,8 +53,12 @@ def login():
                 
                 # Yönlendirme için next parametresini kontrol et
                 next_page = request.args.get('next')
-                if not next_page or not next_page.startswith('/'):
+                
+                # Kullanıcı admin ise ve özel bir yönlendirme yoksa admin paneline yönlendir
+                if user.role == 'admin' and (not next_page or not next_page.startswith('/')):
                     next_page = url_for('admin.index')
+                elif not next_page or not next_page.startswith('/'):
+                    next_page = url_for('main.index')
                 
                 return redirect(next_page)
             
