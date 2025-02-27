@@ -5,18 +5,27 @@ from config import Config
 from apps.extensions import db, login_manager, migrate, babel, init_extensions
 from apps.models import User
 from flask_admin import Admin
+import os
 
 admin = Admin(name='KolayCMS', template_mode='bootstrap4')
 csrf = CSRFProtect()
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder='templates', static_folder='static')
     
-    # Yapılandırma ayarları
-    app.config['SECRET_KEY'] = 'your-secret-key'  # Güvenli bir anahtar kullanın
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///kolaycms.db'
+    # Konfigürasyon
+    app.config['SECRET_KEY'] = 'dev_csnCkCvqZG0lmScY0iFCCdKCTvXTWjRF' # Prod için değiştirin
+    
+    # Render'da çalışırken veritabanı yolunu düzenle
+    if os.environ.get('RENDER'):
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/cms.db'
+    else:
+        db_path = os.path.join(app.instance_path, 'cms.db')
+        app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+    
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['WTF_CSRF_ENABLED'] = True
+    app.config['CSRF_ENABLED'] = True
+    app.config['CSRF_SSL_STRICT'] = False # Development için, prod'da True olmalı
     app.config['WTF_CSRF_SECRET_KEY'] = 'csrf-secret-key'  # CSRF için özel anahtar
     app.config['WTF_CSRF_TIME_LIMIT'] = None  # CSRF token zaman sınırı kaldırıldı
     

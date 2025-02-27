@@ -11,5 +11,13 @@ pip install -r requirements.txt
 # Gunicorn'u direkt olarak yükle
 pip install gunicorn
 
-# Gerekli dizinlerin varlığını kontrol et
-mkdir -p instance 
+# Gerekli dizinleri oluştur
+mkdir -p instance
+mkdir -p /tmp
+
+# SQLite veritabanının yazma izinlerini kontrol et
+touch /tmp/cms.db
+chmod 777 /tmp/cms.db
+
+# Veritabanı tablolarını oluştur
+python initialize_db.py 

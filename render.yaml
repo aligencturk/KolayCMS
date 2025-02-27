@@ -11,4 +11,6 @@ services:
       - key: FLASK_APP
         value: wsgi.py
       - key: FLASK_DEBUG
-        value: 0 
+        value: 0
+      - key: RENDER
+        value: true 
