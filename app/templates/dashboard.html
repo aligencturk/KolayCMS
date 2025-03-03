@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow">
+    <div class="p-6">
+        <h1 class="text-2xl font-semibold text-gray-800 mb-6">KolayCMS Dashboard</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Rapor Modülü Kartı -->
+            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md p-6 text-white">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-medium">Raporlar</h3>
+                    <i class="ri-file-list-3-line text-3xl"></i>
+                </div>
+                <p class="mt-2 text-2xl font-bold">{{ report_count|default(0) }}</p>
+                <div class="mt-4">
+                    <a href="{{ url_for('reports.index') }}" class="text-white hover:text-blue-100 text-sm flex items-center">
+                        <span>Raporları Yönet</span>
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Slider Modülü Kartı -->
+            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-md p-6 text-white">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-medium">Sliderlar</h3>
+                    <i class="ri-slideshow-line text-3xl"></i>
+                </div>
+                <p class="mt-2 text-2xl font-bold">{{ slider_count|default(0) }}</p>
+                <div class="mt-4">
+                    <a href="{{ url_for('sliders.index') }}" class="text-white hover:text-green-100 text-sm flex items-center">
+                        <span>Sliderları Yönet</span>
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Kurumsal İçerik Modülü Kartı -->
+            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-md p-6 text-white">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-medium">Kurumsal İçerik</h3>
+                    <i class="ri-building-line text-3xl"></i>
+                </div>
+                <p class="mt-2 text-2xl font-bold">{{ corporate_count|default(0) }}</p>
+                <div class="mt-4">
+                    <a href="{{ url_for('corporate.index') }}" class="text-white hover:text-purple-100 text-sm flex items-center">
+                        <span>İçerikleri Yönet</span>
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Ekip Üyeleri Modülü Kartı -->
+            <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-md p-6 text-white">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-medium">Ekip Üyeleri</h3>
+                    <i class="ri-team-line text-3xl"></i>
+                </div>
+                <p class="mt-2 text-2xl font-bold">{{ team_count|default(0) }}</p>
+                <div class="mt-4">
+                    <a href="{{ url_for('team.index') }}" class="text-white hover:text-orange-100 text-sm flex items-center">
+                        <span>Ekip Üyelerini Yönet</span>
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Hızlı Erişim</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <a href="{{ url_for('reports.create') }}" class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100">
+                    <i class="ri-add-line text-primary mr-3 text-xl"></i>
+                    <span>Yeni Rapor Ekle</span>
+                </a>
+                
+                <a href="{{ url_for('sliders.create') }}" class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100">
+                    <i class="ri-add-line text-primary mr-3 text-xl"></i>
+                    <span>Yeni Slider Ekle</span>
+                </a>
+                
+                <a href="{{ url_for('corporate.create') }}" class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100">
+                    <i class="ri-add-line text-primary mr-3 text-xl"></i>
+                    <span>Yeni Kurumsal İçerik</span>
+                </a>
+                
+                <a href="{{ url_for('team.create') }}" class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100">
+                    <i class="ri-add-line text-primary mr-3 text-xl"></i>
+                    <span>Yeni Ekip Üyesi</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="mt-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">API Erişimi</h2>
+            
+            <div class="bg-gray-50 rounded-lg p-4">
+                <p class="mb-2">WordPress REST API uyumlu API'ye erişmek için:</p>
+                <div class="bg-gray-100 p-3 rounded font-mono text-sm">
+                    <code>{{ request.host_url }}wp-json/api/v1/</code>
+                </div>
+                <div class="mt-4">
+                    <a href="#" class="text-primary hover:text-primary-dark flex items-center">
+                        <i class="ri-file-list-line mr-1"></i>
+                        <span>API Dokümantasyonu</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

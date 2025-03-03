@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Yeni Tema Oluştur - KolayCMS{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="flex items-center mb-6">
+    <a href="{{ url_for('themes.index') }}" class="text-primary hover:underline flex items-center mr-4">
+      <i class="ri-arrow-left-line mr-1"></i> Geri dön
+    </a>
+    <h1 class="text-2xl font-bold text-gray-800">Yeni Tema Oluştur</h1>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <form method="post" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      
+      {% if error %}
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        {{ error }}
+      </div>
+      {% endif %}
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
+              Tema Adı *
+            </label>
+            <input type="text" name="name" id="name" value="{{ form.name if form else '' }}" required
+                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
+              Açıklama
+            </label>
+            <textarea name="description" id="description" rows="3"
+                      class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">{{ form.description if form else '' }}</textarea>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="mb-4">
+              <label class="block text-gray-700 text-sm font-bold mb-2" for="primary_color">
+                Ana Renk *
+              </label>
+              <input type="color" name="primary_color" id="primary_color" 
+                     value="{{ form.primary_color if form else '#00BCD4' }}" required
+                     class="shadow appearance-none border rounded w-full h-10 cursor-pointer">
+            </div>
+            
+            <div class="mb-4">
+              <label class="block text-gray-700 text-sm font-bold mb-2" for="secondary_color">
+                İkincil Renk *
+              </label>
+              <input type="color" name="secondary_color" id="secondary_color" 
+                     value="{{ form.secondary_color if form else '#f44336' }}" required
+                     class="shadow appearance-none border rounded w-full h-10 cursor-pointer">
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="font_family">
+              Yazı Tipi
+            </label>
+            <select name="font_family" id="font_family"
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+              <option value="">-- Varsayılan --</option>
+              <option value="Poppins, sans-serif" {% if form and form.font_family == 'Poppins, sans-serif' %}selected{% endif %}>Poppins</option>
+              <option value="Roboto, sans-serif" {% if form and form.font_family == 'Roboto, sans-serif' %}selected{% endif %}>Roboto</option>
+              <option value="Open Sans, sans-serif" {% if form and form.font_family == 'Open Sans, sans-serif' %}selected{% endif %}>Open Sans</option>
+              <option value="Montserrat, sans-serif" {% if form and form.font_family == 'Montserrat, sans-serif' %}selected{% endif %}>Montserrat</option>
+              <option value="Lato, sans-serif" {% if form and form.font_family == 'Lato, sans-serif' %}selected{% endif %}>Lato</option>
+            </select>
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="css_variables">
+              CSS Değişkenleri
+            </label>
+            <textarea name="css_variables" id="css_variables" rows="8"
+                      class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline font-mono">{{ form.css_variables if form else '--header-bg: #ffffff;\n--footer-bg: #333333;\n--text-color: #333333;\n--link-color: #00BCD4;\n--button-radius: 4px;' }}</textarea>
+            <p class="text-sm text-gray-600 mt-1">Her satıra bir CSS değişkeni ekleyin (ör: --header-bg: #ffffff;)</p>
+          </div>
+          
+          <div class="mb-4">
+            <div class="flex items-center">
+              <input type="checkbox" name="is_active" id="is_active" 
+                     {% if form and form.is_active %}checked{% endif %}
+                     class="mr-2">
+              <label for="is_active" class="text-sm text-gray-700">Bu temayı aktif olarak ayarla</label>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Bu seçenek, mevcut aktif temayı devre dışı bırakacaktır.</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex items-center justify-end mt-6">
+        <a href="{{ url_for('themes.index') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-button mr-2">
+          İptal
+        </a>
+        <button type="submit" class="bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded-button">
+          Kaydet
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %} 

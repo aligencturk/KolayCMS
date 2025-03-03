@@ -1,0 +1,13 @@
+flask==3.0.2
+firebase-admin==6.2.0
+flask-login==0.6.3
+flask-wtf==1.2.1
+flask-babel==4.0.0
+python-dotenv==1.0.1
+email-validator==2.1.0.post1
+flask-admin==1.6.1
+gunicorn==21.2.0
+python-slugify==8.0.4
+pillow==10.2.0
+PyJWT==2.8.0
+flask-swagger-ui==4.11.1 

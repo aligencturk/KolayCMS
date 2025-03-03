@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Yeni Şablon Ekle - KolayCMS{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="flex items-center mb-6">
+    <a href="{{ url_for('templates.index') }}" class="text-primary hover:underline flex items-center mr-4">
+      <i class="ri-arrow-left-line mr-1"></i> Geri dön
+    </a>
+    <h1 class="text-2xl font-bold text-gray-800">Yeni Şablon Ekle</h1>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <form method="post" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      
+      {% if error %}
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        {{ error }}
+      </div>
+      {% endif %}
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
+              Şablon Adı *
+            </label>
+            <input type="text" name="name" id="name" value="{{ form.name if form else '' }}" required
+                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
+              Açıklama
+            </label>
+            <textarea name="description" id="description" rows="3"
+                      class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">{{ form.description if form else '' }}</textarea>
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="template_type">
+              Şablon Türü *
+            </label>
+            <select name="template_type" id="template_type" required
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+              <option value="">-- Şablon türünü seçin --</option>
+              <option value="page" {% if form and form.template_type == 'page' %}selected{% endif %}>Sayfa Şablonu</option>
+              <option value="section" {% if form and form.template_type == 'section' %}selected{% endif %}>Bölüm Şablonu</option>
+              <option value="component" {% if form and form.template_type == 'component' %}selected{% endif %}>Bileşen Şablonu</option>
+            </select>
+          </div>
+        </div>
+        
+        <div>
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="html_content">
+              HTML İçeriği *
+            </label>
+            <textarea name="html_content" id="html_content" rows="10" required
+                      class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline font-mono">{{ form.html_content if form else '' }}</textarea>
+            <p class="text-sm text-gray-600 mt-1">Şablonun HTML kodunu girin. Dinamik içerikler için {{ "{{ değişken_adı }}" }} sözdizimini kullanabilirsiniz.</p>
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="thumbnail">
+              Önizleme Görseli
+            </label>
+            <input type="file" name="thumbnail" id="thumbnail" accept="image/*"
+                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            <p class="text-sm text-gray-600 mt-1">Şablonu temsil eden bir görsel yükleyin (isteğe bağlı).</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex items-center justify-end mt-6">
+        <a href="{{ url_for('templates.index') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-button mr-2">
+          İptal
+        </a>
+        <button type="submit" class="bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded-button">
+          Kaydet
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %} 

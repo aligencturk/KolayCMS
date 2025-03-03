@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Rapor Düzenle' if report else 'Yeni Rapor' }}{% endblock %}
+
+{% block breadcrumb %}
+Rapor Modülü / {{ 'Rapor Düzenle' if report else 'Yeni Rapor' }}
+{% endblock %}
+
+{% block extra_head %}
+<!-- TinyMCE Editor -->
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    tinymce.init({
+      selector: '#content',
+      plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+      toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+      height: 400,
+      language: 'tr',
+      language_url: 'https://cdn.jsdelivr.net/npm/tinymce-lang/langs/tr.js'
+    });
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-semibold text-gray-800">
+                {{ 'Rapor Düzenle' if report else 'Yeni Rapor' }}
+            </h1>
+            <a href="{{ url_for('reports.index') }}" class="text-gray-600 hover:text-gray-800">
+                <i class="ri-arrow-left-line mr-1"></i>Geri Dön
+            </a>
+        </div>
+
+        <form method="POST" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Başlık -->
+                <div class="md:col-span-2">
+                    <label for="title" class="block text-sm font-medium text-gray-700">
+                        Rapor Başlığı
+                    </label>
+                    <input type="text" name="title" id="title" 
+                           value="{{ report.title if report else '' }}"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                           required>
+                    {% if form.title.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.title.errors[0] }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Kategori -->
+                <div>
+                    <label for="category" class="block text-sm font-medium text-gray-700">
+                        Kategori
+                    </label>
+                    <select name="category" id="category" 
+                            onchange="toggleNewCategory(this.value)"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                        {% for value, label in form.category.choices %}
+                        <option value="{{ value }}" {% if report and report.category == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    {% if form.category.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.category.errors[0] }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Yeni Kategori -->
+                <div id="newCategoryContainer" class="hidden">
+                    <label for="new_category" class="block text-sm font-medium text-gray-700">
+                        Yeni Kategori
+                    </label>
+                    <input type="text" name="new_category" id="new_category" 
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                    {% if form.new_category.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.new_category.errors[0] }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Etiketler -->
+                <div>
+                    <label for="tags" class="block text-sm font-medium text-gray-700">
+                        Etiketler (virgülle ayırın)
+                    </label>
+                    <input type="text" name="tags" id="tags" 
+                           value="{{ form.tags.data if form.tags.data else '' }}"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                    {% if form.tags.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.tags.errors[0] }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Dosya URL -->
+                <div>
+                    <label for="file_url" class="block text-sm font-medium text-gray-700">
+                        Dosya URL
+                    </label>
+                    <input type="text" name="file_url" id="file_url" 
+                           value="{{ report.file_url if report else '' }}"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                    {% if form.file_url.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.file_url.errors[0] }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Yayınla -->
+                <div class="flex items-center">
+                    <input type="checkbox" name="is_published" id="is_published" 
+                           {% if report and report.is_published %}checked{% endif %}
+                           class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                    <label for="is_published" class="ml-2 block text-sm text-gray-700">
+                        Yayınla
+                    </label>
+                </div>
+            </div>
+
+            <!-- İçerik -->
+            <div>
+                <label for="content" class="block text-sm font-medium text-gray-700">
+                    Rapor İçeriği
+                </label>
+                <textarea name="content" id="content" 
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                          rows="10">{{ report.content if report else '' }}</textarea>
+                {% if form.content.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.content.errors[0] }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Butonlar -->
+            <div class="flex justify-end space-x-3">
+                <a href="{{ url_for('reports.index') }}" 
+                   class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    İptal
+                </a>
+                <button type="submit" 
+                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    {{ 'Güncelle' if report else 'Oluştur' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function toggleNewCategory(value) {
+    const newCategoryContainer = document.getElementById('newCategoryContainer');
+    if (value === 'other') {
+        newCategoryContainer.classList.remove('hidden');
+        document.getElementById('new_category').setAttribute('required', 'required');
+    } else {
+        newCategoryContainer.classList.add('hidden');
+        document.getElementById('new_category').removeAttribute('required');
+    }
+}
+
+// Sayfa yüklendiğinde kategori seçimine göre yeni kategori alanını göster/gizle
+document.addEventListener('DOMContentLoaded', function() {
+    toggleNewCategory(document.getElementById('category').value);
+});
+</script>
+{% endblock %} 

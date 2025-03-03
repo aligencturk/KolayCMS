@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Sayfa Şablonları - KolayCMS{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Sayfa Şablonları</h1>
+    <a href="{{ url_for('templates.create') }}" class="bg-primary text-white px-4 py-2 rounded-button flex items-center">
+      <i class="ri-add-line mr-2"></i>
+      Yeni Şablon Ekle
+    </a>
+  </div>
+
+  {% if templates|length == 0 %}
+  <div class="bg-gray-100 rounded-lg p-6 text-center">
+    <p class="text-gray-600 mb-4">Henüz şablon eklenmemiş.</p>
+    <a href="{{ url_for('templates.create') }}" class="text-primary hover:underline">Yeni şablon eklemek için tıklayın</a>
+  </div>
+  {% else %}
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for template in templates %}
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      {% if template.thumbnail_url %}
+      <div class="h-40 overflow-hidden border-b">
+        <img src="{{ template.thumbnail_url }}" alt="{{ template.name }}" class="w-full h-full object-cover">
+      </div>
+      {% else %}
+      <div class="h-40 bg-gray-200 flex items-center justify-center border-b">
+        <i class="ri-layout-line text-4xl text-gray-400"></i>
+      </div>
+      {% endif %}
+      
+      <div class="p-4">
+        <div class="flex items-center space-x-2 mb-1">
+          <h3 class="text-lg font-semibold">{{ template.name }}</h3>
+          {% if template.is_system %}
+          <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded">Sistem</span>
+          {% endif %}
+        </div>
+        
+        <p class="text-gray-600 text-sm mb-2">{{ template.description }}</p>
+        
+        <div class="text-xs text-gray-500 mb-4">
+          Tür: <span class="font-medium">{{ template.template_type|capitalize }}</span>
+        </div>
+        
+        <div class="flex justify-between items-center">
+          <a href="{{ url_for('templates.view', template_id=template.id) }}" class="text-primary hover:underline">Detaylar</a>
+          
+          <div class="flex space-x-2">
+            <form action="{{ url_for('templates.duplicate', template_id=template.id) }}" method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="text-purple-600 hover:text-purple-800" title="Kopyala">
+                <i class="ri-file-copy-line"></i>
+              </button>
+            </form>
+            
+            {% if not template.is_system %}
+            <a href="{{ url_for('templates.edit', template_id=template.id) }}" class="text-blue-600 hover:text-blue-800" title="Düzenle">
+              <i class="ri-edit-line"></i>
+            </a>
+            
+            <form action="{{ url_for('templates.delete', template_id=template.id) }}" method="post" onsubmit="return confirm('Bu şablonu silmek istediğinizden emin misiniz?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="text-red-600 hover:text-red-800" title="Sil">
+                <i class="ri-delete-bin-line"></i>
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %} 

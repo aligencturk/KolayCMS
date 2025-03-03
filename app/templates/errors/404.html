@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Sayfa Bulunamadı{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full text-center">
+        <div class="text-6xl font-bold text-primary">404</div>
+        <h1 class="mt-4 text-3xl font-extrabold text-gray-900">Sayfa Bulunamadı</h1>
+        <p class="mt-2 text-base text-gray-500">Aradığınız sayfa mevcut değil veya taşınmış olabilir.</p>
+        <div class="mt-6">
+            <a href="{{ url_for('main.index') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                <i class="ri-home-line mr-2"></i>
+                Ana Sayfaya Dön
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

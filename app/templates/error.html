@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4>{{ error.error_type }}</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Hata Mesajı</h5>
+                    <pre class="bg-light p-3 border rounded">{{ error.error_message }}</pre>
+                    
+                    <h5 class="card-title mt-4">Traceback</h5>
+                    <pre class="bg-light p-3 border rounded small" style="max-height: 400px; overflow-y: auto;">{{ error.traceback }}</pre>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Dashboard'a Dön</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

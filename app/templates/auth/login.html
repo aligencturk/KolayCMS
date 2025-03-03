@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş Yap - KolayCMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: '#00BCD4',
+                    secondary: '#f44336',
+                },
+                borderRadius: {
+                    'none': '0px',
+                    'sm': '4px',
+                    DEFAULT: '8px',
+                    'md': '12px',
+                    'lg': '16px',
+                    'xl': '20px',
+                    '2xl': '24px',
+                    '3xl': '32px',
+                    'full': '9999px',
+                    'button': '8px'
+                }
+            }
+        }
+    }
+    </script>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
+            <div>
+                <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                    <span class="text-primary">Kolay</span>CMS'e Giriş Yap
+                </h2>
+                <p class="mt-2 text-center text-sm text-gray-600">
+                    Yönetim paneline erişmek için giriş yapın
+                </p>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="rounded-md p-4 {% if category == 'success' %}bg-green-50{% else %}bg-red-50{% endif %} mb-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    {% if category == 'success' %}
+                                        <i class="ri-checkbox-circle-line text-green-400"></i>
+                                    {% else %}
+                                        <i class="ri-error-warning-line text-red-400"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium {% if category == 'success' %}text-green-800{% else %}text-red-800{% endif %}">
+                                        {{ message }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form class="mt-8 space-y-6" action="{{ url_for('auth.login') }}" method="POST">
+                {{ form.hidden_tag() }}
+                
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        {{ form.email.label(class="sr-only") }}
+                        {{ form.email(class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm", placeholder="E-posta adresi") }}
+                        {% if form.email.errors %}
+                            <div class="text-red-500 text-xs mt-1">
+                                {% for error in form.email.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {{ form.password.label(class="sr-only") }}
+                        {{ form.password(class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm", placeholder="Şifre") }}
+                        {% if form.password.errors %}
+                            <div class="text-red-500 text-xs mt-1">
+                                {% for error in form.password.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        {{ form.remember(class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded") }}
+                        {{ form.remember.label(class="ml-2 block text-sm text-gray-900") }}
+                    </div>
+
+                    <div class="text-sm">
+                        <a href="#" class="font-medium text-primary hover:text-primary-dark">
+                            Şifremi unuttum
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    {{ form.submit(class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary") }}
+                </div>
+                
+                <div class="text-center">
+                    <p class="text-sm text-gray-600">
+                        Hesabınız yok mu? 
+                        <a href="{{ url_for('auth.register') }}" class="font-medium text-primary hover:text-primary-dark">
+                            Kayıt olun
+                        </a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html> 

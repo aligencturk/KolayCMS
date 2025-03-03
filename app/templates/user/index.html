@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block title %}Kullanıcı Yönetimi{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Ana Sayfa</a></li>
+<li class="breadcrumb-item active">Kullanıcı Yönetimi</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Kullanıcı Listesi</h6>
+            <a href="{{ url_for('user.create') }}" class="btn btn-sm btn-primary">
+                <i class="fas fa-plus"></i> Yeni Kullanıcı
+            </a>
+        </div>
+        <div class="card-body">
+            {% if users %}
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Kullanıcı Adı</th>
+                            <th>E-posta</th>
+                            <th>Rol</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                {% if user.role == 'admin' %}
+                                <span class="badge badge-primary">Yönetici</span>
+                                {% elif user.role == 'editor' %}
+                                <span class="badge badge-info">Editör</span>
+                                {% else %}
+                                <span class="badge badge-secondary">Kullanıcı</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.is_active %}
+                                <span class="badge badge-success">Aktif</span>
+                                {% else %}
+                                <span class="badge badge-danger">Pasif</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('user.edit', user_id=user.id) }}" class="btn btn-sm btn-info" title="Düzenle">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    
+                                    {% if user.id != current_user.id %}
+                                        {% if user.is_active %}
+                                        <button class="btn btn-sm btn-warning" onclick="deactivateUser('{{ user.id }}')" title="Deaktif Et">
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                        {% else %}
+                                        <button class="btn btn-sm btn-success" onclick="activateUser('{{ user.id }}')" title="Aktif Et">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        {% endif %}
+                                        
+                                        <button class="btn btn-sm btn-danger" onclick="deleteUser('{{ user.id }}')" title="Sil">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Sayfalama -->
+            {% if total_pages > 1 %}
+            <div class="d-flex justify-content-center mt-4">
+                <nav aria-label="Sayfalama">
+                    <ul class="pagination">
+                        {% if page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('user.index', page=page-1) }}" aria-label="Önceki">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for p in range(1, total_pages + 1) %}
+                        <li class="page-item {% if p == page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('user.index', page=p) }}">{{ p }}</a>
+                        </li>
+                        {% endfor %}
+                        
+                        {% if page < total_pages %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('user.index', page=page+1) }}" aria-label="Sonraki">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <div class="alert alert-info">
+                Henüz hiç kullanıcı bulunmuyor. Yeni bir kullanıcı eklemek için "Yeni Kullanıcı" butonuna tıklayın.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Silme Onay Modalı -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Kullanıcıyı Sil</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Kapat" onclick="closeDeleteModal()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Bu kullanıcıyı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeDeleteModal()">İptal</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Sil</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let userIdToDelete = null;
+    
+    function deleteUser(userId) {
+        userIdToDelete = userId;
+        $('#deleteModal').modal('show');
+    }
+    
+    function closeDeleteModal() {
+        $('#deleteModal').modal('hide');
+    }
+    
+    function activateUser(userId) {
+        if (confirm('Bu kullanıcıyı aktifleştirmek istediğinizden emin misiniz?')) {
+            fetch(`/users/activate/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('İşlem sırasında bir hata oluştu.');
+            });
+        }
+    }
+    
+    function deactivateUser(userId) {
+        if (confirm('Bu kullanıcıyı deaktif etmek istediğinizden emin misiniz?')) {
+            fetch(`/users/deactivate/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('İşlem sırasında bir hata oluştu.');
+            });
+        }
+    }
+    
+    // Silme işlemi onaylandığında
+    document.getElementById('confirmDelete').addEventListener('click', function() {
+        if (userIdToDelete) {
+            fetch(`/users/delete/${userIdToDelete}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                closeDeleteModal();
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                closeDeleteModal();
+                console.error('Error:', error);
+                alert('İşlem sırasında bir hata oluştu.');
+            });
+        }
+    });
+</script>
+{% endblock %} 

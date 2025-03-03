@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Slider Düzenle' if slider else 'Yeni Slider' }}{% endblock %}
+
+{% block breadcrumb %}
+Slider Modülü / {{ 'Slider Düzenle' if slider else 'Yeni Slider' }}
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-semibold text-gray-800">
+                {{ 'Slider Düzenle' if slider else 'Yeni Slider' }}
+            </h1>
+            <a href="{{ url_for('sliders.index') }}" class="text-gray-600 hover:text-gray-800">
+                <i class="ri-arrow-left-line mr-1"></i>Geri Dön
+            </a>
+        </div>
+
+        <form method="POST" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Başlık -->
+                <div class="md:col-span-2">
+                    <label for="title" class="block text-sm font-medium text-gray-700">
+                        Slider Başlığı
+                    </label>
+                    <input type="text" name="title" id="title" 
+                           value="{{ slider.title if slider else '' }}"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                           required>
+                    {% if form.title.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.title.errors[0] }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Görsel URL -->
+                <div class="md:col-span-2">
+                    <label for="image_url" class="block text-sm font-medium text-gray-700">
+                        Görsel URL
+                    </label>
+                    <input type="text" name="image_url" id="image_url" 
+                           value="{{ slider.image_url if slider else '' }}"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                           required>
+                    {% if form.image_url.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.image_url.errors[0] }}</p>
+                    {% endif %}
+                    
+                    <!-- Görsel Önizleme -->
+                    <div id="imagePreview" class="mt-2 hidden">
+                        <img src="" alt="Görsel Önizleme" class="h-40 object-cover rounded border border-gray-300">
+                    </div>
+                </div>
+
+                <!-- Açıklama -->
+                <div class="md:col-span-2">
+                    <label for="description" class="block text-sm font-medium text-gray-700">
+                        Açıklama
+                    </label>
+                    <textarea name="description" id="description" 
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                              rows="3">{{ slider.description if slider else '' }}</textarea>
+                    {% if form.description.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.description.errors[0] }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Bağlantı URL -->
+                <div>
+                    <label for="link" class="block text-sm font-medium text-gray-700">
+                        Bağlantı URL
+                    </label>
+                    <input type="text" name="link" id="link" 
+                           value="{{ slider.link if slider else '' }}"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                    {% if form.link.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.link.errors[0] }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Sıralama -->
+                <div>
+                    <label for="order" class="block text-sm font-medium text-gray-700">
+                        Sıralama
+                    </label>
+                    <input type="number" name="order" id="order" 
+                           value="{{ slider.order if slider else 0 }}"
+                           min="0" step="1"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                    {% if form.order.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.order.errors[0] }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Aktif -->
+                <div class="flex items-center">
+                    <input type="checkbox" name="is_active" id="is_active" 
+                           {% if slider and slider.is_active %}checked{% endif %}
+                           class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                    <label for="is_active" class="ml-2 block text-sm text-gray-700">
+                        Aktif
+                    </label>
+                </div>
+            </div>
+
+            <!-- Butonlar -->
+            <div class="flex justify-end space-x-3">
+                <a href="{{ url_for('sliders.index') }}" 
+                   class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    İptal
+                </a>
+                <button type="submit" 
+                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    {{ 'Güncelle' if slider else 'Oluştur' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageUrlInput = document.getElementById('image_url');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImage = imagePreview.querySelector('img');
+    
+    // Sayfa yüklendiğinde görsel varsa önizleme göster
+    if (imageUrlInput.value) {
+        previewImage.src = imageUrlInput.value;
+        imagePreview.classList.remove('hidden');
+    }
+    
+    // Görsel URL değiştiğinde önizleme güncelle
+    imageUrlInput.addEventListener('input', function() {
+        if (this.value) {
+            previewImage.src = this.value;
+            imagePreview.classList.remove('hidden');
+        } else {
+            imagePreview.classList.add('hidden');
+        }
+    });
+});
+</script>
+{% endblock %} 

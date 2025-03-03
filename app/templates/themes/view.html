@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ theme.name }} - KolayCMS{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="flex items-center mb-6">
+    <a href="{{ url_for('themes.index') }}" class="text-primary hover:underline flex items-center mr-4">
+      <i class="ri-arrow-left-line mr-1"></i> Geri dön
+    </a>
+    <h1 class="text-2xl font-bold text-gray-800">{{ theme.name }}</h1>
+    {% if theme.is_active %}
+    <span class="ml-3 bg-green-500 text-white text-xs px-2 py-1 rounded">Aktif</span>
+    {% endif %}
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Sol Panel - Tema Bilgileri -->
+    <div class="lg:col-span-1">
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="h-40 flex items-center justify-center" style="background-color: {{ theme.primary_color }};">
+          <span class="text-white text-2xl font-bold">{{ theme.name }}</span>
+        </div>
+        
+        <div class="p-4">
+          <div class="mb-4">
+            <h2 class="text-lg font-semibold mb-2">{{ theme.name }}</h2>
+            <p class="text-gray-600">{{ theme.description }}</p>
+          </div>
+          
+          <div class="mb-4 pt-4 border-t border-gray-200">
+            <div class="flex justify-between mb-2">
+              <span class="text-gray-600 text-sm">Durum:</span>
+              <span class="{% if theme.is_active %}text-green-600{% else %}text-gray-600{% endif %} font-medium">
+                {% if theme.is_active %}Aktif{% else %}Pasif{% endif %}
+              </span>
+            </div>
+            <div class="flex justify-between mb-2">
+              <span class="text-gray-600 text-sm">Oluşturulma Tarihi:</span>
+              <span>{{ theme.created_at|datetime }}</span>
+            </div>
+            <div class="flex justify-between mb-2">
+              <span class="text-gray-600 text-sm">Son Güncelleme:</span>
+              <span>{{ theme.updated_at|datetime }}</span>
+            </div>
+            {% if theme.font_family %}
+            <div class="flex justify-between mb-2">
+              <span class="text-gray-600 text-sm">Yazı Tipi:</span>
+              <span class="font-medium" style="font-family: {{ theme.font_family }};">{{ theme.font_family.split(',')[0] }}</span>
+            </div>
+            {% endif %}
+          </div>
+          
+          <div class="flex justify-between mt-4">
+            {% if not theme.is_active %}
+            <form action="{{ url_for('themes.activate', theme_id=theme.id) }}" method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="text-green-600 hover:underline flex items-center">
+                <i class="ri-check-line mr-1"></i> Aktifleştir
+              </button>
+            </form>
+            {% else %}
+            <span class="text-green-600 flex items-center">
+              <i class="ri-check-line mr-1"></i> Aktif Tema
+            </span>
+            {% endif %}
+            
+            <div class="flex space-x-4">
+              <a href="{{ url_for('themes.edit', theme_id=theme.id) }}" class="text-blue-600 hover:underline flex items-center">
+                <i class="ri-edit-line mr-1"></i> Düzenle
+              </a>
+              
+              {% if not theme.is_active %}
+              <form action="{{ url_for('themes.delete', theme_id=theme.id) }}" method="post" 
+                    onsubmit="return confirm('Bu temayı silmek istediğinizden emin misiniz?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="text-red-600 hover:underline flex items-center">
+                  <i class="ri-delete-bin-line mr-1"></i> Sil
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Sağ Panel - Tema Önizleme ve Detaylar -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+        <div class="p-4 border-b bg-gray-50">
+          <h2 class="text-lg font-semibold">Renk Paleti</h2>
+        </div>
+        
+        <div class="p-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="border rounded-lg overflow-hidden">
+              <div class="h-20" style="background-color: {{ theme.primary_color }};"></div>
+              <div class="p-3">
+                <h3 class="font-medium">Ana Renk</h3>
+                <p class="text-sm text-gray-600">{{ theme.primary_color }}</p>
+              </div>
+            </div>
+            
+            <div class="border rounded-lg overflow-hidden">
+              <div class="h-20" style="background-color: {{ theme.secondary_color }};"></div>
+              <div class="p-3">
+                <h3 class="font-medium">İkincil Renk</h3>
+                <p class="text-sm text-gray-600">{{ theme.secondary_color }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-4 border-b bg-gray-50">
+          <h2 class="text-lg font-semibold">CSS Değişkenleri</h2>
+        </div>
+        
+        <div class="p-4">
+          <pre class="bg-gray-800 text-white p-4 rounded overflow-x-auto font-mono text-sm">{{ theme.css_variables }}</pre>
+          
+          <div class="mt-6">
+            <h3 class="font-medium mb-3">Yazı Tipi Önizleme</h3>
+            <div class="border p-4 rounded" style="font-family: {{ theme.font_family }};">
+              <p class="mb-2">Bu bir yazı tipi örneğidir. The quick brown fox jumps over the lazy dog.</p>
+              <p><strong>Bold metin örneği</strong> ve <em>italik metin örneği</em>.</p>
+              <p><a href="#" style="color: {{ theme.primary_color }};">Bu bir bağlantı örneğidir.</a></p>
+            </div>
+          </div>
+          
+          <div class="mt-6">
+            <h3 class="font-medium mb-3">Buton Önizlemesi</h3>
+            <div class="flex items-center space-x-4">
+              <button class="px-4 py-2 rounded" style="background-color: {{ theme.primary_color }}; color: white;">
+                Ana Buton
+              </button>
+              <button class="px-4 py-2 rounded border" style="border-color: {{ theme.primary_color }}; color: {{ theme.primary_color }}; background-color: transparent;">
+                İkincil Buton
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

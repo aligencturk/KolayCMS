@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Sayfa Düzenle' if content else 'Yeni Sayfa' }}{% endblock %}
+
+{% block breadcrumb %}
+Kurumsal İçerik Modülü / {{ 'Sayfa Düzenle' if content else 'Yeni Sayfa' }}
+{% endblock %}
+
+{% block extra_head %}
+<!-- TinyMCE Editor -->
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    tinymce.init({
+      selector: '#content',
+      plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+      toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+      height: 500,
+      language: 'tr',
+      language_url: 'https://cdn.jsdelivr.net/npm/tinymce-lang/langs/tr.js'
+    });
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-semibold text-gray-800">
+                {{ 'Sayfa Düzenle' if content else 'Yeni Sayfa' }}
+            </h1>
+            <a href="{{ url_for('corporate.index') }}" class="text-gray-600 hover:text-gray-800">
+                <i class="ri-arrow-left-line mr-1"></i>Geri Dön
+            </a>
+        </div>
+
+        <form method="POST" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Başlık -->
+                <div class="md:col-span-2">
+                    <label for="title" class="block text-sm font-medium text-gray-700">
+                        Sayfa Başlığı
+                    </label>
+                    <input type="text" name="title" id="title" 
+                           value="{{ content.title if content else '' }}"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                           required>
+                    {% if form.title.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.title.errors[0] }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- SEO URL -->
+                <div class="md:col-span-2">
+                    <label for="slug" class="block text-sm font-medium text-gray-700">
+                        SEO URL
+                    </label>
+                    <div class="mt-1 flex rounded-md shadow-sm">
+                        <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                            /
+                        </span>
+                        <input type="text" name="slug" id="slug" 
+                               value="{{ content.slug if content else '' }}"
+                               class="block w-full rounded-none rounded-r-md border-gray-300 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                               required>
+                    </div>
+                    {% if form.slug.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.slug.errors[0] }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">Sadece küçük harf, rakam ve tire kullanabilirsiniz. Örnek: hakkimizda</p>
+                </div>
+
+                <!-- Meta Açıklama -->
+                <div class="md:col-span-2">
+                    <label for="meta_description" class="block text-sm font-medium text-gray-700">
+                        Meta Açıklama
+                    </label>
+                    <textarea name="meta_description" id="meta_description" 
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                              rows="2">{{ content.meta_description if content else '' }}</textarea>
+                    {% if form.meta_description.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.meta_description.errors[0] }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">SEO için kullanılır. En fazla 160 karakter olmalıdır.</p>
+                </div>
+
+                <!-- Meta Anahtar Kelimeler -->
+                <div class="md:col-span-2">
+                    <label for="meta_keywords" class="block text-sm font-medium text-gray-700">
+                        Meta Anahtar Kelimeler
+                    </label>
+                    <input type="text" name="meta_keywords" id="meta_keywords" 
+                           value="{{ content.meta_keywords if content else '' }}"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                    {% if form.meta_keywords.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.meta_keywords.errors[0] }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">Virgülle ayırarak yazın. Örnek: hakkımızda, şirket, misyon, vizyon</p>
+                </div>
+
+                <!-- Yayınla -->
+                <div class="flex items-center">
+                    <input type="checkbox" name="is_published" id="is_published" 
+                           {% if content and content.is_published %}checked{% endif %}
+                           class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                    <label for="is_published" class="ml-2 block text-sm text-gray-700">
+                        Yayınla
+                    </label>
+                </div>
+            </div>
+
+            <!-- İçerik -->
+            <div>
+                <label for="content" class="block text-sm font-medium text-gray-700">
+                    Sayfa İçeriği
+                </label>
+                <textarea name="content" id="content" 
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                          rows="15">{{ content.content if content else '' }}</textarea>
+                {% if form.content.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.content.errors[0] }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Butonlar -->
+            <div class="flex justify-end space-x-3">
+                <a href="{{ url_for('corporate.index') }}" 
+                   class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    İptal
+                </a>
+                <button type="submit" 
+                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    {{ 'Güncelle' if content else 'Oluştur' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const titleInput = document.getElementById('title');
+    const slugInput = document.getElementById('slug');
+    
+    // Başlık değiştiğinde otomatik slug oluştur (sadece yeni içerik oluşturulurken)
+    {% if not content %}
+    titleInput.addEventListener('input', function() {
+        const slug = this.value
+            .toLowerCase()
+            .replace(/[^a-z0-9\s]/g, '')  // Sadece küçük harf, rakam ve boşluk
+            .replace(/\s+/g, '-')         // Boşlukları tire ile değiştir
+            .replace(/-+/g, '-')          // Birden fazla tireyi tek tire yap
+            .replace(/^-+|-+$/g, '');     // Baştaki ve sondaki tireleri kaldır
+        
+        slugInput.value = slug;
+    });
+    {% endif %}
+});
+</script>
+{% endblock %} 

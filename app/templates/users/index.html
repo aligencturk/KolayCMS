@@ -1,0 +1,399 @@
+{% extends "base.html" %}
+
+{% block title %}Kullanıcı Yönetimi{% endblock %}
+
+{% block breadcrumb %}Kullanıcı Yönetimi{% endblock %}
+
+{% block extra_head %}
+<style>
+    .user-table {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .user-table thead th {
+        background: linear-gradient(to right, #f9fafb, #f3f4f6);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.7rem;
+        padding-top: 16px;
+        padding-bottom: 16px;
+        position: relative;
+    }
+    
+    .user-table thead th:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(to right, rgba(var(--color-primary-rgb), 0.3), transparent);
+    }
+    
+    .user-table tbody tr {
+        transition: all 0.2s ease;
+    }
+    
+    .user-table tbody tr:hover {
+        background-color: rgba(var(--color-primary-rgb), 0.03);
+    }
+    
+    .action-btn {
+        transition: all 0.2s;
+        padding: 6px;
+        border-radius: 6px;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    .edit-btn:hover {
+        background-color: rgba(37, 99, 235, 0.1);
+        color: #2563eb;
+    }
+    
+    .delete-btn:hover {
+        background-color: rgba(220, 38, 38, 0.1);
+        color: #dc2626;
+    }
+    
+    .pagination-item {
+        transition: all 0.2s;
+    }
+    
+    .pagination-item:hover {
+        transform: translateY(-2px);
+    }
+    
+    .badge {
+        border-radius: 20px;
+        padding: 5px 10px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    }
+    
+    .badge i {
+        margin-right: 4px;
+        font-size: 0.9rem;
+    }
+    
+    .user-empty-state {
+        background: radial-gradient(circle at center, #f9fafb, #f3f4f6);
+        border-radius: 8px;
+        padding: 60px 30px;
+    }
+    
+    .search-box {
+        transition: all 0.3s ease;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .search-box:focus-within {
+        box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.2);
+        border-color: rgba(var(--color-primary-rgb), 0.5);
+    }
+    
+    .user-count {
+        background-color: rgba(var(--color-primary-rgb), 0.1);
+        color: rgb(var(--color-primary-rgb));
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .modal-container {
+        backdrop-filter: blur(3px);
+    }
+    
+    .delete-modal {
+        animation: modal-appear 0.3s ease-out;
+    }
+    
+    @keyframes modal-appear {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm">
+    <div class="p-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <div>
+                <div class="flex items-center mb-2">
+                    <h1 class="text-2xl font-bold text-gray-800">Kullanıcı Yönetimi</h1>
+                    <span class="user-count ml-3">{{ users|length }} Kullanıcı</span>
+                </div>
+                <p class="text-gray-600">Sisteme kayıtlı tüm kullanıcıları yönetin</p>
+            </div>
+            
+            <div class="mt-4 md:mt-0 flex items-center">
+                <div class="search-box rounded-lg flex items-center bg-white mr-4 px-3 py-2">
+                    <i class="ri-search-line text-gray-400 mr-2"></i>
+                    <input type="text" id="userSearch" placeholder="Kullanıcı ara..." class="border-none outline-none bg-transparent text-sm w-40 md:w-auto">
+                </div>
+                
+                <a href="{{ url_for('users.create') }}" class="bg-primary hover:bg-primary-dark text-white px-4 py-2.5 rounded-lg flex items-center transition-all shadow-sm hover:shadow-md">
+                    <i class="ri-user-add-line mr-2"></i>
+                    <span>Yeni Kullanıcı</span>
+                </a>
+            </div>
+        </div>
+        
+        {% if users|length == 0 %}
+        <div class="user-empty-state text-center">
+            <div class="flex justify-center mb-4">
+                <div class="p-4 bg-white rounded-full shadow-sm">
+                    <i class="ri-user-line text-5xl text-gray-300"></i>
+                </div>
+            </div>
+            <h3 class="text-xl font-medium text-gray-700 mb-2">Henüz kullanıcı bulunmuyor</h3>
+            <p class="text-gray-500 mb-6">Sisteme yeni kullanıcılar ekleyerek yönetim panelini kullanacak kişileri tanımlayın</p>
+            <a href="{{ url_for('users.create') }}" class="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-lg inline-flex items-center transition-all">
+                <i class="ri-user-add-line mr-2"></i>
+                <span>İlk Kullanıcıyı Ekle</span>
+            </a>
+        </div>
+        {% else %}
+        <div class="overflow-x-auto">
+            <table class="user-table min-w-full divide-y divide-gray-100">
+                <thead>
+                    <tr>
+                        <th class="px-6 py-4 text-left text-gray-500">
+                            <div class="flex items-center">
+                                <i class="ri-user-line mr-2 text-gray-400"></i>
+                                <span>Kullanıcı Adı</span>
+                            </div>
+                        </th>
+                        <th class="px-6 py-4 text-left text-gray-500">
+                            <div class="flex items-center">
+                                <i class="ri-mail-line mr-2 text-gray-400"></i>
+                                <span>E-posta</span>
+                            </div>
+                        </th>
+                        <th class="px-6 py-4 text-left text-gray-500">
+                            <div class="flex items-center">
+                                <i class="ri-shield-user-line mr-2 text-gray-400"></i>
+                                <span>Rol</span>
+                            </div>
+                        </th>
+                        <th class="px-6 py-4 text-left text-gray-500">
+                            <div class="flex items-center">
+                                <i class="ri-checkbox-circle-line mr-2 text-gray-400"></i>
+                                <span>Durum</span>
+                            </div>
+                        </th>
+                        <th class="px-6 py-4 text-right text-gray-500">
+                            <span>İşlemler</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for user in users %}
+                    <tr class="user-row" data-username="{{ user.username }}" data-email="{{ user.email }}">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white font-medium mr-3">
+                                    {{ user.username[0]|upper }}
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">{{ user.username }}</div>
+                                    {% if user.id == current_user.id %}
+                                    <div class="text-xs text-gray-500 mt-0.5">(Mevcut oturum)</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-600">{{ user.email }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if user.role == 'admin' %}
+                            <span class="badge bg-purple-100 text-purple-800">
+                                <i class="ri-admin-line"></i>
+                                <span>Yönetici</span>
+                            </span>
+                            {% elif user.role == 'editor' %}
+                            <span class="badge bg-blue-100 text-blue-800">
+                                <i class="ri-edit-box-line"></i>
+                                <span>Editör</span>
+                            </span>
+                            {% else %}
+                            <span class="badge bg-gray-100 text-gray-800">
+                                <i class="ri-user-line"></i>
+                                <span>Üye</span>
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if user.is_active %}
+                            <span class="badge bg-green-100 text-green-800">
+                                <i class="ri-checkbox-circle-line"></i>
+                                <span>Aktif</span>
+                            </span>
+                            {% else %}
+                            <span class="badge bg-red-100 text-red-800">
+                                <i class="ri-close-circle-line"></i>
+                                <span>Pasif</span>
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex items-center justify-end">
+                                <a href="{{ url_for('users.edit', user_id=user.id) }}" class="action-btn edit-btn text-gray-600 mr-2" title="Düzenle">
+                                    <i class="ri-edit-line"></i>
+                                </a>
+                                
+                                {% if user.id != current_user.id %}
+                                <button onclick="deleteUser('{{ user.id }}')" class="action-btn delete-btn text-gray-600" title="Sil">
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
+                                {% else %}
+                                <button disabled class="action-btn text-gray-300 cursor-not-allowed" title="Kendinizi silemezsiniz">
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination %}
+        <div class="flex items-center justify-end space-x-2 mt-6">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('users.index', page=pagination.prev_num) }}" class="pagination-item shadow-sm px-3 py-2 rounded border text-gray-600 hover:bg-gray-50 transition-all">
+                <i class="ri-arrow-left-s-line"></i>
+            </a>
+            {% endif %}
+            
+            {% for page in pagination.iter_pages() %}
+                {% if page %}
+                    {% if page != pagination.page %}
+                    <a href="{{ url_for('users.index', page=page) }}" class="pagination-item shadow-sm px-4 py-2 rounded border text-gray-600 hover:bg-gray-50 transition-all">
+                        {{ page }}
+                    </a>
+                    {% else %}
+                    <span class="pagination-item px-4 py-2 rounded bg-primary text-white shadow-md">{{ page }}</span>
+                    {% endif %}
+                {% else %}
+                    <span class="px-3 py-1">…</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+            <a href="{{ url_for('users.index', page=pagination.next_num) }}" class="pagination-item shadow-sm px-3 py-2 rounded border text-gray-600 hover:bg-gray-50 transition-all">
+                <i class="ri-arrow-right-s-line"></i>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal-container hidden fixed inset-0 bg-gray-900 bg-opacity-30 overflow-y-auto h-full w-full z-50">
+    <div class="delete-modal relative top-20 mx-auto p-5 border w-96 shadow-xl rounded-lg bg-white">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-50 mb-4">
+                <i class="ri-delete-bin-line text-2xl text-red-500"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">Kullanıcıyı Sil</h3>
+            <div class="mt-2 px-7 py-3">
+                <p class="text-gray-600">
+                    Bu kullanıcıyı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                </p>
+            </div>
+            <div class="flex justify-center mt-4 space-x-3">
+                <button onclick="closeDeleteModal()" class="px-4 py-2 bg-white text-gray-800 text-base font-medium rounded-lg border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all">
+                    <i class="ri-close-line mr-1.5"></i>
+                    İptal
+                </button>
+                <button id="deleteConfirm" class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition-all">
+                    <i class="ri-delete-bin-line mr-1.5"></i>
+                    Sil
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let userIdToDelete = null;
+
+function deleteUser(userId) {
+    userIdToDelete = userId;
+    document.getElementById('deleteModal').classList.remove('hidden');
+    // Animasyonun daha iyi görünmesi için
+    setTimeout(() => {
+        document.querySelector('.delete-modal').style.opacity = 1;
+    }, 10);
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+    userIdToDelete = null;
+}
+
+document.getElementById('deleteConfirm').addEventListener('click', async () => {
+    if (userIdToDelete) {
+        try {
+            const response = await fetch(`/users/${userIdToDelete}/delete`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Bir hata oluştu');
+            }
+        } catch (error) {
+            alert('Bir hata oluştu');
+        }
+        closeDeleteModal();
+    }
+});
+
+// Kullanıcı arama işlevselliği
+document.getElementById('userSearch').addEventListener('input', function() {
+    const searchValue = this.value.toLowerCase();
+    const userRows = document.querySelectorAll('.user-row');
+    
+    userRows.forEach(row => {
+        const username = row.getAttribute('data-username').toLowerCase();
+        const email = row.getAttribute('data-email').toLowerCase();
+        
+        if (username.includes(searchValue) || email.includes(searchValue)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %} 

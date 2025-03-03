@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ template.name }} - KolayCMS{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="flex items-center mb-6">
+    <a href="{{ url_for('templates.index') }}" class="text-primary hover:underline flex items-center mr-4">
+      <i class="ri-arrow-left-line mr-1"></i> Geri dön
+    </a>
+    <h1 class="text-2xl font-bold text-gray-800">{{ template.name }}</h1>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Sol Panel - Şablon Bilgileri -->
+    <div class="lg:col-span-1">
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        {% if template.thumbnail_url %}
+        <div class="h-48 overflow-hidden border-b">
+          <img src="{{ template.thumbnail_url }}" alt="{{ template.name }}" class="w-full h-full object-cover">
+        </div>
+        {% else %}
+        <div class="h-48 bg-gray-200 flex items-center justify-center border-b">
+          <i class="ri-layout-line text-6xl text-gray-400"></i>
+        </div>
+        {% endif %}
+        
+        <div class="p-4">
+          <div class="mb-4">
+            <h2 class="text-lg font-semibold mb-2">{{ template.name }}</h2>
+            <p class="text-gray-600 text-sm">{{ template.description }}</p>
+          </div>
+          
+          <div class="mb-4 pt-4 border-t border-gray-200">
+            <div class="flex justify-between mb-2">
+              <span class="text-gray-600 text-sm">Şablon Türü:</span>
+              <span class="font-medium">{{ template.template_type|capitalize }}</span>
+            </div>
+            <div class="flex justify-between mb-2">
+              <span class="text-gray-600 text-sm">Oluşturulma Tarihi:</span>
+              <span>{{ template.created_at|datetime }}</span>
+            </div>
+            <div class="flex justify-between mb-2">
+              <span class="text-gray-600 text-sm">Son Güncelleme:</span>
+              <span>{{ template.updated_at|datetime }}</span>
+            </div>
+            {% if template.is_system %}
+            <div class="mt-4">
+              <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded">Sistem Şablonu</span>
+            </div>
+            {% endif %}
+          </div>
+          
+          <div class="flex justify-between mt-4">
+            <form action="{{ url_for('templates.duplicate', template_id=template.id) }}" method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="text-purple-600 hover:underline flex items-center">
+                <i class="ri-file-copy-line mr-1"></i> Kopyala
+              </button>
+            </form>
+            
+            {% if not template.is_system %}
+            <div class="flex space-x-4">
+              <a href="{{ url_for('templates.edit', template_id=template.id) }}" class="text-blue-600 hover:underline flex items-center">
+                <i class="ri-edit-line mr-1"></i> Düzenle
+              </a>
+              
+              <form action="{{ url_for('templates.delete', template_id=template.id) }}" method="post" 
+                    onsubmit="return confirm('Bu şablonu silmek istediğinizden emin misiniz?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="text-red-600 hover:underline flex items-center">
+                  <i class="ri-delete-bin-line mr-1"></i> Sil
+                </button>
+              </form>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Sağ Panel - HTML Önizleme -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+          <h2 class="text-lg font-semibold">HTML İçeriği</h2>
+          <div>
+            <button id="toggle-preview" class="text-primary hover:underline flex items-center">
+              <i class="ri-eye-line mr-1"></i> Önizlemeyi Göster
+            </button>
+          </div>
+        </div>
+        
+        <div class="p-4">
+          <div id="html-content" class="block">
+            <pre class="bg-gray-800 text-white p-4 rounded overflow-x-auto font-mono text-sm">{{ template.html_content }}</pre>
+          </div>
+          
+          <div id="html-preview" class="hidden">
+            <div class="border p-4 rounded bg-gray-50">
+              <h3 class="text-lg font-medium mb-4 text-center">Önizleme</h3>
+              <div class="preview-container">
+                {{ template.html_content|safe }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const toggleButton = document.getElementById('toggle-preview');
+    const htmlContent = document.getElementById('html-content');
+    const htmlPreview = document.getElementById('html-preview');
+    
+    toggleButton.addEventListener('click', function() {
+      if (htmlContent.classList.contains('block')) {
+        htmlContent.classList.replace('block', 'hidden');
+        htmlPreview.classList.replace('hidden', 'block');
+        toggleButton.innerHTML = '<i class="ri-code-line mr-1"></i> Kodu Göster';
+      } else {
+        htmlContent.classList.replace('hidden', 'block');
+        htmlPreview.classList.replace('block', 'hidden');
+        toggleButton.innerHTML = '<i class="ri-eye-line mr-1"></i> Önizlemeyi Göster';
+      }
+    });
+  });
+</script>
+{% endblock %} 

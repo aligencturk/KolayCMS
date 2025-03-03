@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}KolayCMS{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #00BCD4;
+            --color-primary-dark: #0097A7;
+            --color-primary-rgb: 0, 188, 212;
+            --color-secondary: #f44336;
+            --color-secondary-rgb: 244, 67, 54;
+        }
+        
+        :where([class^="ri-"])::before { content: "\f3c2"; }
+        .sidebar-item:hover { background-color: rgba(255,255,255,0.1); }
+        .sidebar-item.active { background-color: rgba(255,255,255,0.2); }
+    </style>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: '#00BCD4',
+                    'primary-dark': '#0097A7',
+                    secondary: '#f44336',
+                },
+                borderRadius: {
+                    'none': '0px',
+                    'sm': '4px',
+                    DEFAULT: '8px',
+                    'md': '12px',
+                    'lg': '16px',
+                    'xl': '20px',
+                    '2xl': '24px',
+                    '3xl': '32px',
+                    'full': '9999px',
+                    'button': '8px'
+                }
+            }
+        }
+    }
+    </script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-gray-800 text-white">
+            <div class="p-4 text-2xl font-bold">
+                <span class="text-primary">Kolay</span>CMS
+            </div>
+            <nav class="mt-4">
+                <a href="{{ url_for('reports.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('reports.') %}active{% endif %}">
+                    <i class="ri-file-list-line"></i>
+                    <span>Rapor Modülü</span>
+                </a>
+                <a href="{{ url_for('sliders.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('sliders.') %}active{% endif %}">
+                    <i class="ri-slideshow-line"></i>
+                    <span>Slider Modülü</span>
+                </a>
+                <a href="{{ url_for('corporate.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('corporate.') %}active{% endif %}">
+                    <i class="ri-building-line"></i>
+                    <span>Kurumsal Modülü</span>
+                </a>
+                <a href="{{ url_for('team.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('team.') %}active{% endif %}">
+                    <i class="ri-team-line"></i>
+                    <span>Ekip Modülü</span>
+                </a>
+                <a href="{{ url_for('hr.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('hr.') %}active{% endif %}">
+                    <i class="ri-user-search-line"></i>
+                    <span>İnsan Kaynakları</span>
+                </a>
+                <a href="{{ url_for('services.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('services.') %}active{% endif %}">
+                    <i class="ri-customer-service-line"></i>
+                    <span>Hizmetlerimiz</span>
+                </a>
+                <a href="{{ url_for('projects.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('projects.') %}active{% endif %}">
+                    <i class="ri-folder-line"></i>
+                    <span>Çalışmalarımız</span>
+                </a>
+                <a href="{{ url_for('user.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('user.') %}active{% endif %}">
+                    <i class="ri-user-line"></i>
+                    <span>Kullanıcılar</span>
+                </a>
+                
+                <!-- Tema ve Özelleştirme Modülleri -->
+                <div class="sidebar-section mt-4 mb-2 px-4">
+                    <span class="text-xs text-gray-400 uppercase font-medium">Tema ve Özelleştirme</span>
+                </div>
+                
+                <a href="{{ url_for('themes.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('themes.') %}active{% endif %}">
+                    <i class="ri-palette-line"></i>
+                    <span>Temalar</span>
+                </a>
+                
+                <a href="{{ url_for('templates.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('templates.') %}active{% endif %}">
+                    <i class="ri-layout-line"></i>
+                    <span>Şablonlar</span>
+                </a>
+                
+                <a href="{{ url_for('page_builder.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('page_builder.') %}active{% endif %}">
+                    <i class="ri-drag-move-line"></i>
+                    <span>Sayfa Düzenleyici</span>
+                </a>
+                <!-- Tema ve Özelleştirme Modülleri Sonu -->
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Bar -->
+            <header class="bg-white shadow-sm">
+                <div class="flex justify-between items-center px-6 py-4">
+                    <div class="flex items-center space-x-4">
+                        <button class="text-gray-500 hover:text-gray-600" id="toggleSidebar">
+                            <i class="ri-menu-line text-xl"></i>
+                        </button>
+                        <div class="text-gray-600">
+                            {% block breadcrumb %}{% endblock %}
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-gray-600">{{ current_user.username }}</span>
+                        <a href="{{ url_for('auth.logout') }}" class="text-gray-500 hover:text-gray-600">
+                            <i class="ri-logout-box-line text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="mb-4 p-4 rounded {% if category == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar toggle
+        const sidebar = document.querySelector('.w-64');
+        const toggleButton = document.getElementById('toggleSidebar');
+        let isSidebarOpen = true;
+
+        toggleButton.addEventListener('click', () => {
+            if (isSidebarOpen) {
+                sidebar.style.width = '0';
+                sidebar.style.marginLeft = '-256px';
+            } else {
+                sidebar.style.width = '256px';
+                sidebar.style.marginLeft = '0';
+            }
+            isSidebarOpen = !isSidebarOpen;
+        });
+
+        // Active menu item
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            if (item.getAttribute('href') === currentPath) {
+                item.classList.add('active');
+            }
+        });
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html> 

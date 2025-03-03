@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Hizmetlerimiz - KolayCMS{% endblock %}
+
+{% block breadcrumb %}
+<span class="text-gray-500">Hizmetlerimiz</span>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Hizmetlerimiz</h1>
+        <a href="{{ url_for('services.add') }}" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button flex items-center">
+            <i class="ri-add-line mr-2"></i>
+            <span>Yeni Hizmet Ekle</span>
+        </a>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white">
+            <thead>
+                <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                    <th class="py-3 px-6 text-left">Hizmet Adı</th>
+                    <th class="py-3 px-6 text-left">Açıklama</th>
+                    <th class="py-3 px-6 text-left">İkon</th>
+                    <th class="py-3 px-6 text-center">Durum</th>
+                    <th class="py-3 px-6 text-center">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-600 text-sm">
+                <!-- Örnek veri -->
+                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                    <td class="py-3 px-6 text-left">Web Tasarım</td>
+                    <td class="py-3 px-6 text-left">Modern ve responsive web tasarım hizmetleri</td>
+                    <td class="py-3 px-6 text-left"><i class="ri-code-line text-primary text-xl"></i></td>
+                    <td class="py-3 px-6 text-center">
+                        <span class="bg-green-100 text-green-800 py-1 px-3 rounded-full text-xs">Aktif</span>
+                    </td>
+                    <td class="py-3 px-6 text-center">
+                        <div class="flex item-center justify-center">
+                            <a href="{{ url_for('services.edit', id='1') }}" class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 mr-1 flex items-center justify-center hover:bg-blue-200">
+                                <i class="ri-pencil-line"></i>
+                            </a>
+                            <form action="{{ url_for('services.delete', id='1') }}" method="POST" class="inline">
+                                <button type="submit" onclick="return confirm('Bu hizmeti silmek istediğinize emin misiniz?')" class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-200">
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                    <td class="py-3 px-6 text-left">Mobil Uygulama Geliştirme</td>
+                    <td class="py-3 px-6 text-left">iOS ve Android için native mobil uygulama geliştirme</td>
+                    <td class="py-3 px-6 text-left"><i class="ri-smartphone-line text-primary text-xl"></i></td>
+                    <td class="py-3 px-6 text-center">
+                        <span class="bg-green-100 text-green-800 py-1 px-3 rounded-full text-xs">Aktif</span>
+                    </td>
+                    <td class="py-3 px-6 text-center">
+                        <div class="flex item-center justify-center">
+                            <a href="{{ url_for('services.edit', id='2') }}" class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 mr-1 flex items-center justify-center hover:bg-blue-200">
+                                <i class="ri-pencil-line"></i>
+                            </a>
+                            <form action="{{ url_for('services.delete', id='2') }}" method="POST" class="inline">
+                                <button type="submit" onclick="return confirm('Bu hizmeti silmek istediğinize emin misiniz?')" class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-200">
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

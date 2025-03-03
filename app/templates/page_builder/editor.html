@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page.title }} - Sayfa Düzenleyici - KolayCMS{% endblock %}
+
+{% block extra_head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@8.4.0/dist/gridstack.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@8.4.0/dist/gridstack-extra.min.css">
+<style>
+  .grid-stack-item-content {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
+  
+  .element-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .element-header {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    background: #f9f9f9;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .element-drag-handle {
+    cursor: move;
+    margin-right: 10px;
+    color: #999;
+  }
+  
+  .element-title {
+    flex-grow: 1;
+    font-weight: 500;
+    font-size: 14px;
+  }
+  
+  .element-actions {
+    display: flex;
+    gap: 5px;
+  }
+  
+  .element-actions button {
+    background: none;
+    border: none;
+    padding: 2px 5px;
+    cursor: pointer;
+    color: #666;
+  }
+  
+  .element-actions button:hover {
+    color: #000;
+  }
+  
+  .element-body {
+    padding: 10px;
+    flex-grow: 1;
+    overflow: auto;
+  }
+  
+  .element-template {
+    padding: 10px;
+    margin-bottom: 10px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+  }
+  
+  .element-template i {
+    margin-right: 10px;
+    font-size: 18px;
+  }
+  
+  .element-template:hover {
+    background: #f5f5f5;
+  }
+  
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal.hidden {
+    display: none;
+  }
+  
+  .modal-content {
+    background: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .modal-body {
+    padding: 20px;
+  }
+  
+  .modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  
+  .notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background: #2d3748;
+    color: white;
+    border-radius: 6px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 1000;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  
+  .notification.success {
+    background: #38a169;
+  }
+  
+  .notification.error {
+    background: #e53e3e;
+  }
+  
+  .notification.hide {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <a href="{{ url_for('page_builder.index') }}" class="text-primary hover:underline flex items-center mb-2">
+        <i class="ri-arrow-left-line mr-1"></i> Geri dön
+      </a>
+      <h1 class="text-2xl font-bold text-gray-800">{{ page.title }} - Düzenleyici</h1>
+    </div>
+    
+    <div class="flex space-x-3">
+      <button id="select-template-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-button flex items-center">
+        <i class="ri-layout-line mr-2"></i>
+        {% if template %}Şablonu Değiştir{% else %}Şablon Seç{% endif %}
+      </button>
+      
+      <button id="save-page-btn" class="px-4 py-2 bg-primary text-white rounded-button flex items-center">
+        <i class="ri-save-line mr-2"></i>
+        Kaydet
+      </button>
+    </div>
+  </div>
+  
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+    <!-- Sol Paneli - Eleman Kütüphanesi -->
+    <div class="lg:col-span-1">
+      <div class="bg-white rounded-lg shadow-md p-4">
+        <h2 class="text-lg font-semibold mb-4">Bileşen Kütüphanesi</h2>
+        <p class="text-sm text-gray-600 mb-4">Düzenleyiciye eklemek için bir bileşeni sürükleyin.</p>
+        
+        <div class="element-templates">
+          <div class="element-template" draggable="true" data-element-type="text">
+            <i class="ri-text"></i>
+            <span>Metin Bloğu</span>
+          </div>
+          
+          <div class="element-template" draggable="true" data-element-type="image">
+            <i class="ri-image-line"></i>
+            <span>Görsel</span>
+          </div>
+          
+          <div class="element-template" draggable="true" data-element-type="button">
+            <i class="ri-cursor-line"></i>
+            <span>Buton</span>
+          </div>
+          
+          <div class="element-template" draggable="true" data-element-type="video">
+            <i class="ri-movie-line"></i>
+            <span>Video</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Ana İçerik - Grid Editor -->
+    <div class="lg:col-span-4">
+      <div class="bg-white rounded-lg shadow-md p-4">
+        <div id="page-editor" data-page-id="{{ page.id }}">
+          <div id="grid-container" class="grid-stack"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Şablon Seçimi Modal -->
+<div id="template-modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="font-semibold text-xl">Şablon Seç</h2>
+      <button class="close-modal">
+        <i class="ri-close-line"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="text-gray-600 mb-4">Sayfanız için bir şablon seçin. Bu işlem mevcut düzeni etkilemeyecektir.</p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        {% for tmpl in templates %}
+        <div class="border rounded-lg p-3 hover:bg-gray-50 cursor-pointer">
+          <div class="flex items-start space-x-3">
+            <div class="w-12 h-12 bg-gray-200 flex items-center justify-center rounded">
+              <i class="ri-layout-line text-gray-500 text-xl"></i>
+            </div>
+            <div>
+              <h3 class="font-medium">{{ tmpl.name }}</h3>
+              <p class="text-sm text-gray-600">{{ tmpl.description }}</p>
+              <button class="select-template mt-2 text-sm text-primary" data-template-id="{{ tmpl.id }}">
+                Bu şablonu seç
+              </button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="close-modal px-4 py-2 bg-gray-200 text-gray-700 rounded-button">İptal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Eleman Düzenleme Modal -->
+<div id="element-modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="font-semibold text-xl">Bileşeni Düzenle</h2>
+      <button class="close-modal">
+        <i class="ri-close-line"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="element-form">
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-medium mb-2" for="element-title">
+            Başlık
+          </label>
+          <input type="text" id="element-title" name="element-title" 
+                 class="w-full border rounded-md py-2 px-3">
+        </div>
+        
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-medium mb-2" for="element-content">
+            İçerik
+          </label>
+          <textarea id="element-content" name="element-content" rows="4"
+                    class="w-full border rounded-md py-2 px-3"></textarea>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-medium mb-2" for="element-bg-color">
+              Arka Plan Rengi
+            </label>
+            <input type="color" id="element-bg-color" name="element-bg-color" 
+                   class="w-full border rounded-md py-1 px-2 h-10">
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-medium mb-2" for="element-text-color">
+              Yazı Rengi
+            </label>
+            <input type="color" id="element-text-color" name="element-text-color" 
+                   class="w-full border rounded-md py-1 px-2 h-10">
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-medium mb-2" for="element-padding">
+              İç Boşluk (padding)
+            </label>
+            <input type="text" id="element-padding" name="element-padding" placeholder="ör: 10px" 
+                   class="w-full border rounded-md py-2 px-3">
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-medium mb-2" for="element-border-radius">
+              Köşe Yuvarlaklığı
+            </label>
+            <input type="text" id="element-border-radius" name="element-border-radius" placeholder="ör: 8px" 
+                   class="w-full border rounded-md py-2 px-3">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="close-modal px-4 py-2 bg-gray-200 text-gray-700 rounded-button">İptal</button>
+      <button form="element-form" type="submit" class="px-4 py-2 bg-primary text-white rounded-button">Kaydet</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/gridstack@8.4.0/dist/gridstack-all.js"></script>
+<script src="{{ url_for('static', filename='js/page_builder/editor.js') }}"></script>
+{% endblock %} 
