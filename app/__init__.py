@@ -7,6 +7,7 @@ from config import Config
 import os
 import firebase_admin
 from firebase_admin import credentials, firestore
+import json
 
 # Flask-Login için login manager
 login_manager = LoginManager()
@@ -25,7 +26,27 @@ def create_app(config_class=Config):
     
     # Firebase başlatma
     if not firebase_admin._apps:
-        cred = credentials.Certificate(app.config['FIREBASE_CREDENTIALS_PATH'])
+        # Önce çevre değişkeninden okumayı deneyelim
+        if app.config.get('FIREBASE_CREDENTIALS_JSON'):
+            try:
+                cred_dict = json.loads(app.config.get('FIREBASE_CREDENTIALS_JSON'))
+                cred = credentials.Certificate(cred_dict)
+            except Exception as e:
+                app.logger.error(f"Firebase kimlik bilgileri JSON formatından yüklenirken hata: {str(e)}")
+                # Hata durumunda dosyadan okumayı deneyelim
+                try:
+                    cred = credentials.Certificate(app.config['FIREBASE_CREDENTIALS_PATH'])
+                except Exception as e2:
+                    app.logger.error(f"Firebase kimlik bilgileri dosyadan yüklenirken hata: {str(e2)}")
+                    raise e2
+        else:
+            # Çevre değişkeni yoksa dosyadan oku
+            try:
+                cred = credentials.Certificate(app.config['FIREBASE_CREDENTIALS_PATH'])
+            except Exception as e:
+                app.logger.error(f"Firebase kimlik bilgileri dosyadan yüklenirken hata: {str(e)}")
+                raise e
+                
         firebase_admin.initialize_app(cred)
     global db
     db = firestore.client()
