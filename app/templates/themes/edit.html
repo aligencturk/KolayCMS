@@ -1,152 +1,74 @@
-{% extends 'base.html' %}
-
-{% block title %}{{ theme.name }} Düzenle - KolayCMS{% endblock %}
+{% extends "layout.html" %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-  <div class="flex items-center mb-6">
-    <a href="{{ url_for('themes.index') }}" class="text-primary hover:underline flex items-center mr-4">
-      <i class="ri-arrow-left-line mr-1"></i> Geri dön
-    </a>
-    <h1 class="text-2xl font-bold text-gray-800">Tema Düzenle: {{ theme.name }}</h1>
-  </div>
-
-  <div class="bg-white rounded-lg shadow-md p-6">
-    <form method="post" enctype="multipart/form-data">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      
-      {% if error %}
-      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-        {{ error }}
-      </div>
-      {% endif %}
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
-              Tema Adı *
-            </label>
-            <input type="text" name="name" id="name" value="{{ theme.name }}" required
-                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-          </div>
-          
-          <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
-              Açıklama
-            </label>
-            <textarea name="description" id="description" rows="3"
-                      class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">{{ theme.description }}</textarea>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="mb-4">
-              <label class="block text-gray-700 text-sm font-bold mb-2" for="primary_color">
-                Ana Renk *
-              </label>
-              <input type="color" name="primary_color" id="primary_color" 
-                     value="{{ theme.primary_color }}" required
-                     class="shadow appearance-none border rounded w-full h-10 cursor-pointer">
-            </div>
-            
-            <div class="mb-4">
-              <label class="block text-gray-700 text-sm font-bold mb-2" for="secondary_color">
-                İkincil Renk *
-              </label>
-              <input type="color" name="secondary_color" id="secondary_color" 
-                     value="{{ theme.secondary_color }}" required
-                     class="shadow appearance-none border rounded w-full h-10 cursor-pointer">
-            </div>
-          </div>
-          
-          {% if not theme.is_active %}
-          <div class="mb-4">
-            <div class="flex items-center">
-              <input type="checkbox" name="is_active" id="is_active" class="mr-2">
-              <label for="is_active" class="text-sm text-gray-700">Bu temayı aktif olarak ayarla</label>
-            </div>
-            <p class="text-xs text-gray-500 mt-1">Bu seçenek, mevcut aktif temayı devre dışı bırakacaktır.</p>
-          </div>
-          {% else %}
-          <div class="mb-4 p-3 bg-green-50 text-green-800 rounded">
-            <p class="flex items-center">
-              <i class="ri-check-line mr-2"></i>
-              Bu tema şu anda aktif olarak kullanılıyor.
-            </p>
-          </div>
-          {% endif %}
+    <div class="max-w-2xl mx-auto">
+        <div class="flex items-center justify-between mb-8">
+            <h1 class="text-3xl font-bold">Tema Düzenle</h1>
+            <a href="{{ url_for('main.list_themes') }}" class="text-primary hover:text-primary-dark">
+                <i class="ri-arrow-left-line mr-1"></i>Geri Dön
+            </a>
         </div>
         
-        <div>
-          <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="font_family">
-              Yazı Tipi
-            </label>
-            <select name="font_family" id="font_family"
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-              <option value="">-- Varsayılan --</option>
-              <option value="Poppins, sans-serif" {% if theme.font_family == 'Poppins, sans-serif' %}selected{% endif %}>Poppins</option>
-              <option value="Roboto, sans-serif" {% if theme.font_family == 'Roboto, sans-serif' %}selected{% endif %}>Roboto</option>
-              <option value="Open Sans, sans-serif" {% if theme.font_family == 'Open Sans, sans-serif' %}selected{% endif %}>Open Sans</option>
-              <option value="Montserrat, sans-serif" {% if theme.font_family == 'Montserrat, sans-serif' %}selected{% endif %}>Montserrat</option>
-              <option value="Lato, sans-serif" {% if theme.font_family == 'Lato, sans-serif' %}selected{% endif %}>Lato</option>
-            </select>
-          </div>
-          
-          <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="css_variables">
-              CSS Değişkenleri
-            </label>
-            <textarea name="css_variables" id="css_variables" rows="8"
-                      class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline font-mono">{{ theme.css_variables }}</textarea>
-            <p class="text-sm text-gray-600 mt-1">Her satıra bir CSS değişkeni ekleyin (ör: --header-bg: #ffffff;)</p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="mt-6 border-t pt-6">
-        <h3 class="text-lg font-semibold mb-4">Tema Önizleme</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <div class="border p-4 rounded" style="background-color: {{ theme.primary_color }};">
-              <p class="text-white font-medium mb-2">Ana Renk</p>
-              <div class="flex items-center text-white text-sm">
-                <span>Renk Kodu:</span>
-                <span class="ml-2 bg-white bg-opacity-20 px-2 py-1 rounded">{{ theme.primary_color }}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <div class="border p-4 rounded" style="background-color: {{ theme.secondary_color }};">
-              <p class="text-white font-medium mb-2">İkincil Renk</p>
-              <div class="flex items-center text-white text-sm">
-                <span>Renk Kodu:</span>
-                <span class="ml-2 bg-white bg-opacity-20 px-2 py-1 rounded">{{ theme.secondary_color }}</span>
-              </div>
-            </div>
-          </div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <form action="{{ url_for('main.edit_theme', theme_id=theme.id) }}" method="post">
+                <!-- Tema Adı -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
+                        Tema Adı
+                    </label>
+                    <input type="text" id="name" name="name" value="{{ theme.name }}" required
+                           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                
+                <!-- Tema Açıklaması -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
+                        Açıklama
+                    </label>
+                    <textarea id="description" name="description" rows="4"
+                              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">{{ theme.description }}</textarea>
+                </div>
+                
+                <!-- Tema Versiyonu -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="version">
+                        Versiyon
+                    </label>
+                    <input type="text" id="version" name="version" value="{{ theme.version }}"
+                           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                
+                <!-- Tema Yazarı -->
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="author">
+                        Yazar
+                    </label>
+                    <input type="text" id="author" name="author" value="{{ theme.author }}"
+                           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                
+                <!-- Butonlar -->
+                <div class="flex items-center justify-end space-x-4">
+                    <a href="{{ url_for('themes.index') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
+                        İptal
+                    </a>
+                    <button type="submit" class="bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded">
+                        <i class="ri-save-line mr-2"></i>Kaydet
+                    </button>
+                </div>
+            </form>
         </div>
         
-        <div class="mt-4">
-          <div class="border p-4 rounded" style="font-family: {{ theme.font_family }};">
-            <p class="font-medium mb-2">Yazı Tipi Önizleme</p>
-            <p>Bu bir yazı tipi örneğidir. The quick brown fox jumps over the lazy dog.</p>
-            <p><strong>Bold metin örneği</strong> ve <em>italik metin örneği</em>.</p>
-            <p><a href="#" style="color: {{ theme.primary_color }};">Bu bir bağlantı örneğidir.</a></p>
-          </div>
+        <!-- Tema Önizleme -->
+        {% if theme.preview_image %}
+        <div class="mt-8">
+            <h2 class="text-xl font-semibold mb-4">Tema Önizleme</h2>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <img src="{{ theme.preview_image }}" alt="{{ theme.name }}" class="w-full h-auto rounded">
+            </div>
         </div>
-      </div>
-      
-      <div class="flex items-center justify-end mt-6">
-        <a href="{{ url_for('themes.index') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-button mr-2">
-          İptal
-        </a>
-        <button type="submit" class="bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded-button">
-          Güncelle
-        </button>
-      </div>
-    </form>
-  </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %} 

@@ -1,8 +1,69 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+    // Kullanıcı kimlik doğrulaması kontrolü
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Admin rolü kontrolü
+    function isAdmin() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Kullanıcı rolü kontrolü
+    function isUser() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'user';
+    }
+    
+    // Kullanıcılar koleksiyonu
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
+    }
+    
+    // Temalar koleksiyonu
+    match /themes/{themeId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Şablonlar koleksiyonu
+    match /templates/{templateId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Kurumsal sayfalar koleksiyonu
+    match /corporate/{pageId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Slider koleksiyonu
+    match /sliders/{sliderId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Ekip üyeleri koleksiyonu
+    match /team_members/{memberId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Raporlar koleksiyonu
+    match /reports/{reportId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Sayfa elemanları koleksiyonu
+    match /page_elements/{elementId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 } 

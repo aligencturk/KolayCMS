@@ -3,18 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}KolayCMS{% endblock %}</title>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}{% endblock %} - KolayCMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- Toastify CSS ve JS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <style>
-        :root {
-            --color-primary: #00BCD4;
-            --color-primary-dark: #0097A7;
-            --color-primary-rgb: 0, 188, 212;
-            --color-secondary: #f44336;
-            --color-secondary-rgb: 244, 67, 54;
-        }
-        
         :where([class^="ri-"])::before { content: "\f3c2"; }
         .sidebar-item:hover { background-color: rgba(255,255,255,0.1); }
         .sidebar-item.active { background-color: rgba(255,255,255,0.2); }
@@ -25,7 +21,6 @@
             extend: {
                 colors: {
                     primary: '#00BCD4',
-                    'primary-dark': '#0097A7',
                     secondary: '#f44336',
                 },
                 borderRadius: {
@@ -44,7 +39,7 @@
         }
     }
     </script>
-    {% block extra_head %}{% endblock %}
+    {% block styles %}{% endblock %}
 </head>
 <body class="bg-gray-100">
     <div class="flex h-screen">
@@ -54,69 +49,71 @@
                 <span class="text-primary">Kolay</span>CMS
             </div>
             <nav class="mt-4">
-                <a href="{{ url_for('reports.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('reports.') %}active{% endif %}">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint and request.endpoint == 'main.dashboard' %}active{% endif %}">
+                    <i class="ri-dashboard-line"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <!-- İçerik Yönetimi -->
+                <div class="mt-4 px-4">
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">İÇERİK YÖNETİMİ</h3>
+                </div>
+
+                <a href="{{ url_for('reports.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint and request.endpoint.startswith('reports.') %}active{% endif %}">
                     <i class="ri-file-list-line"></i>
                     <span>Rapor Modülü</span>
                 </a>
-                <a href="{{ url_for('sliders.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('sliders.') %}active{% endif %}">
+                <a href="{{ url_for('sliders.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint and request.endpoint.startswith('sliders.') %}active{% endif %}">
                     <i class="ri-slideshow-line"></i>
                     <span>Slider Modülü</span>
                 </a>
-                <a href="{{ url_for('corporate.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('corporate.') %}active{% endif %}">
+                <a href="{{ url_for('corporate.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint and request.endpoint.startswith('corporate.') %}active{% endif %}">
                     <i class="ri-building-line"></i>
                     <span>Kurumsal Modülü</span>
                 </a>
-                <a href="{{ url_for('team.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('team.') %}active{% endif %}">
+                <a href="{{ url_for('team.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint and request.endpoint.startswith('team.') %}active{% endif %}">
                     <i class="ri-team-line"></i>
                     <span>Ekip Modülü</span>
                 </a>
-                <a href="{{ url_for('hr.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('hr.') %}active{% endif %}">
-                    <i class="ri-user-search-line"></i>
-                    <span>İnsan Kaynakları</span>
+                <a href="{{ url_for('blog.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint and request.endpoint.startswith('blog.') %}active{% endif %}">
+                    <i class="ri-article-line"></i>
+                    <span>Blog Yazıları</span>
                 </a>
-                <a href="{{ url_for('services.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('services.') %}active{% endif %}">
-                    <i class="ri-customer-service-line"></i>
-                    <span>Hizmetlerimiz</span>
-                </a>
-                <a href="{{ url_for('projects.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('projects.') %}active{% endif %}">
-                    <i class="ri-folder-line"></i>
-                    <span>Çalışmalarımız</span>
-                </a>
-                <a href="{{ url_for('user.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('user.') %}active{% endif %}">
-                    <i class="ri-user-line"></i>
-                    <span>Kullanıcılar</span>
-                </a>
-                
-                <!-- Tema ve Özelleştirme Modülleri -->
-                <div class="sidebar-section mt-4 mb-2 px-4">
-                    <span class="text-xs text-gray-400 uppercase font-medium">Tema ve Özelleştirme</span>
+
+                <!-- Tasarım ve Özelleştirme -->
+                <div class="mt-4 px-4">
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">TASARIM VE ÖZELLEŞTİRME</h3>
                 </div>
                 
-                <a href="{{ url_for('themes.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('themes.') %}active{% endif %}">
+                <a href="{{ url_for('main.page_builder') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint and request.endpoint.startswith('main.page_builder') %}active{% endif %}">
+                    <i class="ri-layout-masonry-line"></i>
+                    <span>Sayfa Düzenleyici</span>
+                </a>
+                
+                <a href="{{ url_for('themes.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint and request.endpoint.startswith('themes.') %}active{% endif %}">
                     <i class="ri-palette-line"></i>
                     <span>Temalar</span>
                 </a>
                 
-                <a href="{{ url_for('templates.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('templates.') %}active{% endif %}">
+                <a href="{{ url_for('main.templates') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint and request.endpoint.startswith('main.templates') %}active{% endif %}">
                     <i class="ri-layout-line"></i>
                     <span>Şablonlar</span>
                 </a>
-                
-                <a href="{{ url_for('page_builder.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint.startswith('page_builder.') %}active{% endif %}">
-                    <i class="ri-drag-move-line"></i>
-                    <span>Sayfa Düzenleyici</span>
+
+                <a href="{{ url_for('components.index') }}" class="sidebar-item p-4 flex items-center space-x-3 {% if request.endpoint and request.endpoint.startswith('components.') %}active{% endif %}">
+                    <i class="ri-puzzle-line"></i>
+                    <span>Bileşenler</span>
                 </a>
-                <!-- Tema ve Özelleştirme Modülleri Sonu -->
             </nav>
         </div>
-
+        
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
             <!-- Top Bar -->
             <header class="bg-white shadow-sm">
                 <div class="flex justify-between items-center px-6 py-4">
                     <div class="flex items-center space-x-4">
-                        <button class="text-gray-500 hover:text-gray-600" id="toggleSidebar">
+                        <button class="text-gray-500 hover:text-gray-600">
                             <i class="ri-menu-line text-xl"></i>
                         </button>
                         <div class="text-gray-600">
@@ -124,20 +121,20 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <span class="text-gray-600">{{ current_user.username }}</span>
-                        <a href="{{ url_for('auth.logout') }}" class="text-gray-500 hover:text-gray-600">
+                        <span class="text-gray-600">{{ current_user.email }}</span>
+                        <a href="{{ url_for('auth.logout') }}" class="text-gray-500 hover:text-gray-700">
                             <i class="ri-logout-box-line text-xl"></i>
                         </a>
                     </div>
                 </div>
             </header>
-
+        
             <!-- Content -->
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
-                            <div class="mb-4 p-4 rounded {% if category == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                            <div class="mb-4 p-4 rounded-lg {% if category == 'error' %}bg-red-100 text-red-700{% elif category == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
                                 {{ message }}
                             </div>
                         {% endfor %}
@@ -148,32 +145,46 @@
             </main>
         </div>
     </div>
-
+    
     <script>
-        // Sidebar toggle
-        const sidebar = document.querySelector('.w-64');
-        const toggleButton = document.getElementById('toggleSidebar');
-        let isSidebarOpen = true;
-
-        toggleButton.addEventListener('click', () => {
-            if (isSidebarOpen) {
-                sidebar.style.width = '0';
-                sidebar.style.marginLeft = '-256px';
-            } else {
-                sidebar.style.width = '256px';
-                sidebar.style.marginLeft = '0';
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                // Sidebar işlemleri
+                document.querySelectorAll('.sidebar-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+                    });
+                });
+                
+                // CSRF token'ı tüm AJAX istekleri için ayarla
+                var csrf_token = "{{ csrf_token }}";
+                
+                // AJAX istekleri için CSRF token'ı ekle
+                function addCSRFToken(xhr) {
+                    xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                }
+                
+                // Global hata yakalama fonksiyonu
+                window.handleJavaScriptError = function(error, source) {
+                    console.error(`JavaScript hatası (${source}):`, error);
+                    // Geliştirme modunda uyarı göster
+                    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                        console.warn(`JavaScript hatası oluştu, ancak uygulama çalışmaya devam ediyor. Hata kaynağı: ${source}`);
+                    }
+                };
+            } catch (error) {
+                console.error('Global JavaScript hatası:', error);
             }
-            isSidebarOpen = !isSidebarOpen;
         });
-
-        // Active menu item
-        const currentPath = window.location.pathname;
-        document.querySelectorAll('.sidebar-item').forEach(item => {
-            if (item.getAttribute('href') === currentPath) {
-                item.classList.add('active');
-            }
+        
+        // Genel hata yakalama
+        window.addEventListener('error', function(event) {
+            console.error('Sayfa hatası yakalandı:', event.error);
+            // Hata mesajını engelle (opsiyonel)
+            // event.preventDefault();
         });
     </script>
-    {% block extra_scripts %}{% endblock %}
+    {% block scripts %}{% endblock %}
 </body>
 </html> 

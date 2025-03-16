@@ -1,15 +1,42 @@
 from typing import Dict, Any, List, Optional
 from app.modules.base import BaseModule
 from datetime import datetime
+from app import db, logger
+from app.utils.firestore_manager import FirestoreManager
 
 class SliderModule(BaseModule):
     """Slider modülü için model sınıfı"""
     
     collection_name = 'sliders'
     
-    def create_slider(self, title: str, image_url: str, link: str = None, 
-                      description: str = None, order: int = 0, 
-                      is_active: bool = True) -> Optional[str]:
+    def __init__(self):
+        """Slider modülünü başlat"""
+        logger.debug("SliderModule başlatılıyor...")
+        super().__init__()
+        self.db = FirestoreManager()
+        logger.debug(f"{self.collection_name} koleksiyonu başarıyla başlatıldı")
+
+    async def get_all_sliders(self):
+        """Tüm sliderları getir"""
+        try:
+            sliders = await self.db.get_documents(self.collection_name)
+            return sliders
+        except Exception as e:
+            logger.error(f"Sliderlar getirilirken hata: {str(e)}", exc_info=True)
+            return []
+
+    async def get_slider(self, slider_id):
+        """Belirli bir sliderı getir"""
+        try:
+            slider = await self.db.get_document(self.collection_name, slider_id)
+            return slider
+        except Exception as e:
+            logger.error(f"Slider getirilirken hata: {str(e)}", exc_info=True)
+            return None
+
+    async def create_slider(self, title: str, image_url: str, link: str = None, 
+                          description: str = None, order: int = 0, 
+                          is_active: bool = True) -> Optional[str]:
         """Yeni bir slider oluşturur"""
         slider_data = {
             'title': title,
@@ -22,22 +49,32 @@ class SliderModule(BaseModule):
             'updated_at': datetime.now()
         }
         
-        return self.create(slider_data)
+        try:
+            slider_id = await self.db.add_document(self.collection_name, slider_data)
+            return slider_id
+        except Exception as e:
+            logger.error(f"Slider oluşturulurken hata: {str(e)}", exc_info=True)
+            return None
     
-    def update_slider(self, slider_id: str, data: Dict[str, Any]) -> bool:
+    async def update_slider(self, slider_id: str, data: Dict[str, Any]) -> bool:
         """Slider bilgilerini günceller"""
         data['updated_at'] = datetime.now()
-        return self.update(slider_id, data)
+        try:
+            success = await self.db.update_document(self.collection_name, slider_id, data)
+            return success
+        except Exception as e:
+            logger.error(f"Slider güncellenirken hata: {str(e)}", exc_info=True)
+            return False
     
-    def activate_slider(self, slider_id: str) -> bool:
+    async def activate_slider(self, slider_id: str) -> bool:
         """Slider'ı aktifleştirir"""
-        return self.update(slider_id, {'is_active': True, 'updated_at': datetime.now()})
+        return await self.update(slider_id, {'is_active': True, 'updated_at': datetime.now()})
     
-    def deactivate_slider(self, slider_id: str) -> bool:
+    async def deactivate_slider(self, slider_id: str) -> bool:
         """Slider'ı deaktifleştirir"""
-        return self.update(slider_id, {'is_active': False, 'updated_at': datetime.now()})
+        return await self.update(slider_id, {'is_active': False, 'updated_at': datetime.now()})
     
-    def reorder_sliders(self, order_data: List[Dict[str, Any]]) -> bool:
+    async def reorder_sliders(self, order_data: List[Dict[str, Any]]) -> bool:
         """Slider'ların sırasını günceller
         
         Args:
@@ -55,14 +92,19 @@ class SliderModule(BaseModule):
         batch.commit()
         return True
     
-    def get_active_sliders(self) -> List[Dict[str, Any]]:
+    async def get_active_sliders(self) -> List[Dict[str, Any]]:
         """Aktif slider'ları sıralı şekilde getirir"""
-        return self.list(
+        return await self.list(
             filters=[('is_active', '==', True)],
             order_by='order',
             direction='asc'
         )
-        
-    def get_all_sliders(self) -> List[Dict[str, Any]]:
-        """Tüm slider'ları getirir"""
-        return self.list(order_by='order', direction='asc')
+
+    async def delete_slider(self, slider_id):
+        """Slider sil"""
+        try:
+            success = await self.db.delete_document(self.collection_name, slider_id)
+            return success
+        except Exception as e:
+            logger.error(f"Slider silinirken hata: {str(e)}", exc_info=True)
+            return False

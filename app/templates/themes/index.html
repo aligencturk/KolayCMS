@@ -99,103 +99,218 @@
 {% endblock %}
 
 {% block content %}
-<div class="bg-white rounded-lg shadow-sm p-6">
-  <div class="flex justify-between items-center mb-8">
-    <div>
-      <h1 class="text-2xl font-bold text-gray-800">Tema Galerisi</h1>
-      <p class="text-gray-500 mt-1">Siteniz için profesyonel temalar</p>
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Tema Yönetimi</h1>
+    <div class="flex space-x-4">
+      <a href="{{ url_for('themes.create_theme') }}" class="bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded-lg flex items-center">
+        <i class="ri-add-line mr-2"></i> Yeni Tema
+      </a>
+      <a href="{{ url_for('themes.upload_theme') }}" class="bg-secondary hover:bg-secondary-dark text-white font-bold py-2 px-4 rounded-lg flex items-center">
+        <i class="ri-upload-line mr-2"></i> Tema Yükle
+      </a>
     </div>
-    <a href="{{ url_for('themes.create') }}" class="bg-primary text-white px-5 py-2.5 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center action-button">
-      <i class="ri-add-line mr-2 text-lg"></i>
-      Yeni Tema Oluştur
-    </a>
   </div>
 
-  {% if themes|length == 0 %}
-  <div class="empty-state p-10 text-center">
-    <div class="mb-6">
-      <i class="ri-palette-line text-7xl text-gray-300"></i>
+  {% if themes and themes|length > 0 %}
+  <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <h2 class="text-xl font-semibold mb-4">Yüklü Temalar ({{ themes|length }})</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for theme in themes %}
+      <div class="bg-white border rounded-lg shadow-sm overflow-hidden theme-card transition-all hover:shadow-md">
+        <div class="relative aspect-video bg-gray-100">
+          {% if theme.thumbnail_url %}
+          <img src="{{ theme.thumbnail_url }}" alt="{{ theme.name }}" class="w-full h-full object-cover">
+          {% else %}
+          <div class="w-full h-full flex items-center justify-center text-gray-400">
+            <i class="ri-image-line text-4xl"></i>
+          </div>
+          {% endif %}
+          
+          {% if theme.is_active %}
+          <div class="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+            <i class="ri-check-line mr-1"></i>Aktif
+          </div>
+          {% endif %}
+        </div>
+        
+        <div class="p-4">
+          <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ theme.name }}</h3>
+          <p class="text-gray-600 text-sm mb-2 line-clamp-2">{{ theme.description or 'Açıklama yok' }}</p>
+          
+          <div class="flex flex-wrap text-sm text-gray-500 mb-4 gap-4">
+            <div class="flex items-center">
+              <i class="ri-user-line mr-1"></i>
+              <span>{{ theme.author or 'Bilinmeyen' }}</span>
+            </div>
+            <div class="flex items-center">
+              <i class="ri-code-line mr-1"></i>
+              <span>v{{ theme.version }}</span>
+            </div>
+          </div>
+          
+          <div class="flex justify-between items-center mt-4">
+            <div>
+              {% if not theme.is_active %}
+              <form action="{{ url_for('themes.toggle_active', theme_id=theme.id) }}" method="post" class="inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white text-sm px-3 py-1.5 rounded-md">
+                  <i class="ri-check-line mr-1"></i>Aktifleştir
+                </button>
+              </form>
+              {% else %}
+              <span class="bg-green-100 text-green-800 text-sm px-3 py-1.5 rounded-md inline-flex items-center">
+                <i class="ri-check-double-line mr-1"></i>Aktif Tema
+              </span>
+              {% endif %}
+            </div>
+            
+            <div class="flex space-x-2">
+              <a href="{{ url_for('themes.view', theme_id=theme.id) }}" class="bg-blue-100 text-blue-600 hover:bg-blue-200 p-1.5 rounded-full" title="Görüntüle">
+                <i class="ri-eye-line"></i>
+              </a>
+              <a href="{{ url_for('themes.edit_theme', theme_id=theme.id) }}" class="bg-gray-100 text-gray-600 hover:bg-gray-200 p-1.5 rounded-full" title="Düzenle">
+                <i class="ri-edit-line"></i>
+              </a>
+              {% if not theme.is_active %}
+              <form action="{{ url_for('themes.delete_theme', theme_id=theme.id) }}" method="post" class="inline"
+                    onsubmit="return confirm('Bu temayı silmek istediğinizden emin misiniz?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="bg-red-100 text-red-600 hover:bg-red-200 p-1.5 rounded-full" title="Sil">
+                  <i class="ri-delete-bin-line"></i>
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
     </div>
-    <h3 class="text-xl font-medium text-gray-700 mb-3">Henüz tema eklenmemiş</h3>
-    <p class="text-gray-500 mb-6 max-w-md mx-auto">Siteniz için güzel bir tema oluşturarak başlayın. Renkler, fontlar ve diğer tüm özellikleri özelleştirebilirsiniz.</p>
-    <a href="{{ url_for('themes.create') }}" class="bg-primary text-white px-5 py-2.5 rounded-lg inline-flex items-center hover:bg-primary-dark transition-colors">
-      <i class="ri-add-line mr-2"></i>
-      İlk Temanızı Oluşturun
-    </a>
   </div>
   {% else %}
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-    {% for theme in themes %}
-    <div class="theme-card bg-white rounded-lg overflow-hidden relative h-full">
-      {% if theme.is_active %}
-      <div class="theme-active-badge bg-green-500 text-white">
-        <i class="ri-check-line mr-1"></i>Aktif
-      </div>
-      {% endif %}
-      
-      <div class="theme-preview" style="background: linear-gradient(135deg, '{{ theme.primary_color }}' 0%, '{{ theme.secondary_color }}' 100%);">
-        <div class="h-full flex flex-col items-center justify-center text-white p-4">
-          <span class="theme-font-preview" style="font-family: '{{ theme.font_family }}';">{{ theme.name }}</span>
-          <div class="mt-3 bg-white bg-opacity-20 rounded px-3 py-1 text-xs backdrop-blur-sm">
-            {{ theme.font_family|default('Sans-serif') }}
-          </div>
-        </div>
-      </div>
-      
-      <div class="p-5">
-        <h3 class="theme-title text-lg font-semibold mb-2 text-gray-800">{{ theme.name }}</h3>
-        <p class="theme-description text-gray-600 text-sm mb-4">{{ theme.description }}</p>
-        
-        <div class="flex space-x-2 mb-4">
-          <div class="color-swatch" style="background-color: '{{ theme.primary_color }}';" title="Ana Renk: {{ theme.primary_color }}"></div>
-          <div class="color-swatch" style="background-color: '{{ theme.secondary_color }}';" title="İkincil Renk: {{ theme.secondary_color }}"></div>
-          {% if theme.css_variables and theme.css_variables.get('color-bg') %}
-          <div class="color-swatch" style="background-color: '{{ theme.css_variables.get('color-bg') }}';" title="Arkaplan Rengi"></div>
-          {% endif %}
-          {% if theme.css_variables and theme.css_variables.get('color-text') %}
-          <div class="color-swatch" style="background-color: '{{ theme.css_variables.get('color-text') }}';" title="Metin Rengi"></div>
-          {% endif %}
-        </div>
-        
-        <div class="theme-meta flex items-center mb-4">
-          <i class="ri-time-line mr-1"></i>
-          <span>{{ theme.updated_at.strftime('%d.%m.%Y') if theme.updated_at else 'Yeni' }}</span>
-        </div>
-        
-        <div class="flex justify-between items-center">
-          <a href="{{ url_for('themes.view', theme_id=theme.id) }}" class="text-primary hover:text-primary-dark font-medium flex items-center">
-            <span>Detaylar</span>
-            <i class="ri-arrow-right-line ml-1"></i>
-          </a>
-          
-          <div class="theme-controls flex space-x-3">
-            {% if not theme.is_active %}
-            <form action="{{ url_for('themes.activate', theme_id=theme.id) }}" method="post">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="text-green-600 hover:text-green-800 p-1.5 rounded-full hover:bg-green-50" title="Aktifleştir">
-                <i class="ri-check-double-line"></i>
-              </button>
-            </form>
-            {% endif %}
-            
-            <a href="{{ url_for('themes.edit', theme_id=theme.id) }}" class="text-blue-600 hover:text-blue-800 p-1.5 rounded-full hover:bg-blue-50" title="Düzenle">
-              <i class="ri-edit-line"></i>
-            </a>
-            
-            {% if not theme.is_active %}
-            <form action="{{ url_for('themes.delete', theme_id=theme.id) }}" method="post" onsubmit="return confirm('Bu temayı silmek istediğinizden emin misiniz?');">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="text-red-600 hover:text-red-800 p-1.5 rounded-full hover:bg-red-50" title="Sil">
-                <i class="ri-delete-bin-line"></i>
-              </button>
-            </form>
-            {% endif %}
-          </div>
-        </div>
-      </div>
+  <div class="bg-white rounded-lg shadow-md p-8 text-center">
+    <div class="text-5xl text-gray-300 mb-4">
+      <i class="ri-file-list-3-line"></i>
     </div>
-    {% endfor %}
+    <h3 class="text-xl font-semibold text-gray-700 mb-2">Henüz Tema Yüklenmemiş</h3>
+    <p class="text-gray-600 mb-6">Sitenizin görünümünü özelleştirmek için tema yükleyin.</p>
+    <a href="{{ url_for('themes.upload_theme') }}" class="bg-primary hover:bg-primary-dark text-white font-bold py-2 px-6 rounded-lg inline-flex items-center">
+      <i class="ri-upload-line mr-2"></i> Tema Yükle
+    </a>
   </div>
   {% endif %}
 </div>
+
+<script>
+// Güvenli bir şekilde DOM yüklendikten sonra çalışacak
+window.onSafeDOMReady = function(callback) {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        callback();
+      } catch (e) {
+        console.error('DOM Ready hata yakalandı:', e);
+      }
+    });
+  } else {
+    try {
+      callback();
+    } catch (e) {
+      console.error('DOM Ready hata yakalandı:', e);
+    }
+  }
+};
+
+// Güvenli bir şekilde querySelector çağırmak için
+window.querySelectorSafe = function(selector) {
+  try {
+    return document.querySelector(selector);
+  } catch (e) {
+    console.error('querySelector hatası:', e);
+    return null;
+  }
+};
+
+// Güvenli bir şekilde getAttribute çağırmak için
+window.getAttributeSafe = function(element, attr) {
+  if (element && element.getAttribute) {
+    return element.getAttribute(attr);
+  }
+  return null;
+};
+
+// Ana işlevsellik
+window.onSafeDOMReady(function() {
+  // CSRF token elementini güvenli şekilde al
+  const csrfTokenElement = window.querySelectorSafe('meta[name="csrf-token"]');
+  const csrfToken = window.getAttributeSafe(csrfTokenElement, 'content') || '';
+  
+  // Tema silme formları için event listener ekle
+  document.querySelectorAll('.delete-form').forEach(form => {
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (!confirm('Bu temayı silmek istediğinizden emin misiniz?')) {
+        return;
+      }
+
+      try {
+        const formData = new FormData(form);
+        
+        const response = await fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrfToken
+          },
+          body: formData,
+          credentials: 'same-origin'
+        });
+
+        const responseData = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(responseData.error || 'Tema silinirken bir hata oluştu.');
+        }
+
+        window.location.reload();
+      } catch (error) {
+        console.error('Hata:', error);
+        alert(error.message);
+      }
+    });
+  });
+
+  // Tema aktifleştirme formları için event listener ekle
+  document.querySelectorAll('.activate-form').forEach(form => {
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      try {
+        const formData = new FormData(form);
+        
+        const response = await fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrfToken
+          },
+          body: formData,
+          credentials: 'same-origin'
+        });
+
+        const responseData = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(responseData.error || 'Tema aktifleştirilirken bir hata oluştu.');
+        }
+
+        window.location.reload();
+      } catch (error) {
+        console.error('Hata:', error);
+        alert(error.message);
+      }
+    });
+  });
+});
+</script>
 {% endblock %} 

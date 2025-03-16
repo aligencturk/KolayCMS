@@ -1,0 +1,560 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page.title }} - Canlı Sayfa Düzenleyici - KolayCMS{% endblock %}
+
+{% block extra_head %}
+<meta name="csrf-token" content="{{ csrf_token }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+  :root {
+    --editor-primary: #00BCD4;
+    --editor-border: #e2e8f0;
+    --editor-bg: #f8fafc;
+    --element-highlight: rgba(0, 188, 212, 0.3);
+    --element-selected: rgba(0, 188, 212, 0.5);
+  }
+  
+  /* Editor layout */
+  .editor-container {
+    display: flex;
+    height: calc(100vh - 81px);
+    overflow: hidden;
+  }
+  
+  .editor-sidebar {
+    width: 300px;
+    background: var(--editor-bg);
+    border-right: 1px solid var(--editor-border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .editor-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .editor-toolbar {
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--editor-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+  }
+  
+  .editor-preview {
+    flex: 1;
+    overflow: hidden;
+    background: #f0f0f0;
+    position: relative;
+  }
+  
+  .editor-preview iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+  
+  /* Sidebar sections */
+  .panel-section {
+    padding: 15px;
+    border-bottom: 1px solid var(--editor-border);
+  }
+  
+  .panel-section h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+    color: #475569;
+  }
+  
+  .panel-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--editor-border);
+  }
+  
+  .panel-tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    cursor: pointer;
+    color: #64748b;
+    font-weight: 500;
+    font-size: 14px;
+  }
+  
+  .panel-tab.active {
+    color: var(--editor-primary);
+    border-bottom: 2px solid var(--editor-primary);
+  }
+  
+  .panel-content {
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  .panel-body {
+    padding: 0 15px 15px;
+  }
+  
+  /* Komponent kütüphanesi */
+  .component-library {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 15px;
+  }
+  
+  .component-item {
+    border: 1px solid var(--editor-border);
+    border-radius: 4px;
+    background: white;
+    padding: 10px;
+    text-align: center;
+    cursor: move;
+    transition: all 0.2s;
+  }
+  
+  .component-item:hover {
+    border-color: var(--editor-primary);
+    box-shadow: 0 2px 4px rgba(0, 188, 212, 0.1);
+  }
+  
+  .component-item.dragging {
+    opacity: 0.5;
+    border-color: var(--editor-primary);
+  }
+  
+  .component-icon {
+    font-size: 24px;
+    color: var(--editor-primary);
+    margin-bottom: 5px;
+  }
+  
+  .component-name {
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  /* Drop hedefi vurguları */
+  .drop-highlight {
+    outline: 2px dashed var(--editor-primary) !important;
+    outline-offset: -2px;
+    background-color: rgba(0, 188, 212, 0.05) !important;
+  }
+  
+  /* CMS Komponentleri */
+  .cms-component {
+    position: relative;
+    min-height: 30px;
+  }
+  
+  .cms-component:hover {
+    outline: 1px solid var(--editor-primary);
+  }
+  
+  .cms-component.selected {
+    outline: 2px solid var(--editor-primary);
+  }
+  
+  /* Form elements */
+  .form-group {
+    margin-bottom: 12px;
+  }
+  
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 4px;
+    color: #475569;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  
+  .form-control:focus {
+    border-color: var(--editor-primary);
+    outline: none;
+  }
+  
+  /* Notification */
+  .editor-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 15px;
+    border-radius: 6px;
+    background: #2d3748;
+    color: white;
+    z-index: 1000;
+    font-size: 14px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  
+  .editor-notification.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  
+  .editor-notification.success {
+    background: #38a169;
+  }
+  
+  .editor-notification.error {
+    background: #e53e3e;
+  }
+  
+  /* Resizable handles */
+  .resize-handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: var(--editor-primary);
+    border-radius: 50%;
+    z-index: 10;
+  }
+  
+  .resize-handle.top-left {
+    top: -5px;
+    left: -5px;
+    cursor: nwse-resize;
+  }
+  
+  .resize-handle.top-right {
+    top: -5px;
+    right: -5px;
+    cursor: nesw-resize;
+  }
+  
+  .resize-handle.bottom-left {
+    bottom: -5px;
+    left: -5px;
+    cursor: nesw-resize;
+  }
+  
+  .resize-handle.bottom-right {
+    bottom: -5px;
+    right: -5px;
+    cursor: nwse-resize;
+  }
+  
+  .resize-handle.top {
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    cursor: ns-resize;
+  }
+  
+  .resize-handle.bottom {
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    cursor: ns-resize;
+  }
+  
+  .resize-handle.left {
+    left: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: ew-resize;
+  }
+  
+  .resize-handle.right {
+    right: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: ew-resize;
+  }
+  
+  /* Color picker */
+  .color-preview {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    display: inline-block;
+    vertical-align: middle;
+    border: 1px solid #ddd;
+  }
+  
+  /* Element path */
+  .element-path {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 10px;
+    padding: 4px 8px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  /* Buttons */
+  .btn {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+  }
+  
+  .btn-primary {
+    background: var(--editor-primary);
+    color: white;
+  }
+  
+  .btn-outline {
+    background: white;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+  }
+  
+  .btn-sm {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  
+  .btn-group {
+    display: flex;
+    gap: 8px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="editor-container">
+  <!-- Sol Panel / Editör -->
+  <div class="editor-sidebar">
+    <div class="panel-tabs">
+      <div class="panel-tab active" data-tab="components">Komponentler</div>
+      <div class="panel-tab" data-tab="properties">Özellikler</div>
+      <div class="panel-tab" data-tab="page">Sayfa</div>
+    </div>
+    
+    <div class="panel-content">
+      <!-- Komponentler Tab İçeriği -->
+      <div class="panel-tab-content active" id="components-tab">
+        <div class="panel-section">
+          <h3>Komponent Kütüphanesi</h3>
+          <p class="text-muted mb-3">Aşağıdaki komponentleri sürükleyip sayfaya bırakabilirsiniz.</p>
+          
+          <div id="component-library" class="component-library">
+            <!-- JavaScript ile doldurulacak -->
+          </div>
+        </div>
+        
+        <div class="panel-section">
+          <h3>Özel Komponentler</h3>
+          <div id="custom-components" class="component-library">
+            <!-- JavaScript ile doldurulacak -->
+          </div>
+          <button class="btn btn-sm btn-outline-primary mt-2 w-100">
+            <i class="fas fa-plus"></i> Özel Komponent Ekle
+          </button>
+        </div>
+      </div>
+      
+      <!-- Özellikler Tab İçeriği -->
+      <div class="panel-tab-content" id="properties-tab">
+        <div id="no-element-message" class="p-4 text-center">
+          <div class="mb-3 text-muted">
+            <i class="fas fa-hand-pointer fa-3x"></i>
+          </div>
+          <h5>Hiçbir Eleman Seçilmedi</h5>
+          <p class="text-muted">Düzenlemek için önizlemede bir eleman seçin</p>
+        </div>
+        
+        <div id="element-editor" style="display: none;">
+          <div class="panel-section">
+            <h3>Seçili Eleman</h3>
+            <div id="element-path" class="mb-2 text-muted"></div>
+          </div>
+          
+          <div class="panel-section">
+            <h3>Boyut ve Hizalama</h3>
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <label class="form-label">Genişlik</label>
+                <div class="input-group input-group-sm">
+                  <input type="number" id="element-width" class="form-control">
+                  <select id="element-width-unit" class="form-select">
+                    <option value="px">px</option>
+                    <option value="%">%</option>
+                    <option value="auto">auto</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-6">
+                <label class="form-label">Yükseklik</label>
+                <div class="input-group input-group-sm">
+                  <input type="number" id="element-height" class="form-control">
+                  <select id="element-height-unit" class="form-select">
+                    <option value="px">px</option>
+                    <option value="%">%</option>
+                    <option value="auto">auto</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Arka Plan Rengi</label>
+            <div class="flex items-center space-x-2">
+              <input type="color" id="element-bg-color" class="form-control">
+              <div class="color-preview" id="bg-color-preview"></div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Yazı Rengi</label>
+            <div class="flex items-center space-x-2">
+              <input type="color" id="element-text-color" class="form-control">
+              <div class="color-preview" id="text-color-preview"></div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Kenar Boşluğu (Padding)</label>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-xs">Üst</label>
+                <input type="number" id="element-padding-top" class="form-control">
+              </div>
+              <div>
+                <label class="text-xs">Sağ</label>
+                <input type="number" id="element-padding-right" class="form-control">
+              </div>
+              <div>
+                <label class="text-xs">Alt</label>
+                <input type="number" id="element-padding-bottom" class="form-control">
+              </div>
+              <div>
+                <label class="text-xs">Sol</label>
+                <input type="number" id="element-padding-left" class="form-control">
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Kenarlık (Border)</label>
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <label class="text-xs">Genişlik</label>
+                <input type="number" id="element-border-width" class="form-control">
+              </div>
+              <div>
+                <label class="text-xs">Tip</label>
+                <select id="element-border-style" class="form-control">
+                  <option value="none">Yok</option>
+                  <option value="solid">Düz</option>
+                  <option value="dashed">Kesik</option>
+                  <option value="dotted">Noktalı</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs">Renk</label>
+                <input type="color" id="element-border-color" class="form-control">
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Köşe Yuvarlaklığı (Border Radius)</label>
+            <input type="number" id="element-border-radius" class="form-control">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sayfa Özellikleri Tab İçeriği -->
+      <div class="panel-tab-content" id="page-styles-panel" style="display: none;">
+        <div class="panel-body">
+          <div class="form-group">
+            <label>Sayfa Arka Plan Rengi</label>
+            <div class="flex items-center space-x-2">
+              <input type="color" id="page-bg-color" class="form-control">
+              <div class="color-preview" id="page-bg-preview"></div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Site Genişliği</label>
+            <div class="flex items-center space-x-2">
+              <input type="number" id="container-width" class="form-control">
+              <select id="container-width-unit" class="form-control">
+                <option value="px">px</option>
+                <option value="%">%</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Ana Font</label>
+            <select id="page-font" class="form-control">
+              <option value="Arial, sans-serif">Arial</option>
+              <option value="'Helvetica Neue', Helvetica, sans-serif">Helvetica</option>
+              <option value="'Open Sans', sans-serif">Open Sans</option>
+              <option value="'Roboto', sans-serif">Roboto</option>
+              <option value="'Montserrat', sans-serif">Montserrat</option>
+              <option value="'Lato', sans-serif">Lato</option>
+              <option value="'Poppins', sans-serif">Poppins</option>
+              <option value="Georgia, serif">Georgia</option>
+              <option value="'Times New Roman', Times, serif">Times New Roman</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="panel-section mt-auto">
+      <div class="btn-group">
+        <button id="save-draft-btn" class="btn btn-outline">Taslağı Kaydet</button>
+        <button id="publish-btn" class="btn btn-primary">Yayınla</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Sağ Panel / Önizleme -->
+  <div class="editor-content">
+    <div class="editor-toolbar">
+      <div class="d-flex align-items-center">
+        <span class="me-2 fw-bold">{{ page.title }}</span>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="toggle-editor-btn" checked>
+          <label class="form-check-label" for="toggle-editor-btn">Düzenleme Modu</label>
+        </div>
+      </div>
+      <div>
+        <button id="save-draft-btn" class="btn btn-sm btn-outline-primary" disabled>
+          <i class="fas fa-save"></i> Taslak Kaydet
+        </button>
+        <button id="publish-btn" class="btn btn-sm btn-success">
+          <i class="fas fa-globe"></i> Yayınla
+        </button>
+      </div>
+    </div>
+    
+    <div class="editor-preview">
+      <iframe id="page-preview" src="{{ url_for('page_builder.preview', page_id=page.id) }}"></iframe>
+      <div id="editor-notification" class="notification" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/page_builder/live-editor.js') }}"></script>
+{% endblock %} 

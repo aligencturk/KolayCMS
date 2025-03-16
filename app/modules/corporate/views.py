@@ -48,19 +48,24 @@ def index():
 def create():
     """Yeni kurumsal içerik oluşturur"""
     form = CorporateForm()
+    redirect_to = request.args.get('redirect_to')
     
     if form.validate_on_submit():
         try:
+            # Form'dan redirect_to değerini al
+            if 'redirect_to' in request.form:
+                redirect_to = request.form['redirect_to']
+            
             # Slug'ı doğrula
             if not validate_slug(form.slug.data):
                 flash('Geçersiz SEO URL formatı. Sadece küçük harf, rakam ve tire kullanabilirsiniz.', 'error')
-                return render_template('corporate/form.html', form=form)
+                return render_template('corporate/form.html', form=form, redirect_to=redirect_to)
             
             # Slug'ın benzersiz olduğunu kontrol et
             existing_content = corporate_module.get_by_slug(form.slug.data)
             if existing_content:
                 flash('Bu SEO URL zaten kullanılıyor. Lütfen başka bir URL seçin.', 'error')
-                return render_template('corporate/form.html', form=form)
+                return render_template('corporate/form.html', form=form, redirect_to=redirect_to)
             
             # İçerik oluştur
             content_id = corporate_module.create_content(
@@ -74,13 +79,18 @@ def create():
             
             if content_id:
                 flash('Kurumsal içerik başarıyla oluşturuldu.', 'success')
-                return redirect(url_for('corporate.index'))
+                
+                # Sayfa düzenleyiciye yönlendir
+                if redirect_to == 'page_builder':
+                    return redirect(url_for('page_builder.live_editor', page_id=content_id))
+                else:
+                    return redirect(url_for('corporate.index'))
             else:
                 flash('Kurumsal içerik oluşturulurken bir hata oluştu.', 'error')
         except Exception as e:
             flash(f'Bir hata oluştu: {str(e)}', 'error')
     
-    return render_template('corporate/form.html', form=form)
+    return render_template('corporate/form.html', form=form, redirect_to=redirect_to)
 
 @corporate_bp.route('/<content_id>/edit', methods=['GET', 'POST'])
 @login_required

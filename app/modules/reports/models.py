@@ -1,34 +1,71 @@
-from app.modules.base import BaseModule
+from app import db, logger
+from app.utils.firestore_manager import FirestoreManager
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
-class ReportModule(BaseModule):
-    """Rapor modülü için model sınıfı"""
-    
-    collection_name = 'reports'
-    
-    def create_report(self, title: str, content: str, category: str, 
-                     author_id: str, is_published: bool = False, 
-                     tags: List[str] = None, file_url: str = None) -> Optional[str]:
-        """Yeni bir rapor oluştur"""
-        report_data = {
-            'title': title,
-            'content': content,
-            'category': category,
-            'author_id': author_id,
-            'is_published': is_published,
-            'tags': tags or [],
-            'file_url': file_url,
-            'view_count': 0,
-            'created_at': datetime.now(),
-            'updated_at': datetime.now()
-        }
-        
-        return self.create(report_data)
-    
+class ReportModule:
+    def __init__(self):
+        """Rapor modülünü başlat"""
+        logger.debug("ReportModule başlatılıyor...")
+        self.collection = 'reports'
+        self.db = FirestoreManager()
+        logger.debug(f"{self.collection} koleksiyonu başarıyla başlatıldı")
+
+    async def get_all_reports(self):
+        """Tüm raporları getir"""
+        try:
+            reports = await self.db.get_documents(self.collection)
+            return reports
+        except Exception as e:
+            logger.error(f"Raporlar getirilirken hata: {str(e)}", exc_info=True)
+            return []
+
+    async def get_report(self, report_id):
+        """Belirli bir raporu getir"""
+        try:
+            report = await self.db.get_document(self.collection, report_id)
+            return report
+        except Exception as e:
+            logger.error(f"Rapor getirilirken hata: {str(e)}", exc_info=True)
+            return None
+
+    async def create_report(self, report_data):
+        """Yeni rapor oluştur"""
+        try:
+            report_id = await self.db.add_document(self.collection, report_data)
+            return report_id
+        except Exception as e:
+            logger.error(f"Rapor oluşturulurken hata: {str(e)}", exc_info=True)
+            return None
+
+    async def update_report(self, report_id, report_data):
+        """Rapor güncelle"""
+        try:
+            success = await self.db.update_document(self.collection, report_id, report_data)
+            return success
+        except Exception as e:
+            logger.error(f"Rapor güncellenirken hata: {str(e)}", exc_info=True)
+            return False
+
+    async def delete_report(self, report_id):
+        """Rapor sil"""
+        try:
+            success = await self.db.delete_document(self.collection, report_id)
+            return success
+        except Exception as e:
+            logger.error(f"Rapor silinirken hata: {str(e)}", exc_info=True)
+            return False
+
     def get_all_reports(self) -> List[Dict[str, Any]]:
         """Tüm raporları getir"""
-        return self.list()
+        try:
+            logger.debug("Tüm raporlar getiriliyor...")
+            reports = self.list()
+            logger.debug(f"Toplam {len(reports)} rapor getirildi")
+            return reports
+        except Exception as e:
+            logger.error(f"Raporlar getirilirken hata: {str(e)}", exc_info=True)
+            return []
     
     def update_report(self, report_id: str, data: Dict[str, Any]) -> bool:
         """Var olan bir raporu güncelle"""

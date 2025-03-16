@@ -12,8 +12,17 @@
   </div>
 
   <div class="bg-white rounded-lg shadow-md p-6">
+    <!-- Tema Yükleme Seçeneği -->
+    <div class="mb-8 p-5 border border-gray-200 rounded-lg bg-gray-50">
+      <h2 class="text-lg font-semibold text-gray-800 mb-3">Hazır Tema Yüklemek İster misiniz?</h2>
+      <p class="text-gray-600 mb-4">Sıfırdan tema oluşturmak yerine, hazır bir tema ZIP dosyası yükleyebilirsiniz.</p>
+      <a href="{{ url_for('themes.upload_theme') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg inline-flex items-center">
+        <i class="ri-upload-cloud-line mr-2"></i> Tema Yükle
+      </a>
+    </div>
+
     <form method="post" enctype="multipart/form-data">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       
       {% if error %}
       <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -37,6 +46,24 @@
             </label>
             <textarea name="description" id="description" rows="3"
                       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">{{ form.description if form else '' }}</textarea>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="mb-4">
+              <label class="block text-gray-700 text-sm font-bold mb-2" for="author">
+                Yazar
+              </label>
+              <input type="text" name="author" id="author" value="{{ form.author if form else current_user.username }}"
+                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            
+            <div class="mb-4">
+              <label class="block text-gray-700 text-sm font-bold mb-2" for="version">
+                Versiyon
+              </label>
+              <input type="text" name="version" id="version" value="{{ form.version if form else '1.0.0' }}"
+                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

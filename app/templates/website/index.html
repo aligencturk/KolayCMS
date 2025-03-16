@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ theme.name }}</title>
+    
+    <!-- Tema CSS Değişkenleri -->
+    <style>
+        :root {
+            --primary-color: {{ theme.primary_color }};
+            --secondary-color: {{ theme.secondary_color }};
+            {% if theme.css_variables %}
+            {{ theme.css_variables }}
+            {% endif %}
+        }
+        
+        body {
+            {% if theme.font_family %}
+            font-family: {{ theme.font_family }};
+            {% endif %}
+            margin: 0;
+            padding: 0;
+            color: var(--text-color, #333);
+            background-color: var(--body-bg, #fff);
+        }
+        
+        a {
+            color: var(--link-color, var(--primary-color));
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        .header {
+            background-color: var(--header-bg, #fff);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-menu li {
+            margin-left: 1.5rem;
+        }
+        
+        .hero {
+            background-color: var(--hero-bg, var(--primary-color));
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--button-radius, 4px);
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-color-dark, var(--primary-color));
+            opacity: 0.9;
+            text-decoration: none;
+        }
+        
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .section {
+            padding: 4rem 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .section-title h2 {
+            font-size: 2rem;
+            color: var(--heading-color, #333);
+            margin-bottom: 1rem;
+        }
+        
+        .section-title p {
+            color: var(--text-muted, #666);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .footer {
+            background-color: var(--footer-bg, #333);
+            color: white;
+            padding: 3rem 0;
+        }
+        
+        .footer-content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        
+        .footer-column {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 2rem;
+        }
+        
+        .footer-column h3 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .footer-column ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .footer-column ul li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer-column a {
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .footer-column a:hover {
+            color: white;
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 2rem;
+            color: rgba(255,255,255,0.6);
+        }
+        
+        /* Slider Styles */
+        .slider {
+            position: relative;
+            overflow: hidden;
+            height: 500px;
+        }
+        
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .slide.active {
+            opacity: 1;
+        }
+        
+        .slide-content {
+            text-align: center;
+            color: white;
+            max-width: 800px;
+            padding: 2rem;
+            background-color: rgba(0,0,0,0.5);
+            border-radius: 8px;
+        }
+        
+        .slide-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .slide-content p {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .slider-nav {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+        }
+        
+        .slider-nav-item {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.5);
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        
+        .slider-nav-item.active {
+            background-color: white;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .nav-menu {
+                margin-top: 1rem;
+            }
+            
+            .nav-menu li {
+                margin: 0 0.75rem;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+            
+            .section-title h2 {
+                font-size: 1.75rem;
+            }
+            
+            .footer-column {
+                flex: 0 0 100%;
+            }
+        }
+    </style>
+    
+    <!-- Tema Özel CSS -->
+    {% if template.css_content %}
+    <style>
+        {{ template.css_content }}
+    </style>
+    {% endif %}
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">{{ theme.name }}</div>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="#">Ana Sayfa</a></li>
+                    {% for content in contents %}
+                    <li><a href="#{{ content.slug }}">{{ content.title }}</a></li>
+                    {% endfor %}
+                    <li><a href="#iletisim">İletişim</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- Slider -->
+    {% if sliders %}
+    <div class="slider">
+        {% for slider in sliders %}
+        <div class="slide {% if loop.first %}active{% endif %}" style="background-image: url('{{ slider.image_url }}')">
+            <div class="slide-content">
+                <h2>{{ slider.title }}</h2>
+                {% if slider.description %}
+                <p>{{ slider.description }}</p>
+                {% endif %}
+                {% if slider.link %}
+                <a href="{{ slider.link }}" class="btn btn-primary">Daha Fazla</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        
+        <div class="slider-nav">
+            {% for slider in sliders %}
+            <div class="slider-nav-item {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}"></div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <main>
+        {% if template.html_content %}
+        {{ template.html_content|safe }}
+        {% else %}
+        <!-- Default Content -->
+        <section class="section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Hakkımızda</h2>
+                    <p>Biz kimiz ve ne yapıyoruz?</p>
+                </div>
+                
+                <div class="content">
+                    <p>Bu bir örnek içeriktir. Tema şablonunuzu düzenleyerek kendi içeriğinizi ekleyebilirsiniz.</p>
+                </div>
+            </div>
+        </section>
+        
+        <section class="section" style="background-color: #f9f9f9;">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Hizmetlerimiz</h2>
+                    <p>Size sunduğumuz hizmetler</p>
+                </div>
+                
+                <div class="content">
+                    <p>Bu bir örnek içeriktir. Tema şablonunuzu düzenleyerek kendi içeriğinizi ekleyebilirsiniz.</p>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+        
+        <!-- Corporate Contents -->
+        {% for content in contents %}
+        <section id="{{ content.slug }}" class="section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>{{ content.title }}</h2>
+                </div>
+                
+                <div class="content">
+                    {{ content.content|safe }}
+                </div>
+            </div>
+        </section>
+        {% endfor %}
+        
+        <!-- Contact Section -->
+        <section id="iletisim" class="section" style="background-color: #f9f9f9;">
+            <div class="container">
+                <div class="section-title">
+                    <h2>İletişim</h2>
+                    <p>Bizimle iletişime geçin</p>
+                </div>
+                
+                <div class="content">
+                    <p>Adres: Örnek Adres, İstanbul, Türkiye</p>
+                    <p>Telefon: +90 123 456 7890</p>
+                    <p>E-posta: info@example.com</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>{{ theme.name }}</h3>
+                    <p>Profesyonel web çözümleri</p>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Hızlı Bağlantılar</h3>
+                    <ul>
+                        <li><a href="#">Ana Sayfa</a></li>
+                        <li><a href="#hakkimizda">Hakkımızda</a></li>
+                        <li><a href="#hizmetlerimiz">Hizmetlerimiz</a></li>
+                        <li><a href="#iletisim">İletişim</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>İletişim</h3>
+                    <ul>
+                        <li>Adres: Örnek Adres, İstanbul</li>
+                        <li>Telefon: +90 123 456 7890</li>
+                        <li>E-posta: info@example.com</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                &copy; {{ now.year }} {{ theme.name }}. Tüm hakları saklıdır.
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Tema Özel JS -->
+    {% if template.js_content %}
+    <script>
+        {{ template.js_content|safe }}
+    </script>
+    {% endif %}
+    
+    <!-- Slider JS -->
+    {% if sliders %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const slides = document.querySelectorAll('.slide');
+            const navItems = document.querySelectorAll('.slider-nav-item');
+            let currentSlide = 0;
+            
+            function showSlide(index) {
+                // Tüm slaytları gizle
+                slides.forEach(slide => slide.classList.remove('active'));
+                navItems.forEach(item => item.classList.remove('active'));
+                
+                // Seçilen slaytı göster
+                slides[index].classList.add('active');
+                navItems[index].classList.add('active');
+                
+                currentSlide = index;
+            }
+            
+            // Otomatik slayt değiştirme
+            setInterval(() => {
+                let nextSlide = (currentSlide + 1) % slides.length;
+                showSlide(nextSlide);
+            }, 5000);
+            
+            // Navigasyon butonlarına tıklama
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    let index = parseInt(this.getAttribute('data-index'));
+                    showSlide(index);
+                });
+            });
+        });
+    </script>
+    {% endif %}
+</body>
+</html> 

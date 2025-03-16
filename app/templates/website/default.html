@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ theme.name }}</title>
+    <style>
+        :root {
+            --primary-color: {{ theme.primary_color or '#00BCD4' }};
+            --secondary-color: {{ theme.secondary_color or '#f44336' }};
+            --text-color: #333;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .hero {
+            padding: 5rem 0;
+            text-align: center;
+            background-color: white;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            color: #666;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .section {
+            padding: 4rem 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .section-title h2 {
+            font-size: 2rem;
+            color: var(--dark-color);
+            position: relative;
+            display: inline-block;
+            padding-bottom: 0.5rem;
+        }
+        
+        .section-title h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+        
+        .footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+        
+        .copyright {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: rgba(var(--primary-color-rgb), 0.8);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">{{ theme.name }}</div>
+        </div>
+    </header>
+    
+    <section class="hero">
+        <div class="container">
+            <h1>{{ theme.name }}</h1>
+            <p>Bu tema için henüz bir şablon oluşturulmamış. Tema yönetiminden şablon ekleyerek web sitenizi özelleştirebilirsiniz.</p>
+            <p style="margin-top: 2rem;">
+                <a href="{{ url_for('themes.edit_theme', theme_id=theme.id) }}" class="btn">Temayı Düzenle</a>
+            </p>
+        </div>
+    </section>
+    
+    <section class="section">
+        <div class="container">
+            <div class="section-title">
+                <h2>Tema Bilgileri</h2>
+            </div>
+            
+            <div style="max-width: 600px; margin: 0 auto;">
+                <p><strong>Tema Adı:</strong> {{ theme.name }}</p>
+                {% if theme.description %}
+                <p><strong>Açıklama:</strong> {{ theme.description }}</p>
+                {% endif %}
+                {% if theme.author %}
+                <p><strong>Yazar:</strong> {{ theme.author }}</p>
+                {% endif %}
+                {% if theme.version %}
+                <p><strong>Versiyon:</strong> {{ theme.version }}</p>
+                {% endif %}
+                <p><strong>Oluşturulma Tarihi:</strong> {{ theme.created_at|datetime }}</p>
+            </div>
+        </div>
+    </section>
+    
+    <footer class="footer">
+        <div class="container">
+            <p>{{ theme.name }}</p>
+            <div class="copyright">
+                &copy; {{ now.year }} KolayCMS. Tüm hakları saklıdır.
+            </div>
+        </div>
+    </footer>
+</body>
+</html> 

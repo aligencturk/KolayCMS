@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Tema Sistemi Tanılama{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold mb-6">Tema Sistemi Tanılama ve Onarım</h1>
+  
+  <div class="bg-blue-100 border-blue-500 border-l-4 p-4 mb-6">
+    <div class="flex">
+      <div class="flex-shrink-0">
+        <i class="ri-information-line text-blue-500"></i>
+      </div>
+      <div class="ml-3">
+        <p class="text-sm text-blue-700">
+          Bu sayfa, tema sistemini incelemek ve olası sorunları çözmek için kullanılır.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Sol Panel - Hızlı Eylemler -->
+    <div class="lg:col-span-1">
+      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Hızlı Eylemler</h2>
+        
+        <div class="space-y-4">
+          <a href="{{ url_for('themes.fix_themes') }}" class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded block text-center">
+            <i class="ri-refresh-line mr-1"></i> Tema Sistemini Onar
+          </a>
+          
+          <a href="{{ url_for('themes.index') }}" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded block text-center">
+            <i class="ri-list-settings-line mr-1"></i> Tema Yönetimine Git
+          </a>
+          
+          <a href="{{ url_for('themes.website', theme_name='CoBsine') if active_theme else '#' }}" 
+             class="{{ 'bg-indigo-500 hover:bg-indigo-600 text-white' if active_theme else 'bg-gray-300 text-gray-600 cursor-not-allowed' }} font-medium py-2 px-4 rounded block text-center">
+            <i class="ri-earth-line mr-1"></i> Aktif Temayı Görüntüle
+          </a>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Dosya Sistemi Durumu</h2>
+        
+        <div class="space-y-3">
+          {% for file_info in files_info %}
+          <div class="border rounded-lg p-3">
+            <h3 class="font-medium text-lg">{{ file_info.dir_name }}</h3>
+            <div class="mt-2 space-y-1 text-sm">
+              {% for subfolder in file_info.subfolders %}
+              <div class="flex justify-between">
+                <span>{{ subfolder.name }}:</span>
+                <span class="{{ 'text-green-600' if subfolder.exists else 'text-red-600' }}">
+                  {% if subfolder.exists %}
+                  <i class="ri-checkbox-circle-line"></i> {{ subfolder.files_count }} dosya
+                  {% else %}
+                  <i class="ri-error-warning-line"></i> Yok
+                  {% endif %}
+                </span>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    
+    <!-- Sağ Panel - Veritabanı Durumu -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Veritabanındaki Temalar</h2>
+        
+        {% if themes %}
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white">
+            <thead>
+              <tr class="w-full h-16 border-b border-gray-200 bg-gray-100">
+                <th class="text-left pl-4">ID</th>
+                <th class="text-left">İsim</th>
+                <th class="text-left">Sürüm</th>
+                <th class="text-left">Şablon Dizini</th>
+                <th class="text-center">Durum</th>
+                <th class="text-center">Eylemler</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for theme in themes %}
+              <tr class="h-16 border-b border-gray-200 {{ 'bg-green-50' if theme.is_active else '' }}">
+                <td class="pl-4 text-sm truncate max-w-[100px]">{{ theme.id }}</td>
+                <td class="text-sm">{{ theme.name }}</td>
+                <td class="text-sm">{{ theme.version }}</td>
+                <td class="text-sm truncate max-w-[150px]">{{ theme.template_dir }}</td>
+                <td class="text-center">
+                  {% if theme.is_active %}
+                  <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Aktif</span>
+                  {% else %}
+                  <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">Pasif</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  <div class="flex justify-center space-x-3">
+                    <a href="{{ url_for('themes.view_theme_index', theme_name=theme.name) }}" class="text-blue-600 hover:text-blue-800">
+                      <i class="ri-eye-line"></i>
+                    </a>
+                    {% if not theme.is_active %}
+                    <form action="{{ url_for('themes.toggle_active', theme_id=theme.id) }}" method="post" class="inline">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                      <button type="submit" class="text-green-600 hover:text-green-800">
+                        <i class="ri-check-line"></i>
+                      </button>
+                    </form>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="bg-yellow-100 border-yellow-400 border-l-4 p-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <i class="ri-alert-line text-yellow-400"></i>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-yellow-700">
+                Veritabanında hiç tema bulunamadı. Lütfen "Tema Sistemini Onar" butonuna tıklayın.
+              </p>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      
+      {% if active_theme %}
+      <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+        <h2 class="text-xl font-semibold mb-4">Aktif Tema Detayları</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h3 class="font-medium mb-2">Temel Bilgiler</h3>
+            <div class="bg-gray-50 p-4 rounded">
+              <div class="space-y-2">
+                <div class="flex justify-between">
+                  <span class="font-medium">İsim:</span>
+                  <span>{{ active_theme.name }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="font-medium">Yazar:</span>
+                  <span>{{ active_theme.author }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="font-medium">Sürüm:</span>
+                  <span>{{ active_theme.version }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="font-medium">Oluşturulma:</span>
+                  <span>{{ active_theme.created_at|datetime if active_theme.created_at else 'Belirtilmemiş' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h3 class="font-medium mb-2">Dizin Konumları</h3>
+            <div class="bg-gray-50 p-4 rounded">
+              <div class="space-y-2 text-sm">
+                <div>
+                  <span class="font-medium block">Şablon Dizini:</span>
+                  <span class="block break-all">{{ active_theme.template_dir }}</span>
+                </div>
+                <div>
+                  <span class="font-medium block">Statik Dizin:</span>
+                  <span class="block break-all">{{ active_theme.static_dir }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-6">
+          <h3 class="font-medium mb-2">Hızlı Erişim</h3>
+          <div class="flex flex-wrap gap-3">
+            <a href="{{ url_for('themes.view', theme_id=active_theme.id) }}" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1 px-3 rounded text-sm">
+              <i class="ri-eye-line mr-1"></i> Görüntüle
+            </a>
+            <a href="{{ url_for('themes.view_theme_index', theme_name=active_theme.name) }}" class="bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-1 px-3 rounded text-sm">
+              <i class="ri-earth-line mr-1"></i> Web Sitesi
+            </a>
+            <a href="{{ url_for('themes.edit_theme', theme_id=active_theme.id) }}" class="bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded text-sm">
+              <i class="ri-edit-line mr-1"></i> Düzenle
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %} 

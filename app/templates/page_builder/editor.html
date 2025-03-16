@@ -1,338 +1,525 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}{{ page.title }} - Sayfa Düzenleyici - KolayCMS{% endblock %}
+{% block title %}{{ page.title }} - Düzenle{% endblock %}
 
-{% block extra_head %}
-<meta name="csrf-token" content="{{ csrf_token() }}">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@8.4.0/dist/gridstack.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@8.4.0/dist/gridstack-extra.min.css">
+{% block styles %}
+<link href="https://cdn.jsdelivr.net/npm/@shopify/draggable@1.0.0-beta.8/lib/draggable.bundle.css" rel="stylesheet">
 <style>
-  .grid-stack-item-content {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    overflow: hidden;
-  }
-  
-  .element-content {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .element-header {
-    display: flex;
-    align-items: center;
-    padding: 8px 10px;
-    background: #f9f9f9;
-    border-bottom: 1px solid #ddd;
-  }
-  
-  .element-drag-handle {
-    cursor: move;
-    margin-right: 10px;
-    color: #999;
-  }
-  
-  .element-title {
-    flex-grow: 1;
-    font-weight: 500;
-    font-size: 14px;
-  }
-  
-  .element-actions {
-    display: flex;
-    gap: 5px;
-  }
-  
-  .element-actions button {
-    background: none;
-    border: none;
-    padding: 2px 5px;
-    cursor: pointer;
-    color: #666;
-  }
-  
-  .element-actions button:hover {
-    color: #000;
-  }
-  
-  .element-body {
-    padding: 10px;
-    flex-grow: 1;
-    overflow: auto;
-  }
-  
-  .element-template {
-    padding: 10px;
-    margin-bottom: 10px;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    cursor: grab;
-    display: flex;
-    align-items: center;
-  }
-  
-  .element-template i {
-    margin-right: 10px;
-    font-size: 18px;
-  }
-  
-  .element-template:hover {
-    background: #f5f5f5;
-  }
-  
-  .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-  
-  .modal.hidden {
-    display: none;
-  }
-  
-  .modal-content {
-    background: white;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 600px;
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-  
-  .modal-header {
-    padding: 15px 20px;
-    border-bottom: 1px solid #ddd;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .modal-body {
-    padding: 20px;
-  }
-  
-  .modal-footer {
-    padding: 15px 20px;
-    border-top: 1px solid #ddd;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-  }
-  
-  .notification {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    padding: 10px 20px;
-    background: #2d3748;
-    color: white;
-    border-radius: 6px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    z-index: 1000;
-    transition: opacity 0.3s, transform 0.3s;
-  }
-  
-  .notification.success {
-    background: #38a169;
-  }
-  
-  .notification.error {
-    background: #e53e3e;
-  }
-  
-  .notification.hide {
-    opacity: 0;
-    transform: translateY(10px);
-  }
+    .component-list {
+        min-height: 50px;
+        padding: 10px;
+        border: 2px dashed #e5e7eb;
+        border-radius: 8px;
+    }
+    
+    .component-list.is-dragging-over {
+        border-color: #00BCD4;
+        background-color: rgba(0, 188, 212, 0.1);
+    }
+    
+    .component-item {
+        cursor: move;
+    }
+    
+    .component-item.is-dragging {
+        opacity: 0.5;
+    }
+    
+    .component-item.is-placeholder {
+        border: 2px dashed #e5e7eb;
+        background-color: #f9fafb;
+    }
+    
+    .preview-frame {
+        width: 100%;
+        height: calc(100vh - 200px);
+        border: none;
+    }
+    
+    .device-preview {
+        transition: all 0.3s ease;
+        margin: 0 auto;
+    }
+    
+    .device-preview.mobile {
+        max-width: 375px;
+    }
+    
+    .device-preview.tablet {
+        max-width: 768px;
+    }
+    
+    .device-preview.desktop {
+        max-width: 100%;
+    }
+
+    .component-settings {
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 320px;
+        background: white;
+        box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .component-settings.active {
+        transform: translateX(0);
+    }
 </style>
 {% endblock %}
 
+{% block breadcrumb %}
+<div class="flex items-center space-x-2">
+    <a href="{{ url_for('main.page_builder') }}" class="text-gray-500 hover:text-gray-700">Sayfa Düzenleyici</a>
+    <i class="ri-arrow-right-s-line text-gray-500"></i>
+    <span>{{ page.title }}</span>
+</div>
+{% endblock %}
+
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-  <div class="flex justify-between items-center mb-6">
-    <div>
-      <a href="{{ url_for('page_builder.index') }}" class="text-primary hover:underline flex items-center mb-2">
-        <i class="ri-arrow-left-line mr-1"></i> Geri dön
-      </a>
-      <h1 class="text-2xl font-bold text-gray-800">{{ page.title }} - Düzenleyici</h1>
-    </div>
-    
-    <div class="flex space-x-3">
-      <button id="select-template-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-button flex items-center">
-        <i class="ri-layout-line mr-2"></i>
-        {% if template %}Şablonu Değiştir{% else %}Şablon Seç{% endif %}
-      </button>
-      
-      <button id="save-page-btn" class="px-4 py-2 bg-primary text-white rounded-button flex items-center">
-        <i class="ri-save-line mr-2"></i>
-        Kaydet
-      </button>
-    </div>
-  </div>
-  
-  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-    <!-- Sol Paneli - Eleman Kütüphanesi -->
-    <div class="lg:col-span-1">
-      <div class="bg-white rounded-lg shadow-md p-4">
-        <h2 class="text-lg font-semibold mb-4">Bileşen Kütüphanesi</h2>
-        <p class="text-sm text-gray-600 mb-4">Düzenleyiciye eklemek için bir bileşeni sürükleyin.</p>
-        
-        <div class="element-templates">
-          <div class="element-template" draggable="true" data-element-type="text">
-            <i class="ri-text"></i>
-            <span>Metin Bloğu</span>
-          </div>
-          
-          <div class="element-template" draggable="true" data-element-type="image">
-            <i class="ri-image-line"></i>
-            <span>Görsel</span>
-          </div>
-          
-          <div class="element-template" draggable="true" data-element-type="button">
-            <i class="ri-cursor-line"></i>
-            <span>Buton</span>
-          </div>
-          
-          <div class="element-template" draggable="true" data-element-type="video">
-            <i class="ri-movie-line"></i>
-            <span>Video</span>
-          </div>
+<div class="flex h-full">
+    <!-- Sol Panel: Bileşenler -->
+    <div class="w-64 bg-white shadow-lg overflow-y-auto">
+        <div class="p-4">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Bileşenler</h2>
+            
+            <div class="space-y-4">
+                {% for category, items in components.items() %}
+                <div class="space-y-2">
+                    <h3 class="text-sm font-medium text-gray-600">{{ category }}</h3>
+                    <div class="space-y-2">
+                        {% for component in items %}
+                        <div class="component-item p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                             data-component-id="{{ component.id }}"
+                             data-component-type="{{ component.type }}"
+                             data-component-name="{{ component.name }}"
+                             data-component-properties="{{ component.properties|tojson|e }}">
+                            <div class="flex items-center space-x-3">
+                                <i class="{{ component.icon }} text-gray-500"></i>
+                                <span class="text-sm">{{ component.name }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
-      </div>
     </div>
-    
-    <!-- Ana İçerik - Grid Editor -->
-    <div class="lg:col-span-4">
-      <div class="bg-white rounded-lg shadow-md p-4">
-        <div id="page-editor" data-page-id="{{ page.id }}">
-          <div id="grid-container" class="grid-stack"></div>
+
+    <!-- Orta Panel: Önizleme -->
+    <div class="flex-1 bg-gray-100 p-6">
+        <div class="bg-white rounded-lg shadow-lg h-full flex flex-col">
+            <!-- Araç Çubuğu -->
+            <div class="p-4 border-b flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <!-- Cihaz Seçimi -->
+                    <div class="flex items-center space-x-2">
+                        <button class="device-button p-2 rounded hover:bg-gray-100" data-device="mobile">
+                            <i class="ri-smartphone-line text-xl"></i>
+                        </button>
+                        <button class="device-button p-2 rounded hover:bg-gray-100" data-device="tablet">
+                            <i class="ri-tablet-line text-xl"></i>
+                        </button>
+                        <button class="device-button p-2 rounded hover:bg-gray-100 active" data-device="desktop">
+                            <i class="ri-computer-line text-xl"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Geri/İleri -->
+                    <div class="flex items-center space-x-2">
+                        <button id="undoButton" class="p-2 rounded hover:bg-gray-100 disabled:opacity-50" disabled>
+                            <i class="ri-arrow-go-back-line text-xl"></i>
+                        </button>
+                        <button id="redoButton" class="p-2 rounded hover:bg-gray-100 disabled:opacity-50" disabled>
+                            <i class="ri-arrow-go-forward-line text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button id="previewButton" class="px-4 py-2 text-primary hover:bg-primary/10 rounded-lg">
+                        <i class="ri-eye-line mr-2"></i>Önizle
+                    </button>
+                    <button id="saveButton" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">
+                        <i class="ri-save-line mr-2"></i>Kaydet
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Önizleme Alanı -->
+            <div class="flex-1 p-6 overflow-auto">
+                <div class="device-preview desktop">
+                    <div id="pageContent" class="component-list min-h-[500px]">
+                        {{ page.content|safe }}
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
+
+    <!-- Sağ Panel: Bileşen Ayarları -->
+    <div id="componentSettings" class="component-settings">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="text-lg font-semibold" id="settingsTitle">Bileşen Ayarları</h3>
+            <button onclick="closeSettings()" class="text-gray-500 hover:text-gray-700">
+                <i class="ri-close-line text-xl"></i>
+            </button>
+        </div>
+        <div class="p-4">
+            <form id="settingsForm" class="space-y-4">
+                <!-- Ayarlar dinamik olarak buraya eklenecek -->
+            </form>
+        </div>
+    </div>
 </div>
 
-<!-- Şablon Seçimi Modal -->
-<div id="template-modal" class="modal hidden">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2 class="font-semibold text-xl">Şablon Seç</h2>
-      <button class="close-modal">
-        <i class="ri-close-line"></i>
-      </button>
-    </div>
-    <div class="modal-body">
-      <p class="text-gray-600 mb-4">Sayfanız için bir şablon seçin. Bu işlem mevcut düzeni etkilemeyecektir.</p>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        {% for tmpl in templates %}
-        <div class="border rounded-lg p-3 hover:bg-gray-50 cursor-pointer">
-          <div class="flex items-start space-x-3">
-            <div class="w-12 h-12 bg-gray-200 flex items-center justify-center rounded">
-              <i class="ri-layout-line text-gray-500 text-xl"></i>
-            </div>
-            <div>
-              <h3 class="font-medium">{{ tmpl.name }}</h3>
-              <p class="text-sm text-gray-600">{{ tmpl.description }}</p>
-              <button class="select-template mt-2 text-sm text-primary" data-template-id="{{ tmpl.id }}">
-                Bu şablonu seç
-              </button>
-            </div>
-          </div>
+<!-- Önizleme Modal -->
+<div id="previewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg w-full max-w-4xl mx-4">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="text-lg font-semibold">Sayfa Önizleme</h3>
+            <button onclick="closePreviewModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="ri-close-line text-xl"></i>
+            </button>
         </div>
-        {% endfor %}
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="close-modal px-4 py-2 bg-gray-200 text-gray-700 rounded-button">İptal</button>
-    </div>
-  </div>
-</div>
-
-<!-- Eleman Düzenleme Modal -->
-<div id="element-modal" class="modal hidden">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2 class="font-semibold text-xl">Bileşeni Düzenle</h2>
-      <button class="close-modal">
-        <i class="ri-close-line"></i>
-      </button>
-    </div>
-    <div class="modal-body">
-      <form id="element-form">
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-medium mb-2" for="element-title">
-            Başlık
-          </label>
-          <input type="text" id="element-title" name="element-title" 
-                 class="w-full border rounded-md py-2 px-3">
+        <div class="p-6">
+            <div id="previewContent" class="border rounded-lg p-4 min-h-[500px]"></div>
         </div>
-        
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-medium mb-2" for="element-content">
-            İçerik
-          </label>
-          <textarea id="element-content" name="element-content" rows="4"
-                    class="w-full border rounded-md py-2 px-3"></textarea>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-medium mb-2" for="element-bg-color">
-              Arka Plan Rengi
-            </label>
-            <input type="color" id="element-bg-color" name="element-bg-color" 
-                   class="w-full border rounded-md py-1 px-2 h-10">
-          </div>
-          
-          <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-medium mb-2" for="element-text-color">
-              Yazı Rengi
-            </label>
-            <input type="color" id="element-text-color" name="element-text-color" 
-                   class="w-full border rounded-md py-1 px-2 h-10">
-          </div>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-medium mb-2" for="element-padding">
-              İç Boşluk (padding)
-            </label>
-            <input type="text" id="element-padding" name="element-padding" placeholder="ör: 10px" 
-                   class="w-full border rounded-md py-2 px-3">
-          </div>
-          
-          <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-medium mb-2" for="element-border-radius">
-              Köşe Yuvarlaklığı
-            </label>
-            <input type="text" id="element-border-radius" name="element-border-radius" placeholder="ör: 8px" 
-                   class="w-full border rounded-md py-2 px-3">
-          </div>
-        </div>
-      </form>
     </div>
-    <div class="modal-footer">
-      <button class="close-modal px-4 py-2 bg-gray-200 text-gray-700 rounded-button">İptal</button>
-      <button form="element-form" type="submit" class="px-4 py-2 bg-primary text-white rounded-button">Kaydet</button>
-    </div>
-  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/gridstack@8.4.0/dist/gridstack-all.js"></script>
-<script src="{{ url_for('static', filename='js/page_builder/editor.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/@shopify/draggable@1.0.0-beta.8/lib/draggable.bundle.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Sürükle-Bırak İşlemleri
+    const containers = document.querySelectorAll('.component-list');
+    const draggable = new window.Draggable.Sortable(containers, {
+        draggable: '.component-item',
+        handle: '.component-item',
+        mirror: {
+            constrainDimensions: true,
+        }
+    });
+
+    // Sürükle-Bırak Olayları
+    draggable.on('drag:start', (evt) => {
+        evt.source.classList.add('is-dragging');
+        
+        // Yeni bileşen ekleme
+        if (!evt.source.parentElement.classList.contains('component-list')) {
+            const componentData = evt.source.dataset;
+            const newComponent = createComponent(componentData);
+            evt.source.replaceWith(newComponent);
+        }
+    });
+
+    draggable.on('drag:stop', (evt) => {
+        evt.source.classList.remove('is-dragging');
+        savePageState();
+    });
+
+    draggable.on('drag:over', (evt) => {
+        evt.overContainer.classList.add('is-dragging-over');
+    });
+
+    draggable.on('drag:out', (evt) => {
+        evt.overContainer.classList.remove('is-dragging-over');
+    });
+
+    // Bileşen Oluşturma
+    function createComponent(data) {
+        const component = document.createElement('div');
+        component.className = 'component-item p-4 bg-white rounded-lg shadow mb-4';
+        component.dataset.componentId = data.componentId;
+        component.dataset.componentType = data.componentType;
+        component.dataset.componentProperties = data.componentProperties;
+        
+        // Bileşen içeriği
+        component.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="${data.componentIcon || 'ri-code-line'} text-gray-500"></i>
+                    <span>${data.componentName}</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button type="button" onclick="editComponent(this.closest('.component-item'))" 
+                            class="p-1 text-gray-500 hover:text-gray-700">
+                        <i class="ri-settings-line"></i>
+                    </button>
+                    <button type="button" onclick="deleteComponent(this.closest('.component-item'))" 
+                            class="p-1 text-red-500 hover:text-red-700">
+                        <i class="ri-delete-bin-line"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        return component;
+    }
+
+    // Bileşen Düzenleme
+    window.editComponent = function(component) {
+        const settings = document.getElementById('componentSettings');
+        const form = document.getElementById('settingsForm');
+        const title = document.getElementById('settingsTitle');
+        
+        // Bileşen verilerini al
+        const componentData = {
+            id: component.dataset.componentId,
+            type: component.dataset.componentType,
+            properties: JSON.parse(component.dataset.componentProperties || '{}')
+        };
+        
+        // Başlığı güncelle
+        title.textContent = `${component.querySelector('span').textContent} Ayarları`;
+        
+        // Form alanlarını oluştur
+        form.innerHTML = '';
+        Object.entries(componentData.properties).forEach(([key, value]) => {
+            const field = createFormField(key, value);
+            form.appendChild(field);
+        });
+        
+        // Kaydet butonu ekle
+        const saveButton = document.createElement('button');
+        saveButton.type = 'button';
+        saveButton.className = 'w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90';
+        saveButton.textContent = 'Değişiklikleri Kaydet';
+        saveButton.onclick = () => {
+            // Form verilerini topla
+            const formData = {};
+            form.querySelectorAll('[name]').forEach(input => {
+                formData[input.name] = input.value;
+            });
+            
+            // Bileşen özelliklerini güncelle
+            component.dataset.componentProperties = JSON.stringify(formData);
+            
+            // Sayfayı kaydet
+            savePageState();
+            
+            // Ayarları kapat
+            closeSettings();
+        };
+        form.appendChild(saveButton);
+        
+        // Ayarlar panelini göster
+        settings.classList.add('active');
+    };
+
+    // Form Alanı Oluşturma
+    function createFormField(key, value) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'space-y-2';
+        
+        const label = document.createElement('label');
+        label.className = 'block text-sm font-medium text-gray-700';
+        label.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = key;
+        input.value = value;
+        input.className = 'w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary';
+        
+        wrapper.appendChild(label);
+        wrapper.appendChild(input);
+        return wrapper;
+    }
+
+    // Ayarları Kapat
+    window.closeSettings = function() {
+        const settings = document.getElementById('componentSettings');
+        settings.classList.remove('active');
+    };
+
+    // Bileşen Silme
+    window.deleteComponent = function(component) {
+        if (confirm('Bu bileşeni silmek istediğinizden emin misiniz?')) {
+            component.remove();
+            savePageState();
+        }
+    };
+
+    // Sayfa Durumunu Kaydet
+    function savePageState() {
+        const components = [];
+        document.querySelectorAll('#pageContent .component-item').forEach(item => {
+            components.push({
+                id: item.dataset.componentId,
+                type: item.dataset.componentType,
+                properties: JSON.parse(item.dataset.componentProperties || '{}')
+            });
+        });
+        
+        // Geçmiş yönetimi için state'i kaydet
+        addToHistory(components);
+    }
+
+    // Geçmiş Yönetimi
+    let history = [];
+    let currentIndex = -1;
+
+    function addToHistory(state) {
+        // Mevcut durumdan sonraki geçmişi temizle
+        history = history.slice(0, currentIndex + 1);
+        
+        // Yeni durumu ekle
+        history.push(JSON.stringify(state));
+        currentIndex++;
+        
+        // Geri/İleri butonlarını güncelle
+        updateHistoryButtons();
+    }
+
+    function updateHistoryButtons() {
+        document.getElementById('undoButton').disabled = currentIndex <= 0;
+        document.getElementById('redoButton').disabled = currentIndex >= history.length - 1;
+    }
+
+    // Geri/İleri
+    document.getElementById('undoButton').addEventListener('click', () => {
+        if (currentIndex > 0) {
+            currentIndex--;
+            restoreState(JSON.parse(history[currentIndex]));
+            updateHistoryButtons();
+        }
+    });
+
+    document.getElementById('redoButton').addEventListener('click', () => {
+        if (currentIndex < history.length - 1) {
+            currentIndex++;
+            restoreState(JSON.parse(history[currentIndex]));
+            updateHistoryButtons();
+        }
+    });
+
+    function restoreState(state) {
+        const container = document.getElementById('pageContent');
+        container.innerHTML = '';
+        
+        state.forEach(item => {
+            const component = createComponent({
+                componentId: item.id,
+                componentType: item.type,
+                componentProperties: JSON.stringify(item.properties)
+            });
+            container.appendChild(component);
+        });
+    }
+
+    // Cihaz Önizleme
+    const deviceButtons = document.querySelectorAll('.device-button');
+    const devicePreview = document.querySelector('.device-preview');
+
+    deviceButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            deviceButtons.forEach(b => b.classList.remove('active', 'bg-gray-100'));
+            button.classList.add('active', 'bg-gray-100');
+            
+            const device = button.dataset.device;
+            devicePreview.className = `device-preview ${device}`;
+        });
+    });
+
+    // Kaydetme İşlemi
+    const saveButton = document.getElementById('saveButton');
+    saveButton.addEventListener('click', async () => {
+        try {
+            const components = [];
+            document.querySelectorAll('#pageContent .component-item').forEach(item => {
+                components.push({
+                    id: item.dataset.componentId,
+                    type: item.dataset.componentType,
+                    properties: JSON.parse(item.dataset.componentProperties || '{}')
+                });
+            });
+
+            const response = await fetch(`{{ url_for('main.save_page', page_id=page.id) }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ components })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                alert('Sayfa başarıyla kaydedildi.');
+            } else {
+                alert(data.message || 'Bir hata oluştu.');
+            }
+        } catch (error) {
+            alert('Sayfa kaydedilirken bir hata oluştu.');
+        }
+    });
+
+    // Önizleme
+    document.getElementById('previewButton').addEventListener('click', async () => {
+        try {
+            const components = [];
+            document.querySelectorAll('#pageContent .component-item').forEach(item => {
+                components.push({
+                    id: item.dataset.componentId,
+                    type: item.dataset.componentType,
+                    properties: JSON.parse(item.dataset.componentProperties || '{}')
+                });
+            });
+
+            const response = await fetch(`{{ url_for('main.preview_page', page_id=page.id) }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ components })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                const previewContent = document.getElementById('previewContent');
+                previewContent.innerHTML = data.html;
+                
+                if (data.css) {
+                    const style = document.createElement('style');
+                    style.textContent = data.css;
+                    previewContent.appendChild(style);
+                }
+                
+                if (data.js) {
+                    const script = document.createElement('script');
+                    script.textContent = data.js;
+                    previewContent.appendChild(script);
+                }
+                
+                const modal = document.getElementById('previewModal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                alert(data.message || 'Önizleme oluşturulamadı.');
+            }
+        } catch (error) {
+            alert('Önizleme oluşturulurken bir hata oluştu.');
+        }
+    });
+});
+
+function closePreviewModal() {
+    const modal = document.getElementById('previewModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+// Modal dışına tıklandığında kapat
+document.getElementById('previewModal').addEventListener('click', function(event) {
+    if (event.target === this) {
+        closePreviewModal();
+    }
+});
+</script>
 {% endblock %} 

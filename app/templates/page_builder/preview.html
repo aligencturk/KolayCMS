@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - Önizleme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :where([class^="ri-"])::before { content: "\f3c2"; }
+    </style>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: '#00BCD4',
+                    secondary: '#f44336',
+                },
+                borderRadius: {
+                    'none': '0px',
+                    'sm': '4px',
+                    DEFAULT: '8px',
+                    'md': '12px',
+                    'lg': '16px',
+                    'xl': '20px',
+                    '2xl': '24px',
+                    '3xl': '32px',
+                    'full': '9999px',
+                    'button': '8px'
+                }
+            }
+        }
+    }
+        </script>
+</head>
+<body class="bg-gray-100">
+    <!-- Üst Bar -->
+    <div class="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
+        <div class="container mx-auto px-4 py-2 flex justify-between items-center">
+            <h1 class="text-lg font-semibold">{{ title }}</h1>
+            <div class="space-x-2">
+                <button onclick="window.close()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-opacity-90">
+                    <i class="ri-close-line mr-2"></i>Kapat
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- İçerik -->
+    <div class="container mx-auto px-4 py-20">
+        <div id="pageContent">
+            <!-- Sayfa içeriği buraya yüklenecek -->
+        </div>
+    </div>
+
+    <script>
+    // Sayfa düzenini yükle
+    const layout = {{ layout|tojson|safe }};
+    const contentDiv = document.getElementById('pageContent');
+
+    // Düzeni sayfaya uygula
+    function renderLayout() {
+        if (!layout || !layout.components) return;
+
+        layout.components.forEach(component => {
+            const componentDiv = document.createElement('div');
+            componentDiv.className = `component ${component.type}`;
+            componentDiv.style.cssText = `
+                grid-column: span ${component.w} / span ${component.w};
+                margin-bottom: 1rem;
+            `;
+            
+            // İçeriği ayarla
+            componentDiv.innerHTML = component.content;
+            
+            // Stilleri uygula
+            if (component.styles) {
+                const content = componentDiv.firstElementChild || componentDiv;
+                Object.entries(component.styles).forEach(([property, value]) => {
+                    if (value) {
+                        content.style[property] = value;
+                    }
+                });
+            }
+            
+            contentDiv.appendChild(componentDiv);
+        });
+    }
+
+    // Sayfa yüklendiğinde düzeni uygula
+    document.addEventListener('DOMContentLoaded', renderLayout);
+    </script>
+</body>
+</html> 

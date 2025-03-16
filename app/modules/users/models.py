@@ -31,4 +31,12 @@ class UserModule(BaseModule):
     
     def activate_user(self, user_id: str) -> bool:
         """Kullanıcıyı aktif et"""
-        return self.update(user_id, {'is_active': True}) 
+        return self.update(user_id, {'is_active': True})
+    
+    def is_admin(self) -> bool:
+        """Kullanıcının admin rolüne sahip olup olmadığını kontrol et"""
+        return self.role == 'admin'
+    
+    def is_editor(self) -> bool:
+        """Kullanıcının editor rolüne sahip olup olmadığını kontrol et"""
+        return self.role in ['editor', 'admin'] 

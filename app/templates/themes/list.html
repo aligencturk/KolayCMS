@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Temalar{% endblock %}
+
+{% block breadcrumb %}Temalar{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-semibold text-gray-800">Temalar</h1>
+            <a href="{{ url_for('themes.upload_theme') }}" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">
+                <i class="ri-upload-2-line mr-2"></i>Tema Yükle
+            </a>
+        </div>
+
+        {% if themes %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for theme in themes %}
+            <div class="border rounded-lg overflow-hidden">
+                {% if theme.preview_url %}
+                <img src="{{ theme.preview_url }}" alt="{{ theme.name }}" class="w-full h-48 object-cover">
+                {% else %}
+                <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                    <i class="ri-palette-line text-4xl text-gray-400"></i>
+                </div>
+                {% endif %}
+                
+                <div class="p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-800">{{ theme.name }}</h3>
+                        {% if theme.is_active %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Aktif
+                        </span>
+                        {% endif %}
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">{{ theme.description or 'Açıklama yok' }}</p>
+                    <div class="mt-2 text-sm text-gray-500">
+                        <p>Versiyon: {{ theme.version }}</p>
+                        <p>Yazar: {{ theme.author }}</p>
+                    </div>
+                    
+                    <div class="mt-4 flex justify-end space-x-2">
+                        {% if not theme.is_active %}
+                        <form method="POST" action="{{ url_for('themes.toggle_active', theme_id=theme.id) }}" class="inline-block">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="px-3 py-1 text-sm text-green-600 hover:bg-green-50 rounded">
+                                <i class="ri-check-line mr-1"></i>Aktifleştir
+                            </button>
+                        </form>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('themes.edit_theme', theme_id=theme.id) }}" 
+                           class="px-3 py-1 text-sm text-primary hover:bg-primary/10 rounded">
+                            <i class="ri-edit-line mr-1"></i>Düzenle
+                        </a>
+                        
+                        {% if not theme.is_active %}
+                        <form method="POST" action="{{ url_for('themes.delete_theme', theme_id=theme.id) }}" 
+                              class="inline-block" onsubmit="return confirm('Bu temayı silmek istediğinizden emin misiniz?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="px-3 py-1 text-sm text-secondary hover:bg-secondary/10 rounded">
+                                <i class="ri-delete-bin-line mr-1"></i>Sil
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <i class="ri-palette-line text-6xl text-gray-300 mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900">Henüz tema yok</h3>
+            <p class="mt-1 text-sm text-gray-500">Yeni bir tema yüklemek için yukarıdaki butonu kullanın.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

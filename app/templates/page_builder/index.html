@@ -1,64 +1,617 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}Sayfa Düzenleyici - KolayCMS{% endblock %}
+{% block title %}Sayfa Düzenleyici{% endblock %}
+
+{% block styles %}
+<link href="https://cdn.jsdelivr.net/npm/gridstack@7.2.3/dist/gridstack.min.css" rel="stylesheet"/>
+<style>
+    .grid-stack-item {
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 8px;
+    }
+    .grid-stack-item-content {
+        padding: 10px;
+    }
+    .component-list {
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+    .component-item {
+        cursor: move;
+    }
+    .component-preview {
+        height: 100px;
+        background: #f8f9fa;
+        border: 1px dashed #dee2e6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">Sayfa Düzenleyici</h1>
-  </div>
-
-  <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-    <p class="text-gray-700 mb-4">
-      Sayfa düzenleyici, teknik bilgi gerekmeden sürükle-bırak yöntemiyle sayfa tasarımı yapmanızı sağlar.
-      Düzenlemek istediğiniz sayfayı seçin veya yeni bir sayfa oluşturun.
-    </p>
-    <div class="flex space-x-4">
-      <a href="{{ url_for('corporate.create') }}" class="bg-primary text-white px-4 py-2 rounded-button">
-        <i class="ri-add-line mr-2"></i>
-        Yeni Sayfa Oluştur
-      </a>
-    </div>
-  </div>
-
-  {% if pages|length == 0 %}
-  <div class="bg-gray-100 rounded-lg p-6 text-center">
-    <p class="text-gray-600 mb-4">Henüz düzenlenebilecek sayfa bulunmuyor.</p>
-    <a href="{{ url_for('corporate.create') }}" class="text-primary hover:underline">
-      Yeni bir sayfa oluşturmak için tıklayın
-    </a>
-  </div>
-  {% else %}
-  <div class="bg-white rounded-lg shadow-md overflow-hidden">
-    <div class="p-4 border-b bg-gray-50">
-      <h2 class="text-lg font-semibold">Düzenlenebilir Sayfalar</h2>
-    </div>
-    
-    <div class="divide-y">
-      {% for page in pages %}
-      <div class="p-4 hover:bg-gray-50 flex justify-between items-center">
-        <div>
-          <h3 class="font-medium text-gray-800">{{ page.title }}</h3>
-          <p class="text-sm text-gray-600">{{ page.page_type|capitalize }}</p>
+<div class="container mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Sayfa Düzenleyici</h1>
+        <div class="space-x-2">
+            <button id="saveLayout" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90">
+                <i class="ri-save-line mr-2"></i>Kaydet
+            </button>
+            <button id="previewPage" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-opacity-90">
+                <i class="ri-eye-line mr-2"></i>Önizle
+            </button>
         </div>
-        
-        <div class="flex space-x-4">
-          {% if page.template_id %}
-          <span class="text-sm text-gray-500 flex items-center">
-            <i class="ri-layout-line mr-1"></i> Şablon atanmış
-          </span>
-          {% endif %}
-          
-          <a href="{{ url_for('page_builder.edit_page', page_id=page.id) }}" 
-             class="bg-primary text-white px-3 py-1 rounded-button text-sm flex items-center">
-            <i class="ri-edit-line mr-1"></i>
-            Düzenle
-          </a>
-        </div>
-      </div>
-      {% endfor %}
     </div>
-  </div>
-  {% endif %}
+
+    <div class="grid grid-cols-12 gap-6">
+        <!-- Sol Panel - Bileşenler -->
+        <div class="col-span-3">
+            <div class="bg-white rounded-lg shadow p-4">
+                <h2 class="text-lg font-semibold mb-4">Bileşenler</h2>
+                <div class="component-list space-y-4">
+                    <!-- Temel Bileşenler -->
+                    <div class="component-category">
+                        <h3 class="text-sm font-medium text-gray-600 mb-2">Temel Bileşenler</h3>
+                        <div class="space-y-2">
+                            <div class="component-item bg-gray-50 p-3 rounded hover:bg-gray-100" draggable="true" data-component="heading">
+                                <div class="flex items-center">
+                                    <i class="ri-heading text-gray-600 mr-2"></i>
+                                    <span>Başlık</span>
+                                </div>
+                            </div>
+                            <div class="component-item bg-gray-50 p-3 rounded hover:bg-gray-100" draggable="true" data-component="text">
+                                <div class="flex items-center">
+                                    <i class="ri-text text-gray-600 mr-2"></i>
+                                    <span>Metin</span>
+                                </div>
+                            </div>
+                            <div class="component-item bg-gray-50 p-3 rounded hover:bg-gray-100" draggable="true" data-component="image">
+                                <div class="flex items-center">
+                                    <i class="ri-image-line text-gray-600 mr-2"></i>
+                                    <span>Görsel</span>
+                                </div>
+                            </div>
+                            <div class="component-item bg-gray-50 p-3 rounded hover:bg-gray-100" draggable="true" data-component="button">
+                                <div class="flex items-center">
+                                    <i class="ri-cursor-line text-gray-600 mr-2"></i>
+                                    <span>Buton</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gelişmiş Bileşenler -->
+                    <div class="component-category">
+                        <h3 class="text-sm font-medium text-gray-600 mb-2">Gelişmiş Bileşenler</h3>
+                        <div class="space-y-2">
+                            <div class="component-item bg-gray-50 p-3 rounded hover:bg-gray-100" draggable="true" data-component="slider">
+                                <div class="flex items-center">
+                                    <i class="ri-slideshow-line text-gray-600 mr-2"></i>
+                                    <span>Slider</span>
+                                </div>
+                            </div>
+                            <div class="component-item bg-gray-50 p-3 rounded hover:bg-gray-100" draggable="true" data-component="form">
+                                <div class="flex items-center">
+                                    <i class="ri-file-list-line text-gray-600 mr-2"></i>
+                                    <span>Form</span>
+                                </div>
+                            </div>
+                            <div class="component-item bg-gray-50 p-3 rounded hover:bg-gray-100" draggable="true" data-component="map">
+                                <div class="flex items-center">
+                                    <i class="ri-map-pin-line text-gray-600 mr-2"></i>
+                                    <span>Harita</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Özel Bileşenler -->
+                    <div class="component-category">
+                        <h3 class="text-sm font-medium text-gray-600 mb-2">Özel Bileşenler</h3>
+                        <div class="space-y-2">
+                            <div class="component-item bg-gray-50 p-3 rounded hover:bg-gray-100" draggable="true" data-component="testimonial">
+                                <div class="flex items-center">
+                                    <i class="ri-chat-quote-line text-gray-600 mr-2"></i>
+                                    <span>Müşteri Yorumu</span>
+                                </div>
+                            </div>
+                            <div class="component-item bg-gray-50 p-3 rounded hover:bg-gray-100" draggable="true" data-component="team">
+                                <div class="flex items-center">
+                                    <i class="ri-team-line text-gray-600 mr-2"></i>
+                                    <span>Ekip Üyesi</span>
+                                </div>
+                            </div>
+                            <div class="component-item bg-gray-50 p-3 rounded hover:bg-gray-100" draggable="true" data-component="pricing">
+                                <div class="flex items-center">
+                                    <i class="ri-price-tag-3-line text-gray-600 mr-2"></i>
+                                    <span>Fiyatlandırma</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orta Panel - Düzenleme Alanı -->
+        <div class="col-span-6">
+            <div class="bg-white rounded-lg shadow p-4" style="min-height: calc(100vh - 200px);">
+                <div class="grid-stack">
+                    <!-- Bileşenler buraya eklenecek -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ Panel - Özellikler -->
+        <div class="col-span-3">
+            <div class="bg-white rounded-lg shadow p-4">
+                <h2 class="text-lg font-semibold mb-4">Özellikler</h2>
+                <div id="componentProperties">
+                    <div class="text-gray-500 text-center py-8">
+                        Özelliklerini düzenlemek için bir bileşen seçin
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/gridstack@7.2.3/dist/gridstack-all.js"></script>
+<script>
+let grid;
+let selectedComponent = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // GridStack'i başlat
+    grid = GridStack.init({
+        column: 12,
+        row: 20,
+        cellHeight: 50,
+        acceptWidgets: true,
+        float: true,
+        removable: true,
+        removeTimeout: 100,
+        margin: 10
+    });
+
+    // Bileşenleri sürükle-bırak için hazırla
+    const components = document.querySelectorAll('.component-item');
+    components.forEach(component => {
+        component.addEventListener('dragstart', handleDragStart);
+        component.addEventListener('dragend', handleDragEnd);
+    });
+
+    // Kaydet butonu
+    document.getElementById('saveLayout').addEventListener('click', saveLayout);
+    
+    // Önizleme butonu
+    document.getElementById('previewPage').addEventListener('click', previewPage);
+});
+
+function handleDragStart(event) {
+    const componentType = event.target.getAttribute('data-component');
+    event.dataTransfer.setData('application/json', JSON.stringify({
+        type: componentType,
+        w: 12,
+        h: 4,
+        content: getDefaultContent(componentType)
+    }));
+}
+
+function handleDragEnd(event) {
+    // Sürükleme bittiğinde yapılacak işlemler
+}
+
+function getDefaultContent(type) {
+    const contents = {
+        heading: '<h2 class="text-2xl font-bold">Başlık</h2>',
+        text: '<p>Metin içeriği buraya gelecek...</p>',
+        image: '<div class="component-preview">Görsel Önizleme</div>',
+        button: '<button class="bg-primary text-white px-4 py-2 rounded">Buton</button>',
+        slider: '<div class="component-preview">Slider Bileşeni</div>',
+        form: '<div class="component-preview">Form Bileşeni</div>',
+        map: '<div class="component-preview">Harita Bileşeni</div>',
+        testimonial: '<div class="component-preview">Müşteri Yorumu Bileşeni</div>',
+        team: '<div class="component-preview">Ekip Üyesi Bileşeni</div>',
+        pricing: '<div class="component-preview">Fiyatlandırma Bileşeni</div>'
+    };
+    return contents[type] || `<div>Bilinmeyen bileşen: ${type}</div>`;
+}
+
+function saveLayout() {
+    const layout = {
+        components: grid.save().children.map(item => ({
+            type: item.el.getAttribute('data-component'),
+            w: item.w,
+            h: item.h,
+            content: item.el.querySelector('.grid-stack-item-content').innerHTML,
+            styles: JSON.parse(item.el.getAttribute('data-styles') || '{}')
+        }))
+    };
+
+    // AJAX ile sunucuya gönder
+    fetch('/page-builder/save_page_layout', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            layout: layout,
+            title: document.querySelector('h1').textContent
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Başarılı mesajı göster
+            showNotification('Değişiklikler kaydedildi', 'success');
+        } else {
+            throw new Error(data.message);
+        }
+    })
+    .catch(error => {
+        showNotification('Kaydetme hatası: ' + error.message, 'error');
+    });
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-4 py-2 rounded shadow ${
+        type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+    }`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+
+// Bileşen yüklenirken stilleri uygula
+function loadComponentStyles(element) {
+    const styles = JSON.parse(element.getAttribute('data-styles') || '{}');
+    const content = element.querySelector('.grid-stack-item-content');
+    
+    Object.entries(styles).forEach(([property, value]) => {
+        if (value) {
+            content.style[property] = value;
+        }
+    });
+}
+
+// GridStack olaylarını güncelle
+grid.on('added', function(event, items) {
+    items.forEach(item => {
+        loadComponentStyles(item.el);
+    });
+});
+
+grid.on('change', function(event, items) {
+    saveLayout();
+});
+
+function previewPage() {
+    // Önce sayfayı kaydet
+    const layout = {
+        components: grid.save().children.map(item => ({
+            type: item.el.getAttribute('data-component'),
+            w: item.w,
+            h: item.h,
+            content: item.el.querySelector('.grid-stack-item-content').innerHTML
+        }))
+    };
+
+    // AJAX ile sunucuya gönder
+    fetch('/page-builder/save_page_layout', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            layout: layout,
+            title: document.querySelector('h1').textContent
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Önizleme sayfasını aç
+            window.open(`/page-builder/preview/${data.page_id}`, '_blank');
+        } else {
+            throw new Error(data.message);
+        }
+    })
+    .catch(error => {
+        // Hata mesajı göster
+        const message = document.createElement('div');
+        message.className = 'fixed top-4 right-4 bg-red-100 text-red-700 px-4 py-2 rounded shadow';
+        message.textContent = error.message;
+        document.body.appendChild(message);
+        setTimeout(() => message.remove(), 3000);
+    });
+}
+
+// Bileşen seçildiğinde özelliklerini göster
+grid.on('click', function(event, element) {
+    selectedComponent = element;
+    showComponentProperties(element);
+});
+
+function showComponentProperties(element) {
+    const propertiesPanel = document.getElementById('componentProperties');
+    const componentType = element.getAttribute('data-component');
+    
+    // Bileşen tipine göre özellik panelini güncelle
+    propertiesPanel.innerHTML = `
+        <div class="space-y-4">
+            <div class="form-group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Genişlik</label>
+                <input type="range" min="1" max="12" value="${element.getAttribute('gs-w')}" 
+                       class="w-full" onchange="updateComponentWidth(this.value)">
+            </div>
+            <div class="form-group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Yükseklik</label>
+                <input type="range" min="1" max="10" value="${element.getAttribute('gs-h')}"
+                       class="w-full" onchange="updateComponentHeight(this.value)">
+            </div>
+            ${getComponentSpecificProperties(componentType)}
+        </div>
+    `;
+}
+
+function getComponentSpecificProperties(type) {
+    const properties = {
+        heading: `
+            <div class="space-y-4">
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Metin</label>
+                    <input type="text" class="w-full border rounded p-2" 
+                           onchange="updateComponentContent(this.value, 'heading')">
+                </div>
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Boyut</label>
+                    <select class="w-full border rounded p-2" 
+                            onchange="updateHeadingSize(this.value)">
+                        <option value="text-xl">Küçük</option>
+                        <option value="text-2xl">Orta</option>
+                        <option value="text-3xl">Büyük</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Renk</label>
+                    <input type="color" class="w-full h-10 border rounded" 
+                           onchange="updateTextColor(this.value)">
+                </div>
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Hizalama</label>
+                    <div class="flex space-x-2">
+                        <button onclick="updateAlignment('text-left')" class="p-2 border rounded hover:bg-gray-100">
+                            <i class="ri-align-left"></i>
+                        </button>
+                        <button onclick="updateAlignment('text-center')" class="p-2 border rounded hover:bg-gray-100">
+                            <i class="ri-align-center"></i>
+                        </button>
+                        <button onclick="updateAlignment('text-right')" class="p-2 border rounded hover:bg-gray-100">
+                            <i class="ri-align-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `,
+        text: `
+            <div class="space-y-4">
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">İçerik</label>
+                    <textarea class="w-full border rounded p-2" rows="4"
+                              onchange="updateComponentContent(this.value, 'text')"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Yazı Tipi Boyutu</label>
+                    <input type="range" min="12" max="32" value="16" class="w-full"
+                           onchange="updateFontSize(this.value)">
+                </div>
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Renk</label>
+                    <input type="color" class="w-full h-10 border rounded"
+                           onchange="updateTextColor(this.value)">
+                </div>
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Arkaplan Rengi</label>
+                    <input type="color" class="w-full h-10 border rounded"
+                           onchange="updateBackgroundColor(this.value)">
+                </div>
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kenar Boşluğu</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <input type="number" placeholder="Üst" class="border rounded p-1"
+                               onchange="updateMargin('top', this.value)">
+                        <input type="number" placeholder="Sağ" class="border rounded p-1"
+                               onchange="updateMargin('right', this.value)">
+                        <input type="number" placeholder="Alt" class="border rounded p-1"
+                               onchange="updateMargin('bottom', this.value)">
+                        <input type="number" placeholder="Sol" class="border rounded p-1"
+                               onchange="updateMargin('left', this.value)">
+                    </div>
+                </div>
+            </div>
+        `,
+        image: `
+            <div class="space-y-4">
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Görsel URL</label>
+                    <input type="text" class="w-full border rounded p-2"
+                           onchange="updateImageSource(this.value)">
+                </div>
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Alternatif Metin</label>
+                    <input type="text" class="w-full border rounded p-2"
+                           onchange="updateImageAlt(this.value)">
+                </div>
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Genişlik</label>
+                    <input type="range" min="50" max="100" value="100" class="w-full"
+                           onchange="updateImageWidth(this.value)">
+                </div>
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Yükseklik</label>
+                    <input type="range" min="50" max="100" value="100" class="w-full"
+                           onchange="updateImageHeight(this.value)">
+                </div>
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kenarlık Yarıçapı</label>
+                    <input type="range" min="0" max="50" value="0" class="w-full"
+                           onchange="updateBorderRadius(this.value)">
+                </div>
+            </div>
+        `
+    };
+    return properties[type] || '';
+}
+
+// Stil güncelleme fonksiyonları
+function updateTextColor(color) {
+    if (selectedComponent) {
+        const content = selectedComponent.querySelector('.grid-stack-item-content');
+        content.style.color = color;
+        saveComponentStyles();
+    }
+}
+
+function updateBackgroundColor(color) {
+    if (selectedComponent) {
+        const content = selectedComponent.querySelector('.grid-stack-item-content');
+        content.style.backgroundColor = color;
+        saveComponentStyles();
+    }
+}
+
+function updateFontSize(size) {
+    if (selectedComponent) {
+        const content = selectedComponent.querySelector('.grid-stack-item-content');
+        content.style.fontSize = `${size}px`;
+        saveComponentStyles();
+    }
+}
+
+function updateAlignment(alignment) {
+    if (selectedComponent) {
+        const content = selectedComponent.querySelector('.grid-stack-item-content');
+        content.className = `grid-stack-item-content ${alignment}`;
+        saveComponentStyles();
+    }
+}
+
+function updateMargin(side, value) {
+    if (selectedComponent) {
+        const content = selectedComponent.querySelector('.grid-stack-item-content');
+        content.style[`margin${side.charAt(0).toUpperCase() + side.slice(1)}`] = `${value}px`;
+        saveComponentStyles();
+    }
+}
+
+function updateImageSource(url) {
+    if (selectedComponent) {
+        const img = selectedComponent.querySelector('img');
+        if (img) {
+            img.src = url;
+            saveComponentStyles();
+        }
+    }
+}
+
+function updateImageAlt(text) {
+    if (selectedComponent) {
+        const img = selectedComponent.querySelector('img');
+        if (img) {
+            img.alt = text;
+            saveComponentStyles();
+        }
+    }
+}
+
+function updateImageWidth(value) {
+    if (selectedComponent) {
+        const img = selectedComponent.querySelector('img');
+        if (img) {
+            img.style.width = `${value}%`;
+            saveComponentStyles();
+        }
+    }
+}
+
+function updateImageHeight(value) {
+    if (selectedComponent) {
+        const img = selectedComponent.querySelector('img');
+        if (img) {
+            img.style.height = `${value}%`;
+            saveComponentStyles();
+        }
+    }
+}
+
+function updateBorderRadius(value) {
+    if (selectedComponent) {
+        const content = selectedComponent.querySelector('.grid-stack-item-content');
+        content.style.borderRadius = `${value}px`;
+        saveComponentStyles();
+    }
+}
+
+function saveComponentStyles() {
+    if (selectedComponent) {
+        const content = selectedComponent.querySelector('.grid-stack-item-content');
+        const styles = {
+            color: content.style.color,
+            backgroundColor: content.style.backgroundColor,
+            fontSize: content.style.fontSize,
+            margin: content.style.margin,
+            borderRadius: content.style.borderRadius,
+            textAlign: content.style.textAlign
+        };
+        
+        // Stil verilerini bileşenin veri özniteliğine kaydet
+        selectedComponent.setAttribute('data-styles', JSON.stringify(styles));
+        
+        // Otomatik kaydetme
+        saveLayout();
+    }
+}
+
+function updateComponentWidth(value) {
+    if (selectedComponent) {
+        grid.update(selectedComponent, { w: parseInt(value) });
+    }
+}
+
+function updateComponentHeight(value) {
+    if (selectedComponent) {
+        grid.update(selectedComponent, { h: parseInt(value) });
+    }
+}
+
+function updateComponentContent(value, type) {
+    if (selectedComponent) {
+        let content = value;
+        if (type === 'heading') {
+            content = `<h2 class="text-2xl font-bold">${value}</h2>`;
+        } else if (type === 'text') {
+            content = `<p>${value}</p>`;
+        }
+        selectedComponent.querySelector('.grid-stack-item-content').innerHTML = content;
+    }
+}
+
+function updateHeadingSize(size) {
+    if (selectedComponent) {
+        const heading = selectedComponent.querySelector('h2');
+        if (heading) {
+            heading.className = `${size} font-bold`;
+        }
+    }
+}
+</script>
 {% endblock %} 

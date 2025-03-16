@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ theme.name }} Önizleme - KolayCMS{% endblock %}
+
+{% block styles %}
+<!-- Tema CSS Dosyasını Yükle -->
+{% if preview_vars.css_url %}
+<link rel="stylesheet" href="{{ preview_vars.css_url }}">
+{% endif %}
+
+<style>
+  :root {
+    --primary-color: /* {{ theme.primary_color }} */ #00BCD4;
+    --secondary-color: /* {{ theme.secondary_color }} */ #f44336;
+    /* 
+    {% if theme.css_variables %}
+    {{ theme.css_variables }}
+    {% endif %}
+    */
+  }
+  
+  body {
+    /* 
+    {% if theme.font_family %}
+    font-family: {{ theme.font_family }};
+    {% endif %}
+    */
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  
+  .preview-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  
+  .preview-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .preview-iframe {
+    width: 100%;
+    height: 600px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .device-selector {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .device-button {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+  }
+  
+  .device-button.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+  }
+  
+  .preview-iframe-container {
+    transition: all 0.3s ease;
+    margin: 0 auto;
+    width: 100%;
+  }
+  
+  .preview-iframe-container.phone {
+    max-width: 375px;
+  }
+  
+  .preview-iframe-container.tablet {
+    max-width: 768px;
+  }
+  
+  .preview-iframe-container.laptop {
+    max-width: 1024px;
+  }
+  
+  .template-selector {
+    margin-bottom: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="preview-header">
+  <div class="container mx-auto px-4 flex justify-between items-center">
+    <div class="flex items-center">
+      <a href="{{ url_for('themes.index') }}" class="text-primary hover:underline flex items-center mr-4">
+        <i class="ri-arrow-left-line mr-1"></i> Geri dön
+      </a>
+      <h1 class="text-xl font-bold text-gray-800">{{ theme.name }} Önizleme</h1>
+    </div>
+    
+    <div class="flex items-center space-x-4">
+      {% if theme.is_active %}
+      <span class="bg-green-500 text-white text-xs px-2 py-1 rounded">Aktif Tema</span>
+      {% else %}
+      <form action="{{ url_for('themes.toggle_active', theme_id=theme.id) }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white text-sm px-3 py-1 rounded">
+          Aktifleştir
+        </button>
+      </form>
+      {% endif %}
+      
+      <a href="{{ url_for('themes.edit_theme', theme_id=theme.id) }}" class="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1 rounded">
+        Düzenle
+      </a>
+      
+      <a href="{{ url_for('themes.view_website') }}?theme_id={{ theme.id }}" target="_blank" class="bg-purple-500 hover:bg-purple-600 text-white text-sm px-3 py-1 rounded">
+        <i class="ri-external-link-line mr-1"></i> Yeni Sekmede Aç
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="preview-container">
+  {% if templates %}
+  <div class="template-selector">
+    <label for="template-select" class="block text-sm font-medium text-gray-700 mb-1">Şablon Seç:</label>
+    <select id="template-select" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+      <option value="">Ana Sayfa</option>
+      {% for template in templates %}
+      <option value="{{ template.id }}">{{ template.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
+  
+  <div class="device-selector">
+    <button class="device-button active" data-device="desktop">
+      <i class="ri-computer-line mr-1"></i> Masaüstü
+    </button>
+    <button class="device-button" data-device="laptop">
+      <i class="ri-macbook-line mr-1"></i> Dizüstü
+    </button>
+    <button class="device-button" data-device="tablet">
+      <i class="ri-tablet-line mr-1"></i> Tablet
+    </button>
+    <button class="device-button" data-device="phone">
+      <i class="ri-smartphone-line mr-1"></i> Telefon
+    </button>
+  </div>
+  
+  <div id="preview-iframe-container" class="preview-iframe-container">
+    <iframe id="preview-iframe" class="preview-iframe" src="{{ url_for('themes.view_website') }}?theme_id={{ theme.id }}" frameborder="0"></iframe>
+  </div>
+  
+  <div class="mt-4 p-4 bg-gray-100 rounded">
+    <h3 class="text-lg font-medium text-gray-800 mb-2">Tema Bilgileri</h3>
+    <ul class="text-sm text-gray-700">
+      <li class="mb-1"><strong>Tema ID:</strong> {{ theme.id }}</li>
+      <li class="mb-1"><strong>Tema Adı:</strong> {{ theme.name }}</li>
+      <li class="mb-1"><strong>Açıklama:</strong> {{ theme.description or 'Açıklama yok' }}</li>
+      <li class="mb-1"><strong>Oluşturan:</strong> {{ theme.author or 'Bilinmiyor' }}</li>
+      <li class="mb-1"><strong>Versiyon:</strong> {{ theme.version or '1.0.0' }}</li>
+      <li class="mb-1"><strong>Şablon Dizini:</strong> {{ theme.template_dir }}</li>
+      <li class="mb-1"><strong>Statik Dizin:</strong> {{ theme.static_dir }}</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Tema JS Dosyasını Yükle -->
+{% if preview_vars.js_url %}
+<script src="{{ preview_vars.js_url }}"></script>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Cihaz seçici
+  const deviceButtons = document.querySelectorAll('.device-button');
+  const previewContainer = document.getElementById('preview-iframe-container');
+  
+  deviceButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      // Aktif sınıfını kaldır
+      deviceButtons.forEach(btn => btn.classList.remove('active'));
+      
+      // Bu butonu aktif yap
+      this.classList.add('active');
+      
+      // Önizleme konteynerini güncelle
+      const device = this.getAttribute('data-device');
+      previewContainer.className = 'preview-iframe-container';
+      
+      if (device !== 'desktop') {
+        previewContainer.classList.add(device);
+      }
+    });
+  });
+  
+  // Şablon seçici
+  const templateSelect = document.getElementById('template-select');
+  const previewIframe = document.getElementById('preview-iframe');
+  
+  if (templateSelect) {
+    templateSelect.addEventListener('change', function() {
+      const templateId = this.value;
+      const themeId = '{{ theme.id }}';
+      
+      if (templateId) {
+        previewIframe.src = `{{ url_for('themes.view_website') }}?theme_id=${themeId}&template_id=${templateId}`;
+      } else {
+        // Ana sayfa seçildiyse
+        previewIframe.src = `{{ url_for('themes.view_website') }}?theme_id=${themeId}`;
+      }
+    });
+  }
+});
+</script>
+{% endblock %} 

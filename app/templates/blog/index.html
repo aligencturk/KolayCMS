@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Blog Yazıları{% endblock %}
+
+{% block breadcrumb %}
+<span class="text-gray-500">Blog Yazıları</span>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Blog Yazıları</h1>
+        <a href="{{ url_for('blog.create') }}" class="bg-primary text-white px-4 py-2 rounded-button hover:bg-opacity-90">
+            Yeni Blog Yazısı
+        </a>
+    </div>
+
+    {% if posts %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for post in posts %}
+        <div class="bg-white border rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+            <div class="p-4">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ post.title }}</h3>
+                <p class="text-gray-600 text-sm mb-4">{{ post.content[:150] }}...</p>
+                <div class="flex justify-between items-center text-sm text-gray-500">
+                    <span>{{ post.created_at[:10] }}</span>
+                    <a href="{{ url_for('blog.edit', post_id=post.id) }}" class="text-primary hover:text-opacity-80">
+                        Düzenle
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-8">
+        <p class="text-gray-500">Henüz blog yazısı bulunmuyor.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

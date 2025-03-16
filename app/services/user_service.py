@@ -1,6 +1,7 @@
 from firebase_admin import firestore
 from flask import current_app
 from datetime import datetime
+from app import db, logger
 
 def get_user_by_id(user_id):
     """
@@ -10,14 +11,17 @@ def get_user_by_id(user_id):
         return None
     
     try:
-        db = firestore.client()
-        user_doc = db.collection('users').document(user_id).get()
+        logger.debug(f"Kullanıcı getiriliyor: {user_id}")
+        users_ref = db.collection('users').where('uid', '==', user_id).limit(1).stream()
         
-        if user_doc.exists:
-            return user_doc.to_dict()
+        for user in users_ref:
+            logger.debug(f"Kullanıcı bulundu: {user_id}")
+            return {'id': user.id, **user.to_dict()}
+        
+        logger.warning(f"Kullanıcı bulunamadı: {user_id}")
         return None
     except Exception as e:
-        current_app.logger.error(f"get_user_by_id hatası: {str(e)}")
+        logger.error(f"Kullanıcı getirme hatası: {str(e)}", exc_info=True)
         return None
 
 def get_user_by_email(email):
@@ -25,49 +29,52 @@ def get_user_by_email(email):
     E-posta adresine göre kullanıcıyı getirir
     """
     if not email:
+        logger.warning("E-posta adresi boş")
         return None
     
     try:
-        db = firestore.client()
-        users_ref = db.collection('users').where('email', '==', email).limit(1)
-        users = users_ref.stream()
+        logger.debug(f"Kullanıcı e-posta ile aranıyor: {email}")
+        users_ref = db.collection('users').where('email', '==', email).limit(1).stream()
         
-        for user in users:
-            return {**user.to_dict(), 'id': user.id}
+        user_list = list(users_ref)  # Stream'i listeye çevir
+        logger.debug(f"Bulunan kullanıcı sayısı: {len(user_list)}")
+        
+        if user_list:
+            user = user_list[0]
+            user_data = {'id': user.id, **user.to_dict()}
+            logger.debug(f"Kullanıcı bulundu: {user_data}")
+            return user_data
+            
+        logger.warning(f"Kullanıcı bulunamadı: {email}")
         return None
     except Exception as e:
-        current_app.logger.error(f"get_user_by_email hatası: {str(e)}")
+        logger.error(f"Kullanıcı arama hatası: {str(e)}", exc_info=True)
         return None
 
-def create_user(username, email, password_hash, role='user'):
+def create_user(user_data):
     """
     Yeni kullanıcı oluşturur
     """
     try:
-        db = firestore.client()
+        logger.debug(f"Yeni kullanıcı oluşturuluyor: {user_data.get('email')}")
         now = datetime.now()
         
         # E-posta zaten kullanılıyor mu kontrol et
-        existing_user = get_user_by_email(email)
+        existing_user = get_user_by_email(user_data.get('email'))
         if existing_user:
             return None, "Bu e-posta adresi zaten kullanılıyor."
         
-        user_data = {
-            'username': username,
-            'email': email,
-            'password_hash': password_hash,
-            'role': role,
-            'is_active': True,
-            'created_at': now,
-            'updated_at': now
-        }
+        # Timestamp ekle
+        user_data['created_at'] = now
+        user_data['updated_at'] = now
         
-        new_user_ref = db.collection('users').document()
-        new_user_ref.set(user_data)
+        doc_ref = db.collection('users').document()
+        doc_ref.set(user_data)
+        logger.debug(f"Kullanıcı başarıyla oluşturuldu: {doc_ref.id}")
         
-        return new_user_ref.id, None
+        return doc_ref.id, None
     except Exception as e:
-        current_app.logger.error(f"create_user hatası: {str(e)}")
+        logger.error(f"Kullanıcı oluşturma hatası: {str(e)}", exc_info=True)
         return None, f"Kullanıcı oluşturulurken hata: {str(e)}"
 
 def update_user(user_id, update_data):
@@ -75,7 +82,7 @@ def update_user(user_id, update_data):
     Kullanıcı bilgilerini günceller
     """
     try:
-        db = firestore.client()
+        logger.debug(f"Kullanıcı güncelleniyor: {user_id}")
         update_data['updated_at'] = datetime.now()
         
         # E-posta değişiyorsa, zaten kullanılıyor mu kontrol et
@@ -84,10 +91,12 @@ def update_user(user_id, update_data):
             if existing_user and existing_user['id'] != user_id:
                 return False, "Bu e-posta adresi zaten kullanılıyor."
         
-        db.collection('users').document(user_id).update(update_data)
+        doc_ref = db.collection('users').document(user_id)
+        doc_ref.update(update_data)
+        logger.debug(f"Kullanıcı başarıyla güncellendi: {user_id}")
         return True, None
     except Exception as e:
-        current_app.logger.error(f"update_user hatası: {str(e)}")
+        logger.error(f"Kullanıcı güncelleme hatası: {str(e)}", exc_info=True)
         return False, f"Kullanıcı güncellenirken hata: {str(e)}"
 
 def delete_user(user_id):
@@ -95,11 +104,13 @@ def delete_user(user_id):
     Kullanıcıyı siler
     """
     try:
-        db = firestore.client()
-        db.collection('users').document(user_id).delete()
+        logger.debug(f"Kullanıcı siliniyor: {user_id}")
+        doc_ref = db.collection('users').document(user_id)
+        doc_ref.delete()
+        logger.debug(f"Kullanıcı başarıyla silindi: {user_id}")
         return True
     except Exception as e:
-        current_app.logger.error(f"delete_user hatası: {str(e)}")
+        logger.error(f"Kullanıcı silme hatası: {str(e)}", exc_info=True)
         return False
 
 def list_users(limit=10, offset=0, role=None):
@@ -107,7 +118,6 @@ def list_users(limit=10, offset=0, role=None):
     Kullanıcı listesini getirir
     """
     try:
-        db = firestore.client()
         users_ref = db.collection('users')
         
         if role:
@@ -129,5 +139,5 @@ def list_users(limit=10, offset=0, role=None):
         
         return users
     except Exception as e:
-        current_app.logger.error(f"list_users hatası: {str(e)}")
+        logger.error(f"list_users hatası: {str(e)}")
         return [] 

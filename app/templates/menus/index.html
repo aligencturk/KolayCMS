@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Menüler{% endblock %}
+
+{% block breadcrumb %}
+<span class="text-gray-500">Menüler</span>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Menüler</h1>
+        <button onclick="showCreateModal()" class="bg-primary text-white px-4 py-2 rounded-button hover:bg-opacity-90">
+            Yeni Menü
+        </button>
+    </div>
+
+    {% if menus %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for menu in menus %}
+        <div class="bg-white border rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+            <div class="p-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-semibold text-gray-800">{{ menu.name }}</h3>
+                    <span class="text-sm text-gray-500">{{ menu.location }}</span>
+                </div>
+                
+                <div class="space-y-2">
+                    {% if menu.items %}
+                        {% for item in menu.items %}
+                        <div class="text-sm text-gray-600">{{ item.title }}</div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-sm text-gray-500">Henüz menü öğesi eklenmemiş</p>
+                    {% endif %}
+                </div>
+
+                <div class="flex justify-end mt-4 space-x-2">
+                    <button onclick="showEditModal('{{ menu.id }}')" class="text-primary hover:text-opacity-80">
+                        <i class="ri-edit-line"></i>
+                    </button>
+                    <button onclick="showDeleteModal('{{ menu.id }}')" class="text-red-500 hover:text-opacity-80">
+                        <i class="ri-delete-bin-line"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-8">
+        <p class="text-gray-500">Henüz menü bulunmuyor.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Yeni Menü Modal -->
+<div id="createModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <h2 class="text-xl font-bold mb-4">Yeni Menü</h2>
+        <form action="{{ url_for('menus.create') }}" method="POST">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Menü Adı</label>
+                    <input type="text" name="name" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Konum</label>
+                    <select name="location" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                        <option value="header">Header</option>
+                        <option value="footer">Footer</option>
+                        <option value="sidebar">Sidebar</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button type="button" onclick="hideCreateModal()"
+                    class="px-4 py-2 border rounded-button text-gray-700 hover:bg-gray-50">
+                    İptal
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 bg-primary text-white rounded-button hover:bg-opacity-90">
+                    Kaydet
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Silme Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <h2 class="text-xl font-bold mb-4">Menüyü Sil</h2>
+        <p class="text-gray-600 mb-6">Bu menüyü silmek istediğinizden emin misiniz?</p>
+        <form id="deleteForm" method="POST">
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="hideDeleteModal()"
+                    class="px-4 py-2 border rounded-button text-gray-700 hover:bg-gray-50">
+                    İptal
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 bg-red-500 text-white rounded-button hover:bg-opacity-90">
+                    Sil
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showCreateModal() {
+    document.getElementById('createModal').classList.remove('hidden');
+    document.getElementById('createModal').classList.add('flex');
+}
+
+function hideCreateModal() {
+    document.getElementById('createModal').classList.add('hidden');
+    document.getElementById('createModal').classList.remove('flex');
+}
+
+function showDeleteModal(menuId) {
+    const deleteForm = document.getElementById('deleteForm');
+    deleteForm.action = `/menus/${menuId}/delete`;
+    document.getElementById('deleteModal').classList.remove('hidden');
+    document.getElementById('deleteModal').classList.add('flex');
+}
+
+function hideDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+    document.getElementById('deleteModal').classList.remove('flex');
+}
+
+// ESC tuşu ile modalları kapat
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        hideCreateModal();
+        hideDeleteModal();
+    }
+});
+</script>
+{% endblock %} 

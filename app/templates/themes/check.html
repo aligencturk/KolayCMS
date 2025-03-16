@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Tema Verileri Kontrolü - KolayCMS{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('themes.index') }}">Temalar</a></li>
+<li class="breadcrumb-item active">Tema Verileri Kontrolü</li>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Tema Verileri Kontrolü</h1>
+    <a href="{{ url_for('themes.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+      <i class="ri-arrow-left-line mr-2"></i> Geri Dön
+    </a>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-4">Veritabanında Bulunan Temalar ({{ themes_data|length }})</h2>
+    
+    {% if themes_data %}
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white">
+        <thead>
+          <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+            <th class="py-3 px-6 text-left">ID</th>
+            <th class="py-3 px-6 text-left">İsim</th>
+            <th class="py-3 px-6 text-left">Açıklama</th>
+            <th class="py-3 px-6 text-left">Yazar</th>
+            <th class="py-3 px-6 text-left">Versiyon</th>
+            <th class="py-3 px-6 text-center">Aktif</th>
+            <th class="py-3 px-6 text-center">Oluşturulma Tarihi</th>
+          </tr>
+        </thead>
+        <tbody class="text-gray-600 text-sm">
+          {% for theme in themes_data %}
+          <tr class="border-b border-gray-200 hover:bg-gray-50">
+            <td class="py-3 px-6 text-left">{{ theme.id }}</td>
+            <td class="py-3 px-6 text-left">{{ theme.name }}</td>
+            <td class="py-3 px-6 text-left">{{ theme.description }}</td>
+            <td class="py-3 px-6 text-left">{{ theme.author }}</td>
+            <td class="py-3 px-6 text-left">{{ theme.version }}</td>
+            <td class="py-3 px-6 text-center">
+              {% if theme.is_active %}
+              <span class="bg-green-200 text-green-700 py-1 px-3 rounded-full text-xs">Aktif</span>
+              {% else %}
+              <span class="bg-gray-200 text-gray-700 py-1 px-3 rounded-full text-xs">Pasif</span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-6 text-center">{{ theme.created_at.strftime('%d.%m.%Y %H:%M') if theme.created_at else 'Belirtilmemiş' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="mt-6">
+      <h3 class="text-md font-semibold mb-2">Tema Veri Detayları</h3>
+      <div class="bg-gray-100 p-4 rounded-lg overflow-auto max-h-96">
+        <pre class="text-xs">{{ themes_data|tojson(indent=2) }}</pre>
+      </div>
+    </div>
+    {% else %}
+    <div class="text-center py-4">
+      <p class="text-gray-500">Veritabanında hiç tema bulunamadı.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-lg font-semibold mb-4">Tema Verilerini Yeniden Yükle</h2>
+    <p class="text-gray-600 mb-4">Eğer temalar sayfasında temalar görünmüyorsa, veritabanındaki tema verilerini yeniden yükleyebilirsiniz.</p>
+    
+    <div class="flex space-x-4">
+      <a href="{{ url_for('themes.index') }}" class="bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded-lg inline-flex items-center">
+        <i class="ri-refresh-line mr-2"></i> Tema Sayfasına Dön
+      </a>
+      <a href="{{ url_for('themes.upload_theme') }}" class="bg-secondary hover:bg-secondary-dark text-white font-bold py-2 px-4 rounded-lg inline-flex items-center">
+        <i class="ri-upload-line mr-2"></i> Yeni Tema Yükle
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %} 

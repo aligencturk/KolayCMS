@@ -10,7 +10,9 @@
     </a>
     <h1 class="text-2xl font-bold text-gray-800">{{ theme.name }}</h1>
     {% if theme.is_active %}
-    <span class="ml-3 bg-green-500 text-white text-xs px-2 py-1 rounded">Aktif</span>
+    <span class="ml-3 bg-green-500 text-white text-xs px-3 py-1.5 rounded-full flex items-center">
+      <i class="ri-check-line mr-1"></i>Aktif
+    </span>
     {% endif %}
   </div>
 
@@ -18,44 +20,48 @@
     <!-- Sol Panel - Tema Bilgileri -->
     <div class="lg:col-span-1">
       <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="h-40 flex items-center justify-center" style="background-color: {{ theme.primary_color }};">
+        <div class="h-40 flex items-center justify-center" data-color="{{ theme.primary_color }}">
           <span class="text-white text-2xl font-bold">{{ theme.name }}</span>
         </div>
         
-        <div class="p-4">
-          <div class="mb-4">
-            <h2 class="text-lg font-semibold mb-2">{{ theme.name }}</h2>
-            <p class="text-gray-600">{{ theme.description }}</p>
-          </div>
-          
-          <div class="mb-4 pt-4 border-t border-gray-200">
-            <div class="flex justify-between mb-2">
-              <span class="text-gray-600 text-sm">Durum:</span>
-              <span class="{% if theme.is_active %}text-green-600{% else %}text-gray-600{% endif %} font-medium">
-                {% if theme.is_active %}Aktif{% else %}Pasif{% endif %}
-              </span>
+        <div class="p-6">
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Tema Bilgileri</h3>
+            
+            <div class="space-y-2 text-sm text-gray-600">
+              <div class="flex justify-between">
+                <span class="font-medium">Açıklama:</span>
+                <span>{{ theme.description or 'Açıklama yok' }}</span>
+              </div>
+              
+              <div class="flex justify-between">
+                <span class="font-medium">Versiyon:</span>
+                <span>{{ theme.version }}</span>
+              </div>
+              
+              <div class="flex justify-between">
+                <span class="font-medium">Yazar:</span>
+                <span>{{ theme.author }}</span>
+              </div>
+              
+              <div class="flex justify-between">
+                <span class="font-medium">Durum:</span>
+                <span class="{% if theme.is_active %}text-green-600{% else %}text-gray-600{% endif %}">
+                  {% if theme.is_active %}
+                  <i class="ri-checkbox-circle-line mr-1"></i>Aktif
+                  {% else %}
+                  <i class="ri-error-warning-line mr-1"></i>Pasif
+                  {% endif %}
+                </span>
+              </div>
             </div>
-            <div class="flex justify-between mb-2">
-              <span class="text-gray-600 text-sm">Oluşturulma Tarihi:</span>
-              <span>{{ theme.created_at|datetime }}</span>
-            </div>
-            <div class="flex justify-between mb-2">
-              <span class="text-gray-600 text-sm">Son Güncelleme:</span>
-              <span>{{ theme.updated_at|datetime }}</span>
-            </div>
-            {% if theme.font_family %}
-            <div class="flex justify-between mb-2">
-              <span class="text-gray-600 text-sm">Yazı Tipi:</span>
-              <span class="font-medium" style="font-family: {{ theme.font_family }};">{{ theme.font_family.split(',')[0] }}</span>
-            </div>
-            {% endif %}
           </div>
           
           <div class="flex justify-between mt-4">
             {% if not theme.is_active %}
-            <form action="{{ url_for('themes.activate', theme_id=theme.id) }}" method="post">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="text-green-600 hover:underline flex items-center">
+            <form action="{{ url_for('themes.toggle_active', theme_id=theme.id) }}" method="post" class="w-full">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded flex items-center justify-center">
                 <i class="ri-check-line mr-1"></i> Aktifleştir
               </button>
             </form>
@@ -65,15 +71,19 @@
             </span>
             {% endif %}
             
-            <div class="flex space-x-4">
-              <a href="{{ url_for('themes.edit', theme_id=theme.id) }}" class="text-blue-600 hover:underline flex items-center">
+            <div class="flex space-x-4 mt-4">
+              <a href="{{ url_for('themes.preview_theme', theme_id=theme.id) }}" class="text-blue-600 hover:underline flex items-center" target="_blank">
+                <i class="ri-eye-line mr-1"></i> Önizleme
+              </a>
+              
+              <a href="{{ url_for('themes.edit_theme', theme_id=theme.id) }}" class="text-blue-600 hover:underline flex items-center">
                 <i class="ri-edit-line mr-1"></i> Düzenle
               </a>
               
               {% if not theme.is_active %}
-              <form action="{{ url_for('themes.delete', theme_id=theme.id) }}" method="post" 
+              <form action="{{ url_for('themes.delete_theme', theme_id=theme.id) }}" method="post" 
                     onsubmit="return confirm('Bu temayı silmek istediğinizden emin misiniz?');">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <button type="submit" class="text-red-600 hover:underline flex items-center">
                   <i class="ri-delete-bin-line mr-1"></i> Sil
                 </button>
@@ -87,58 +97,38 @@
     
     <!-- Sağ Panel - Tema Önizleme ve Detaylar -->
     <div class="lg:col-span-2">
-      <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-        <div class="p-4 border-b bg-gray-50">
-          <h2 class="text-lg font-semibold">Renk Paleti</h2>
-        </div>
-        
-        <div class="p-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="border rounded-lg overflow-hidden">
-              <div class="h-20" style="background-color: {{ theme.primary_color }};"></div>
-              <div class="p-3">
-                <h3 class="font-medium">Ana Renk</h3>
-                <p class="text-sm text-gray-600">{{ theme.primary_color }}</p>
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Tema Önizleme</h3>
+          
+          <div class="aspect-video bg-gray-100 rounded-lg overflow-hidden mb-4">
+            {% if theme.thumbnail_url %}
+            <img src="{{ theme.thumbnail_url }}" alt="{{ theme.name }}" class="w-full h-full object-cover">
+            {% else %}
+            <div class="w-full h-full flex items-center justify-center text-gray-400">
+              <i class="ri-image-line text-5xl"></i>
+              <span class="ml-2 text-lg">Önizleme görseli yok</span>
+            </div>
+            {% endif %}
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Şablonlar</h4>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <a href="{{ url_for('themes.theme_editor', theme_id=theme.id) }}" class="text-primary hover:underline">
+                  <i class="ri-file-list-line mr-1"></i> Şablonları Yönet
+                </a>
               </div>
             </div>
             
-            <div class="border rounded-lg overflow-hidden">
-              <div class="h-20" style="background-color: {{ theme.secondary_color }};"></div>
-              <div class="p-3">
-                <h3 class="font-medium">İkincil Renk</h3>
-                <p class="text-sm text-gray-600">{{ theme.secondary_color }}</p>
+            <div>
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Web Sitesi Görünümü</h4>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <a href="{{ url_for('themes.view_website', theme_id=theme.id) }}" class="text-primary hover:underline" id="viewWebsiteLink">
+                  <i class="ri-global-line mr-1"></i> Web Sitesi Olarak Görüntüle
+                </a>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="p-4 border-b bg-gray-50">
-          <h2 class="text-lg font-semibold">CSS Değişkenleri</h2>
-        </div>
-        
-        <div class="p-4">
-          <pre class="bg-gray-800 text-white p-4 rounded overflow-x-auto font-mono text-sm">{{ theme.css_variables }}</pre>
-          
-          <div class="mt-6">
-            <h3 class="font-medium mb-3">Yazı Tipi Önizleme</h3>
-            <div class="border p-4 rounded" style="font-family: {{ theme.font_family }};">
-              <p class="mb-2">Bu bir yazı tipi örneğidir. The quick brown fox jumps over the lazy dog.</p>
-              <p><strong>Bold metin örneği</strong> ve <em>italik metin örneği</em>.</p>
-              <p><a href="#" style="color: {{ theme.primary_color }};">Bu bir bağlantı örneğidir.</a></p>
-            </div>
-          </div>
-          
-          <div class="mt-6">
-            <h3 class="font-medium mb-3">Buton Önizlemesi</h3>
-            <div class="flex items-center space-x-4">
-              <button class="px-4 py-2 rounded" style="background-color: {{ theme.primary_color }}; color: white;">
-                Ana Buton
-              </button>
-              <button class="px-4 py-2 rounded border" style="border-color: {{ theme.primary_color }}; color: {{ theme.primary_color }}; background-color: transparent;">
-                İkincil Buton
-              </button>
             </div>
           </div>
         </div>
@@ -146,4 +136,88 @@
     </div>
   </div>
 </div>
+
+<script>
+  /**
+   * Tema sayfası için özel JavaScript
+   * Hata yakalama ve yönlendirme işlemleri içerir
+   */
+  document.addEventListener('DOMContentLoaded', function() {
+    // Tüm kodu try-catch bloğu içine alarak herhangi bir JavaScript hatasını engelliyoruz
+    try {
+      console.log('Tema görüntüleme sayfası yüklendi');
+      
+      // 1. Tema başlık rengini ayarlama işlemleri
+      // Eğer tema rengi bilgisi varsa, başlık arka plan rengini güncelle
+      const setupThemeHeader = function() {
+        try {
+          const colorElement = document.querySelector('[data-color]');
+          
+          if (colorElement && colorElement.hasAttribute('data-color')) {
+            const color = colorElement.getAttribute('data-color') || '';
+            
+            if (color && color.trim() !== '') {
+              colorElement.style.backgroundColor = color;
+              console.log('Tema başlık rengi ayarlandı:', color);
+            } else {
+              console.log('Tema rengi boş veya geçersiz');
+            }
+          } else {
+            console.log('Tema renk bilgisi bulunamadı');
+          }
+        } catch (headerError) {
+          console.warn('Tema başlık rengi ayarlanamadı:', headerError);
+        }
+      };
+      
+      // 2. Web sitesi görüntüleme bağlantısı işlemleri
+      // "Web Sitesi Olarak Görüntüle" bağlantısına tıklandığında yönlendirme yapar
+      const setupWebsiteLink = function() {
+        try {
+          const websiteLink = document.getElementById('viewWebsiteLink');
+          
+          if (websiteLink) {
+            console.log('Web sitesi görüntüleme bağlantısı bulundu');
+            
+            websiteLink.addEventListener('click', function(event) {
+              event.preventDefault();
+              console.log('Web sitesi görüntüleme bağlantısına tıklandı');
+              
+              try {
+                const url = this.getAttribute('href');
+                
+                if (url && url.trim() !== '') {
+                  console.log('Yönlendirme URL:', url);
+                  window.location.href = url;
+                } else {
+                  console.error('Geçerli URL bulunamadı');
+                  alert('Web sitesi görüntüleme bağlantısı geçersiz');
+                }
+              } catch (linkError) {
+                console.error('Bağlantı işleme hatası:', linkError);
+                alert('Bağlantı işlenirken bir hata oluştu');
+              }
+            });
+          } else {
+            console.log('Web sitesi görüntüleme bağlantısı bulunamadı');
+          }
+        } catch (websiteLinkError) {
+          console.warn('Web sitesi bağlantısı ayarlanamadı:', websiteLinkError);
+        }
+      };
+      
+      // Fonksiyonları çalıştır
+      setupThemeHeader();
+      setupWebsiteLink();
+      
+    } catch (error) {
+      console.error('Tema görüntüleme sayfası JavaScript hatası:', error);
+      
+      // Genel hata işleme fonksiyonunu çağır (eğer tanımlıysa)
+      if (typeof window.handleJavaScriptError === 'function') {
+        window.handleJavaScriptError(error, 'themes/view.html');
+      }
+    }
+  });
+</script>
 {% endblock %} 

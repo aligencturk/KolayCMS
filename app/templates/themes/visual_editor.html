@@ -1,0 +1,1238 @@
+{% extends 'base.html' %}
+
+{% block title %}Görsel Şablon Düzenleyici - {{ template.name }}{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/themes/visual_editor.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/7.2.3/gridstack.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material.min.css">
+<style>
+  .visual-editor-container {
+    display: flex;
+    height: calc(100vh - 60px);
+    overflow: hidden;
+  }
+  
+  .components-panel {
+    width: 300px;
+    border-right: 1px solid #ddd;
+    height: 100%;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+    padding: 15px;
+  }
+
+  .component-item {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+    cursor: move;
+    transition: all 0.2s;
+  }
+
+  .component-item:hover {
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+  }
+
+  .editor-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .editor-toolbar {
+    padding: 10px;
+    background-color: #f1f2f3;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .canvas-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: #f5f5f5;
+    position: relative;
+  }
+
+  .grid-stack {
+    background-color: white;
+    min-height: 800px;
+    margin: 0 auto;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  }
+  
+  .grid-stack-item {
+    border: 1px dashed #ddd;
+    border-radius: 5px;
+  }
+  
+  .grid-stack-item-content {
+    padding: 10px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    overflow: auto;
+  }
+
+  .component-controls {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: flex;
+    gap: 5px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 100;
+  }
+
+  .grid-stack-item:hover .component-controls {
+    opacity: 1;
+  }
+
+  .control-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: white;
+    border: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+
+  .control-btn:hover {
+    background-color: #f8f9fa;
+  }
+
+  .editor-sidebar {
+    width: 350px;
+    border-left: 1px solid #ddd;
+    height: 100%;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+    padding: 0;
+    transition: transform 0.3s;
+  }
+
+  .editor-sidebar.collapsed {
+    transform: translateX(350px);
+  }
+
+  .sidebar-toggle {
+    position: absolute;
+    left: -15px;
+    top: 20px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: white;
+    border: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+
+  .property-panel {
+    padding: 15px;
+  }
+
+  .property-group {
+    margin-bottom: 20px;
+  }
+
+  .property-group-title {
+    font-weight: 600;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .property-row {
+    margin-bottom: 10px;
+  }
+
+  .tabs {
+    display: flex;
+    background-color: #e9ecef;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .tab {
+    padding: 12px 20px;
+    cursor: pointer;
+    border-right: 1px solid #ddd;
+    transition: background-color 0.2s;
+    font-weight: 500;
+  }
+
+  .tab:hover {
+    background-color: #f8f9fa;
+  }
+
+  .tab.active {
+    background-color: white;
+    border-bottom: 2px solid #007bff;
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  .code-panel {
+    height: 300px;
+  }
+
+  .CodeMirror {
+    height: 100%;
+  }
+
+  .popover-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .popover-container.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .popover-content {
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    width: 90%;
+    max-width: 800px;
+    max-height: 90%;
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .popover-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .responsive-preview {
+    display: flex;
+    gap: 10px;
+    margin-left: 20px;
+  }
+
+  .device-selector {
+    padding: 5px 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .device-selector.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+  }
+
+  /* Önizleme iframe stilleri */
+  .preview-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  
+  .preview-container.active {
+    display: flex;
+  }
+  
+  .preview-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #343a40;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+  }
+  
+  .preview-actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .preview-iframe-container {
+    width: 100%;
+    height: 100%;
+    max-width: 1200px;
+    margin: 60px auto 0;
+    background-color: white;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    position: relative;
+  }
+  
+  .preview-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+  
+  .preview-device-selector {
+    display: flex;
+    position: absolute;
+    top: 70px;
+    right: 20px;
+    background-color: white;
+    border-radius: 30px;
+    padding: 5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  
+  .device-option {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin: 0 5px;
+    background-color: transparent;
+    border: none;
+    transition: background-color 0.2s;
+  }
+  
+  .device-option:hover {
+    background-color: #f8f9fa;
+  }
+  
+  .device-option.active {
+    background-color: #e9ecef;
+  }
+  
+  /* Responsive önizleme boyutları */
+  .preview-iframe-container.phone {
+    max-width: 375px;
+    max-height: 667px;
+  }
+  
+  .preview-iframe-container.tablet {
+    max-width: 768px;
+    max-height: 1024px;
+  }
+  
+  .preview-iframe-container.laptop {
+    max-width: 1024px;
+    max-height: 768px;
+  }
+  
+  .preview-iframe-container.desktop {
+    max-width: 1440px;
+    max-height: 900px;
+  }
+  
+  /* CMS bileşen stilleri */
+  .cms-component {
+    position: relative;
+    min-height: 30px;
+  }
+  
+  .cms-component:hover {
+    outline: 1px dashed #00BCD4;
+    outline-offset: -1px;
+  }
+  
+  .cms-component.selected {
+    outline: 2px solid #00BCD4;
+    outline-offset: -2px;
+  }
+  
+  [data-drop-zone="true"] {
+    min-height: 50px;
+    border: 1px dashed #ccc;
+    border-radius: 4px;
+    padding: 10px;
+    margin: 5px 0;
+  }
+  
+  [data-drop-zone="true"]:empty::before {
+    content: "Komponentleri buraya sürükleyin";
+    color: #999;
+    font-style: italic;
+    display: block;
+    text-align: center;
+    padding: 20px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="visual-editor-container">
+  <!-- Bileşenler Paneli -->
+  <div class="components-panel">
+    <h5 class="mb-3">Bileşenler</h5>
+    <div class="component-search mb-3">
+      <input type="text" class="form-control" placeholder="Bileşen ara..." id="component-search">
+    </div>
+    
+    <div class="components-list">
+      {% for component in components %}
+      <div class="component-item" 
+           data-component-id="{{ component.id }}" 
+           data-component-type="{{ component.type }}"
+           draggable="true">
+        <div class="component-title">{{ component.name }}</div>
+        <div class="component-desc small text-muted">{{ component.description }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  
+  <!-- Düzenleyici Paneli -->
+  <div class="editor-panel">
+    <!-- Düzenleyici Araç Çubuğu -->
+    <div class="editor-toolbar">
+      <div class="d-flex align-items-center">
+        <h5 class="mb-0 mr-3">{{ template.name }}</h5>
+        <div class="responsive-preview">
+          <div class="device-selector active" data-width="desktop">
+            <i class="fas fa-desktop"></i>
+          </div>
+          <div class="device-selector" data-width="tablet">
+            <i class="fas fa-tablet-alt"></i>
+          </div>
+          <div class="device-selector" data-width="mobile">
+            <i class="fas fa-mobile-alt"></i>
+          </div>
+        </div>
+      </div>
+      <div>
+        <button class="btn btn-outline-secondary btn-sm" id="toggle-code">
+          <i class="fas fa-code"></i> HTML
+        </button>
+        <button class="btn btn-outline-secondary btn-sm ml-2" id="toggle-preview">
+          <i class="fas fa-eye"></i> Önizleme
+        </button>
+        <button class="btn btn-primary btn-sm ml-2" id="save-template">
+          <i class="fas fa-save"></i> Kaydet
+        </button>
+      </div>
+    </div>
+    
+    <!-- Çalışma Alanı -->
+    <div class="canvas-container">
+      <div class="grid-stack"></div>
+    </div>
+  </div>
+  
+  <!-- Özellikler Kenar Çubuğu -->
+  <div class="editor-sidebar" id="property-sidebar">
+    <div class="sidebar-toggle" id="sidebar-toggle">
+      <i class="fas fa-chevron-left"></i>
+    </div>
+    <div class="tabs">
+      <div class="tab active" data-tab="properties">Özellikler</div>
+      <div class="tab" data-tab="styles">Stiller</div>
+      <div class="tab" data-tab="advanced">Gelişmiş</div>
+    </div>
+    
+    <div class="tab-content active" data-tab-content="properties">
+      <div class="property-panel">
+        <div id="emptySelectionMessage">
+          <p class="text-muted text-center py-4">Düzenlemek için bir element seçin</p>
+        </div>
+        
+        <div id="elementProperties" style="display: none;">
+          <div class="property-group">
+            <div class="property-group-title">Temel Özellikler</div>
+            <div class="property-row">
+              <label class="form-label">Element ID</label>
+              <input type="text" id="elementId" class="form-control form-control-sm">
+            </div>
+            <div class="property-row">
+              <label class="form-label">Element Sınıfı</label>
+              <input type="text" id="elementClass" class="form-control form-control-sm">
+            </div>
+            <div class="property-row">
+              <label class="form-label">İçerik</label>
+              <textarea id="elementContent" class="form-control form-control-sm" rows="3"></textarea>
+            </div>
+          </div>
+          
+          <div class="property-group">
+            <div class="property-group-title">Metin Özellikleri</div>
+            <div class="property-row">
+              <label class="form-label">Yazı Tipi</label>
+              <select id="fontFamily" class="form-select form-select-sm">
+                <option value="">Seçiniz...</option>
+                <option value="Arial, sans-serif">Arial</option>
+                <option value="Helvetica, sans-serif">Helvetica</option>
+                <option value="Times New Roman, serif">Times New Roman</option>
+                <option value="Georgia, serif">Georgia</option>
+                <option value="Verdana, sans-serif">Verdana</option>
+                <option value="Courier New, monospace">Courier New</option>
+              </select>
+            </div>
+            <div class="property-row">
+              <label class="form-label">Yazı Boyutu</label>
+              <div class="input-group input-group-sm">
+                <input type="number" id="fontSize" class="form-control" min="8" max="72" step="1">
+                <span class="input-group-text">px</span>
+              </div>
+            </div>
+            <div class="property-row">
+              <label class="form-label">Yazı Rengi</label>
+              <input type="color" id="textColor" class="form-control form-control-sm">
+            </div>
+            <div class="property-row">
+              <label class="form-label">Metin Hizalama</label>
+              <div class="btn-group w-100">
+                <button type="button" class="btn btn-sm btn-outline-secondary text-align-btn" data-value="left">
+                  <i class="fas fa-align-left"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary text-align-btn" data-value="center">
+                  <i class="fas fa-align-center"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary text-align-btn" data-value="right">
+                  <i class="fas fa-align-right"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary text-align-btn" data-value="justify">
+                  <i class="fas fa-align-justify"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="tab-content" data-tab-content="styles">
+      <div class="property-panel">
+        <div id="styleEmptyMessage">
+          <p class="text-muted text-center py-4">Düzenlemek için bir element seçin</p>
+        </div>
+        
+        <div id="elementStyles" style="display: none;">
+          <div class="property-group">
+            <div class="property-group-title">Boyut ve Konum</div>
+            <div class="property-row">
+              <label class="form-label">Genişlik</label>
+              <div class="input-group input-group-sm">
+                <input type="text" id="elementWidth" class="form-control">
+                <select class="form-select width-unit" style="max-width: 80px;">
+                  <option value="px">px</option>
+                  <option value="%">%</option>
+                  <option value="vw">vw</option>
+                  <option value="auto">auto</option>
+                </select>
+              </div>
+            </div>
+            <div class="property-row">
+              <label class="form-label">Yükseklik</label>
+              <div class="input-group input-group-sm">
+                <input type="text" id="elementHeight" class="form-control">
+                <select class="form-select height-unit" style="max-width: 80px;">
+                  <option value="px">px</option>
+                  <option value="%">%</option>
+                  <option value="vh">vh</option>
+                  <option value="auto">auto</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="property-group">
+            <div class="property-group-title">Arkaplan</div>
+            <div class="property-row">
+              <label class="form-label">Arkaplan Rengi</label>
+              <input type="color" id="bgColor" class="form-control form-control-sm">
+            </div>
+            <div class="property-row">
+              <label class="form-label">Arkaplan Resmi</label>
+              <div class="input-group input-group-sm">
+                <input type="text" id="bgImage" class="form-control" placeholder="URL">
+                <button class="btn btn-outline-secondary" type="button" id="selectBgImage">Seç</button>
+              </div>
+            </div>
+            <div class="property-row">
+              <label class="form-label">Arkaplan Boyutu</label>
+              <select id="bgSize" class="form-select form-select-sm">
+                <option value="auto">Otomatik</option>
+                <option value="cover">Kapla (Cover)</option>
+                <option value="contain">İçer (Contain)</option>
+                <option value="100% 100%">Tam Boyut</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="property-group">
+            <div class="property-group-title">Kenarlık ve Boşluk</div>
+            <div class="property-row">
+              <label class="form-label">Kenar Boşluğu (Margin)</label>
+              <div class="d-flex gap-1">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text">Üst</span>
+                  <input type="number" id="marginTop" class="form-control" min="0">
+                </div>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text">Sağ</span>
+                  <input type="number" id="marginRight" class="form-control" min="0">
+                </div>
+              </div>
+              <div class="d-flex gap-1 mt-1">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text">Alt</span>
+                  <input type="number" id="marginBottom" class="form-control" min="0">
+                </div>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text">Sol</span>
+                  <input type="number" id="marginLeft" class="form-control" min="0">
+                </div>
+              </div>
+            </div>
+            <div class="property-row">
+              <label class="form-label">İç Boşluk (Padding)</label>
+              <div class="d-flex gap-1">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text">Üst</span>
+                  <input type="number" id="paddingTop" class="form-control" min="0">
+                </div>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text">Sağ</span>
+                  <input type="number" id="paddingRight" class="form-control" min="0">
+                </div>
+              </div>
+              <div class="d-flex gap-1 mt-1">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text">Alt</span>
+                  <input type="number" id="paddingBottom" class="form-control" min="0">
+                </div>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text">Sol</span>
+                  <input type="number" id="paddingLeft" class="form-control" min="0">
+                </div>
+              </div>
+            </div>
+            <div class="property-row">
+              <label class="form-label">Kenarlık</label>
+              <div class="input-group input-group-sm">
+                <input type="number" id="borderWidth" class="form-control" min="0" placeholder="Kalınlık">
+                <select id="borderStyle" class="form-select" style="max-width: 100px;">
+                  <option value="none">Yok</option>
+                  <option value="solid">Düz</option>
+                  <option value="dashed">Kesik</option>
+                  <option value="dotted">Noktalı</option>
+                  <option value="double">Çift</option>
+                </select>
+                <input type="color" id="borderColor" class="form-control">
+              </div>
+            </div>
+            <div class="property-row">
+              <label class="form-label">Köşe Yuvarlatma</label>
+              <div class="input-group input-group-sm">
+                <input type="number" id="borderRadius" class="form-control" min="0">
+                <span class="input-group-text">px</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="tab-content" data-tab-content="advanced">
+      <div class="property-panel">
+        <div id="advancedEmptyMessage">
+          <p class="text-muted text-center py-4">Düzenlemek için bir element seçin</p>
+        </div>
+        
+        <div id="elementAdvanced" style="display: none;">
+          <div class="property-group">
+            <div class="property-group-title">CSS</div>
+            <div class="property-row">
+              <label class="form-label">Özel CSS</label>
+              <div id="cssEditor" class="code-panel"></div>
+            </div>
+            <div class="property-row mt-2">
+              <button class="btn btn-sm btn-primary w-100" id="applyCustomCss">Uygula</button>
+            </div>
+          </div>
+          
+          <div class="property-group">
+            <div class="property-group-title">Görünürlük</div>
+            <div class="property-row">
+              <label class="form-label">Görünürlük</label>
+              <select id="elementVisibility" class="form-select form-select-sm">
+                <option value="visible">Görünür</option>
+                <option value="hidden">Gizli</option>
+              </select>
+            </div>
+            <div class="property-row">
+              <label class="form-label">Duyarlı Gizleme</label>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="hideMobile">
+                <label class="form-check-label" for="hideMobile">Mobil Cihazlarda Gizle</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="hideTablet">
+                <label class="form-check-label" for="hideTablet">Tablet Cihazlarda Gizle</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="hideDesktop">
+                <label class="form-check-label" for="hideDesktop">Masaüstü Cihazlarda Gizle</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Önizleme Paneli -->
+<div class="preview-container" id="previewContainer">
+  <div class="preview-header">
+    <h5>Önizleme: <span id="previewPageTitle"></span></h5>
+    <div class="preview-actions">
+      <button class="btn btn-sm btn-outline-light" id="toggleEditorMode">
+        <i class="fas fa-pen"></i> Düzenleme Modu
+      </button>
+      <button class="btn btn-sm btn-outline-light" id="closePreview">
+        <i class="fas fa-times"></i> Kapat
+      </button>
+    </div>
+  </div>
+  
+  <div class="preview-device-selector">
+    <button class="device-option" data-device="phone" title="Telefon">
+      <i class="fas fa-mobile-alt"></i>
+    </button>
+    <button class="device-option active" data-device="tablet" title="Tablet">
+      <i class="fas fa-tablet-alt"></i>
+    </button>
+    <button class="device-option" data-device="laptop" title="Dizüstü">
+      <i class="fas fa-laptop"></i>
+    </button>
+    <button class="device-option" data-device="desktop" title="Masaüstü">
+      <i class="fas fa-desktop"></i>
+    </button>
+  </div>
+  
+  <div class="preview-iframe-container" id="previewIframeContainer">
+    <iframe id="previewIframe" class="preview-iframe" src="" frameborder="0"></iframe>
+  </div>
+</div>
+
+<!-- Önizleme Popover -->
+<div class="popover-container" id="preview-popover">
+  <div class="popover-content">
+    <div class="popover-header">
+      <h5 class="mb-0">Önizleme</h5>
+      <button class="btn btn-sm btn-close" id="close-preview">&times;</button>
+    </div>
+    <div class="popover-body">
+      <div id="preview-content" style="width: 100%; height: 500px; border: 1px solid #ddd;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Kod Popover -->
+<div class="popover-container" id="code-popover">
+  <div class="popover-content">
+    <div class="popover-header">
+      <h5 class="mb-0">HTML Kodu</h5>
+      <button class="btn btn-sm btn-close" id="close-code">&times;</button>
+    </div>
+    <div class="popover-body">
+      <div id="full-html-editor" style="width: 100%; height: 500px;"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+<!-- Şablon verilerini JavaScript'ten ayırmak için hidden div içerisinde saklama -->
+<div id="template-data" style="display: none;"
+     data-template-id="{{ template.id|default(0)|tojson }}"
+     data-template-name="{{ template.name|default('')|tojson }}" 
+     data-template-content="{{ template.content|default('null')|tojson }}"
+     data-components="{{ components|default('[]')|tojson }}"
+     data-preview-url="{{ url_for('page_builder.preview_page', page_id=0)|tojson }}">
+</div>
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/7.2.3/gridstack-all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
+
+<script>
+  // HTML'den Jinja2 ile render edilmiş verileri alarak JavaScript değişkenlerine dönüştürme
+  const templateDataElement = document.getElementById('template-data');
+  
+  // Temel değişkenleri HTML veri özniteliklerinden al
+  const templateId = JSON.parse(templateDataElement.getAttribute('data-template-id') || '0');
+  const templateName = JSON.parse(templateDataElement.getAttribute('data-template-name') || '""');
+  const templateContentRaw = templateDataElement.getAttribute('data-template-content') || 'null';
+  const componentsJSON = JSON.parse(templateDataElement.getAttribute('data-components') || '[]');
+  const previewPageUrl = JSON.parse(templateDataElement.getAttribute('data-preview-url') || '""');
+  
+  // JS nesnelerine dönüştürme
+  let parsedTemplateContent = null;
+  if (templateContentRaw && templateContentRaw !== 'null') {
+    try {
+      parsedTemplateContent = JSON.parse(templateContentRaw);
+    } catch (e) {
+      console.error('Template içeriği JSON formatına dönüştürülemedi:', e);
+    }
+  }
+  
+  // Temiz JavaScript nesneleri
+  const templateData = {
+    id: templateId,
+    name: templateName,
+    content: parsedTemplateContent
+  };
+  
+  const apiUrls = {
+    previewPage: previewPageUrl,
+    saveTemplate: "/themes/api/templates/"
+  };
+  
+  const componentsData = componentsJSON;
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    // GridStack yapılandırması
+    const grid = GridStack.init({
+      column: 12,
+      cellHeight: 50,
+      acceptWidgets: true,
+      float: true,
+      removable: true,
+      removeTimeout: 200,
+      resizable: {
+        handles: 'e, se, s, sw, w, nw, n, ne'
+      }
+    });
+    
+    // Eğer template içeriği varsa yükle
+    if (templateData.content) {
+      grid.load(templateData.content.layout || []);
+      renderComponentContent(templateData.content.components);
+    }
+    
+    // Bileşen sürükleme
+    const componentItems = document.querySelectorAll('.component-item');
+    componentItems.forEach(item => {
+      item.addEventListener('dragstart', function(event) {
+        const componentId = this.dataset.componentId;
+        const componentType = this.dataset.componentType;
+        event.dataTransfer.setData('application/json', JSON.stringify({
+          componentId: componentId,
+          componentType: componentType
+        }));
+      });
+    });
+    
+    // Kenar çubuğu açma/kapama
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const propertySidebar = document.getElementById('property-sidebar');
+    
+    sidebarToggle.addEventListener('click', function() {
+      propertySidebar.classList.toggle('collapsed');
+      const icon = this.querySelector('i');
+      if (propertySidebar.classList.contains('collapsed')) {
+        icon.classList.remove('fa-chevron-left');
+        icon.classList.add('fa-chevron-right');
+      } else {
+        icon.classList.remove('fa-chevron-right');
+        icon.classList.add('fa-chevron-left');
+      }
+    });
+    
+    // Tab sistemi
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        const tabName = this.dataset.tab;
+        
+        // Aktif tab'ı güncelle
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Tab içeriğini göster/gizle
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+        document.querySelector(`.tab-content[data-tab-content="${tabName}"]`).classList.add('active');
+      });
+    });
+    
+    // Önizleme ve kod popover
+    const togglePreview = document.getElementById('toggle-preview');
+    const toggleCode = document.getElementById('toggle-code');
+    const previewPopover = document.getElementById('preview-popover');
+    const codePopover = document.getElementById('code-popover');
+    const closePreview = document.getElementById('close-preview');
+    const closeCode = document.getElementById('close-code');
+    
+    togglePreview.addEventListener('click', function() {
+      previewPopover.classList.add('active');
+      generatePreview();
+    });
+    
+    toggleCode.addEventListener('click', function() {
+      codePopover.classList.add('active');
+      generateFullCode();
+    });
+    
+    closePreview.addEventListener('click', function() {
+      previewPopover.classList.remove('active');
+    });
+    
+    closeCode.addEventListener('click', function() {
+      codePopover.classList.remove('active');
+    });
+    
+    // Responsive önizleme
+    const deviceSelectors = document.querySelectorAll('.device-selector');
+    deviceSelectors.forEach(selector => {
+      selector.addEventListener('click', function() {
+        deviceSelectors.forEach(s => s.classList.remove('active'));
+        this.classList.add('active');
+        const width = this.dataset.width;
+        updateCanvasWidth(width);
+      });
+    });
+    
+    // Kaydetme işlemi
+    const saveButton = document.getElementById('save-template');
+    saveButton.addEventListener('click', function() {
+      saveTemplate();
+    });
+    
+    // CodeMirror editörleri
+    let htmlEditor = null;
+    const htmlEditorElement = document.getElementById('html-editor');
+    if (htmlEditorElement) {
+      htmlEditor = CodeMirror.fromTextArea(htmlEditorElement, {
+        mode: 'htmlmixed',
+        theme: 'material',
+        lineNumbers: true,
+        matchBrackets: true
+      });
+    }
+    
+    let cssEditor = null;
+    const cssEditorElement = document.getElementById('css-editor');
+    if (cssEditorElement) {
+      cssEditor = CodeMirror.fromTextArea(cssEditorElement, {
+        mode: 'css',
+        theme: 'material',
+        lineNumbers: true,
+        matchBrackets: true
+      });
+    }
+    
+    let fullHtmlEditor = null;
+    const fullHtmlEditorElement = document.getElementById('full-html-editor');
+    if (fullHtmlEditorElement) {
+      fullHtmlEditor = CodeMirror.fromTextArea(fullHtmlEditorElement, {
+        mode: 'htmlmixed',
+        theme: 'material',
+        lineNumbers: true,
+        matchBrackets: true
+      });
+    }
+    
+    // Bileşen arama
+    const componentSearch = document.getElementById('component-search');
+    componentSearch.addEventListener('input', function() {
+      const searchValue = this.value.toLowerCase();
+      componentItems.forEach(item => {
+        const title = item.querySelector('.component-title').textContent.toLowerCase();
+        const desc = item.querySelector('.component-desc').textContent.toLowerCase();
+        
+        if (title.includes(searchValue) || desc.includes(searchValue)) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+    
+    // Yardımcı fonksiyonlar
+    function updateCanvasWidth(device) {
+      const container = document.querySelector('.grid-stack');
+      switch(device) {
+        case 'desktop':
+          container.style.width = '100%';
+          break;
+        case 'tablet':
+          container.style.width = '768px';
+          break;
+        case 'mobile':
+          container.style.width = '375px';
+          break;
+      }
+    }
+    
+    function renderComponentContent(components) {
+      if (!components) return;
+      
+      Object.keys(components).forEach(itemId => {
+        const gridItem = document.querySelector(`.grid-stack-item[gs-id="${itemId}"]`);
+        if (gridItem) {
+          const contentElement = gridItem.querySelector('.grid-stack-item-content');
+          contentElement.innerHTML = components[itemId].html || '';
+          
+          // Kontroller ekle
+          addItemControls(gridItem);
+        }
+      });
+    }
+    
+    function addItemControls(item) {
+      const controlsHtml = `
+        <div class="component-controls">
+          <div class="control-btn edit-btn" title="Düzenle">
+            <i class="fas fa-pencil-alt"></i>
+          </div>
+          <div class="control-btn duplicate-btn" title="Çoğalt">
+            <i class="fas fa-copy"></i>
+          </div>
+          <div class="control-btn remove-btn" title="Sil">
+            <i class="fas fa-trash"></i>
+          </div>
+        </div>
+      `;
+      
+      const content = item.querySelector('.grid-stack-item-content');
+      content.insertAdjacentHTML('beforeend', controlsHtml);
+      
+      // Buton olayları
+      const editBtn = content.querySelector('.edit-btn');
+      const duplicateBtn = content.querySelector('.duplicate-btn');
+      const removeBtn = content.querySelector('.remove-btn');
+      
+      editBtn.addEventListener('click', function() {
+        selectComponent(item);
+      });
+      
+      duplicateBtn.addEventListener('click', function() {
+        // Çoğaltma işlemi
+      });
+      
+      removeBtn.addEventListener('click', function() {
+        grid.removeWidget(item);
+      });
+    }
+    
+    function selectComponent(item) {
+      // Aktif bileşeni vurgula
+      document.querySelectorAll('.grid-stack-item').forEach(i => {
+        i.classList.remove('selected');
+      });
+      item.classList.add('selected');
+      
+      // Özellik panelini güncelle
+      updatePropertyPanel(item);
+    }
+    
+    function updatePropertyPanel(item) {
+      const itemId = item.getAttribute('gs-id');
+      const component = templateData.content.components[itemId];
+      
+      if (!component) return;
+      
+      // Özellik panelini doldur
+      const propertiesPanel = document.getElementById('component-properties');
+      const stylesPanel = document.getElementById('component-styles');
+      
+      // ... Component özelliklerine göre paneli doldur
+    }
+    
+    function generatePreview() {
+      const previewContent = document.getElementById('preview-content');
+      // Şablonun HTML'ini oluştur ve iframe'de göster
+    }
+    
+    function generateFullCode() {
+      const serializedHtml = grid.save();
+      // Template HTML'ini oluştur ve editörde göster
+    }
+    
+    function saveTemplate() {
+      const serializedLayout = grid.save();
+      const components = {}; // Bileşenlerin içeriğini topla
+      
+      // AJAX ile sunucuya gönder
+      fetch(`${apiUrls.saveTemplate}${templateData.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: {
+            layout: serializedLayout,
+            components: components
+          }
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Şablon başarıyla kaydedildi!');
+        } else {
+          alert('Kaydetme sırasında bir hata oluştu: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Bir hata oluştu: ' + error);
+      });
+    }
+
+    // Önizleme fonksiyonları
+    const previewContainer = document.getElementById('previewContainer');
+    const previewIframe = document.getElementById('previewIframe');
+    const previewIframeContainer = document.getElementById('previewIframeContainer');
+    const previewPageTitle = document.getElementById('previewPageTitle');
+    const toggleEditorModeBtn = document.getElementById('toggleEditorMode');
+    const closePreviewBtn = document.getElementById('closePreview');
+    const deviceOptions = document.querySelectorAll('.device-option');
+    
+    // Önizleme Kontrolleri
+    function showPreview() {
+      // Düzenleyicideki içeriği alıp önizlemede göstermek için
+      // template_id'yi kullanarak sunucudan önizleme sayfasını istiyoruz
+      const templateId = templateData.id;
+      
+      // Önizleme URL'ini oluştur
+      const previewUrl = `${apiUrls.previewPage}?template_id=${templateId}`;
+      
+      // Iframe src'sini ayarla
+      previewIframe.src = previewUrl;
+      
+      // Başlık ayarla
+      previewPageTitle.textContent = templateData.name;
+      
+      // Önizleme konteynerini göster
+      previewContainer.classList.add('active');
+    }
+    
+    function closePreview() {
+      previewContainer.classList.remove('active');
+      // Iframe içeriğini temizle
+      setTimeout(() => {
+        previewIframe.src = '';
+      }, 300);
+    }
+    
+    // Cihaz boyutunu değiştirme
+    deviceOptions.forEach(option => {
+      option.addEventListener('click', function() {
+        // Aktif cihaz seçeneğini kaldır
+        deviceOptions.forEach(opt => opt.classList.remove('active'));
+        // Bu seçeneği aktif olarak işaretle
+        this.classList.add('active');
+        
+        // Container sınıflarını temizle
+        previewIframeContainer.className = 'preview-iframe-container';
+        
+        // Yeni cihaz sınıfını ekle
+        const device = this.getAttribute('data-device');
+        previewIframeContainer.classList.add(device);
+      });
+    });
+    
+    // Düzenleme modu geçişi
+    toggleEditorModeBtn.addEventListener('click', function() {
+      const isEditorMode = this.classList.contains('active');
+      
+      if (isEditorMode) {
+        this.classList.remove('active');
+        this.innerHTML = '<i class="fas fa-pen"></i> Düzenleme Modu';
+      } else {
+        this.classList.add('active');
+        this.innerHTML = '<i class="fas fa-eye"></i> Önizleme Modu';
+      }
+      
+      // Iframe'e mesaj gönder
+      previewIframe.contentWindow.postMessage({
+        type: 'toggle_editor_mode',
+        isActive: !isEditorMode
+      }, '*');
+    });
+    
+    // Iframe'den gelen mesajları dinle
+    window.addEventListener('message', function(event) {
+      const message = event.data;
+      
+      // Iframe hazır mesajı
+      if (message.type === 'iframe_ready') {
+        console.log('Önizleme iframe hazır:', message.pageTitle);
+      }
+      
+      // Element seçildi mesajı
+      if (message.type === 'element_selected') {
+        console.log('Seçilen element:', message.elementId, message.elementTag, message.elementPath);
+        // Burada seçilen elementin özelliklerini kenar çubuğunda gösterebilirsiniz
+      }
+    });
+    
+    // Önizleme butonunu bul ve tıklama olayı ekle
+    const previewButton = document.getElementById('toggle-preview');
+    if (previewButton) {
+      previewButton.addEventListener('click', showPreview);
+    }
+    
+    // Kapat butonuna olay ekle
+    closePreviewBtn.addEventListener('click', closePreview);
+  });
+</script>
+{% endblock %} 

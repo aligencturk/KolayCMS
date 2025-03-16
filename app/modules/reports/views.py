@@ -4,7 +4,7 @@ from app.modules.reports.models import ReportModule
 from app.utils.validators import ValidationError
 from app.forms.report_form import ReportForm
 
-reports_bp = Blueprint('reports', __name__, url_prefix='/reports')
+reports_bp = Blueprint('reports', __name__)
 report_module = ReportModule()
 
 @reports_bp.route('/')

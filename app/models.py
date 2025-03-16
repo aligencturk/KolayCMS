@@ -2,74 +2,79 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 from slugify import slugify
 from flask_login import UserMixin
+import uuid
+from app import db, login_manager
 
 class BaseModel:
-    def __init__(self, id: str = None, created_at: datetime = None, updated_at: datetime = None):
-        self.id = id
+    def __init__(self, id: str = None, created_at: datetime = None, updated_at: datetime = None, created_by: str = None, updated_by: str = None):
+        self.id = id or str(uuid.uuid4())
         self.created_at = created_at or datetime.now()
         self.updated_at = updated_at or datetime.now()
+        self.created_by = created_by
+        self.updated_by = updated_by
 
     def to_dict(self) -> Dict[str, Any]:
+        """Model verilerini dictionary'e dönüştür"""
         return {
             'id': self.id,
-            'created_at': self.created_at,
-            'updated_at': self.updated_at
+            'created_at': self.created_at.strftime('%a, %d %b %Y %H:%M:%S GMT') if self.created_at else None,
+            'updated_at': self.updated_at.strftime('%a, %d %b %Y %H:%M:%S GMT') if self.updated_at else None,
+            'created_by': self.created_by,
+            'updated_by': self.updated_by
         }
 
+    @staticmethod
+    def parse_date(date_value) -> Optional[datetime]:
+        """Tarih değerini datetime nesnesine dönüştür"""
+        if isinstance(date_value, datetime):
+            return date_value
+        if isinstance(date_value, str):
+            try:
+                # RFC 2822 formatını dene
+                return datetime.strptime(date_value, '%a, %d %b %Y %H:%M:%S GMT')
+            except ValueError:
+                try:
+                    # ISO format dene
+                    return datetime.fromisoformat(date_value.replace('Z', '+00:00'))
+                except ValueError:
+                    return None
+        return None
+
 class User(UserMixin):
-    """Kullanıcı modeli"""
-    
-    def __init__(self, uid, email, username, role='user', is_active=True):
-        self.id = uid
+    def __init__(self, uid, email, username, role='user'):
+        self.uid = uid
         self.email = email
         self.username = username
         self.role = role
-        self._is_active = is_active
-        self.created_at = datetime.now()
-        self.updated_at = datetime.now()
-    
-    def get_id(self):
-        return self.id
-    
-    def is_admin(self):
-        return self.role == 'admin'
-    
-    def is_editor(self):
-        return self.role == 'editor' or self.role == 'admin'
-    
+        self._authenticated = True
+        
+    @property
+    def is_authenticated(self):
+        return self._authenticated
+        
     @property
     def is_active(self):
-        return self._is_active
+        return True
+        
+    @property
+    def is_anonymous(self):
+        return False
+        
+    def get_id(self):
+        return str(self.uid)
+        
+    @property
+    def is_admin(self):
+        """Kullanıcının admin rolüne sahip olup olmadığını kontrol et"""
+        return str(self.role).lower() == 'admin'
     
-    @is_active.setter
-    def is_active(self, value):
-        self._is_active = value
-    
-    def to_dict(self):
-        return {
-            'uid': self.id,
-            'email': self.email,
-            'username': self.username,
-            'role': self.role,
-            'is_active': self.is_active,
-            'created_at': self.created_at,
-            'updated_at': self.updated_at
-        }
-    
-    @staticmethod
-    def from_dict(data, uid):
-        user = User(
-            uid=uid,
-            email=data.get('email'),
-            username=data.get('username'),
-            role=data.get('role', 'user'),
-            is_active=data.get('is_active', True)
-        )
-        if 'created_at' in data:
-            user.created_at = data['created_at']
-        if 'updated_at' in data:
-            user.updated_at = data['updated_at']
-        return user
+    @property
+    def is_editor(self):
+        """Kullanıcının editor rolüne sahip olup olmadığını kontrol et"""
+        return str(self.role).lower() in ['editor', 'admin']
+        
+    def __repr__(self):
+        return f'<User {self.email} (Role: {self.role})>'
 
 class Report(BaseModel):
     def __init__(self, title: str, content: str, author_id: str, status: str = 'draft', **kwargs):
@@ -238,19 +243,199 @@ class Project(BaseModel):
         return data
 
 class Theme(BaseModel):
-    """Tema modeli - Sitenin farklı görünümleri için"""
-    def __init__(self, name: str, description: str, 
-                 primary_color: str = "#00BCD4", secondary_color: str = "#f44336",
-                 font_family: str = "sans-serif", is_active: bool = False, 
-                 css_variables: Dict[str, str] = None, **kwargs):
+    """Tema modeli"""
+    def __init__(self, name: str, description: str = "", author: str = "", version: str = "1.0.0",
+                 is_active: bool = False, thumbnail_url: str = "", template_dir: str = "",
+                 css_dir: str = "", js_dir: str = "", **kwargs):
         super().__init__(**kwargs)
         self.name = name
         self.description = description
-        self.primary_color = primary_color
-        self.secondary_color = secondary_color
-        self.font_family = font_family
+        self.author = author
+        self.version = version
         self.is_active = is_active
-        self.css_variables = css_variables or {}
+        self.thumbnail_url = thumbnail_url
+        self.template_dir = template_dir
+        self.css_dir = css_dir
+        self.js_dir = js_dir
+
+    @staticmethod
+    def from_dict(data: Dict[str, Any], id: str = None) -> Optional['Theme']:
+        """Dictionary'den Theme nesnesi oluştur"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        if not data:
+            logger.error(f"Theme.from_dict: Veri yok (ID: {id})")
+            return None
+            
+        try:
+            logger.debug(f"Theme.from_dict başladı - ID: {id}")
+            logger.debug(f"Gelen veri: {data}")
+            
+            # Gerekli alanları kontrol et
+            required_fields = ['name']
+            for field in required_fields:
+                if field not in data:
+                    logger.error(f"Theme.from_dict: Gerekli alan eksik - {field} (ID: {id})")
+                    return None
+            
+            # Datetime dönüşümlerini yap
+            created_at = BaseModel.parse_date(data.get('created_at'))
+            updated_at = BaseModel.parse_date(data.get('updated_at'))
+            
+            if not created_at:
+                created_at = datetime.now()
+                logger.warning(f"Theme.from_dict: created_at alanı bulunamadı, varsayılan değer atandı (ID: {id})")
+            
+            if not updated_at:
+                updated_at = datetime.now()
+                logger.warning(f"Theme.from_dict: updated_at alanı bulunamadı, varsayılan değer atandı (ID: {id})")
+            
+            # BaseModel alanlarını ayır
+            base_fields = {
+                'id': id or data.get('id'),
+                'created_at': created_at,
+                'updated_at': updated_at,
+                'created_by': data.get('created_by'),
+                'updated_by': data.get('updated_by')
+            }
+            
+            logger.debug(f"Base fields: {base_fields}")
+            
+            # Theme nesnesini oluştur
+            theme = Theme(
+                name=data.get('name', ''),
+                description=data.get('description', ''),
+                author=data.get('author', ''),
+                version=data.get('version', '1.0.0'),
+                is_active=bool(data.get('is_active', False)),
+                thumbnail_url=data.get('thumbnail_url', ''),
+                template_dir=data.get('template_dir', ''),
+                css_dir=data.get('css_dir', ''),
+                js_dir=data.get('js_dir', ''),
+                **base_fields
+            )
+            
+            logger.debug(f"Theme nesnesi oluşturuldu: {theme.name} (ID: {theme.id})")
+            return theme
+            
+        except Exception as e:
+            logger.error(f"Theme.from_dict hata oluştu (ID: {id}): {str(e)}", exc_info=True)
+            return None
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Theme nesnesini dictionary'e dönüştür"""
+        data = super().to_dict()
+        data.update({
+            'name': self.name,
+            'description': self.description,
+            'author': self.author,
+            'version': self.version,
+            'is_active': bool(self.is_active),  # bool dönüşümü ekle
+            'thumbnail_url': self.thumbnail_url,
+            'template_dir': self.template_dir,
+            'css_dir': self.css_dir,
+            'js_dir': self.js_dir
+        })
+        return data
+
+class ThemeTemplate:
+    """Tema şablonu modeli"""
+    def __init__(self, theme_id, name, description='', template_path='', thumbnail_url='', 
+                 is_active=False, created_at=None, updated_at=None, id=None):
+        self.id = id or str(uuid.uuid4())
+        self.theme_id = theme_id
+        self.name = name
+        self.description = description
+        self.template_path = template_path
+        self.thumbnail_url = thumbnail_url
+        self.is_active = is_active
+        self.created_at = created_at or datetime.now()
+        self.updated_at = updated_at or datetime.now()
+    
+    def to_dict(self):
+        return {
+            'theme_id': self.theme_id,
+            'name': self.name,
+            'description': self.description,
+            'template_path': self.template_path,
+            'thumbnail_url': self.thumbnail_url,
+            'is_active': self.is_active,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+        }
+        
+    @staticmethod
+    def from_dict(data, id=None):
+        """Sözlükten tema şablonu nesnesi oluştur"""
+        if not data:
+            return None
+            
+        # Eğer data içinde 'id' varsa ve id parametresi de belirtilmişse, veri kopyasını oluşturup 'id' alanını kaldır
+        if id is not None and 'id' in data:
+            data_copy = data.copy()
+            data_copy.pop('id', None)
+            data = data_copy
+            
+        return ThemeTemplate(
+            theme_id=data.get('theme_id'),
+            name=data.get('name'),
+            description=data.get('description', ''),
+            template_path=data.get('template_path', ''),
+            thumbnail_url=data.get('thumbnail_url', ''),
+            is_active=data.get('is_active', False),
+            created_at=data.get('created_at'),
+            updated_at=data.get('updated_at'),
+            id=id
+        )
+
+class ThemeComponent:
+    """Tema bileşeni modeli"""
+    def __init__(self, name, html_content, css_content='', js_content='', theme_id=None, 
+                 component_type='section', is_global=False, thumbnail_url='', category='',
+                 created_at=None, updated_at=None, id=None):
+        self.id = id or str(uuid.uuid4())
+        self.name = name
+        self.html_content = html_content
+        self.css_content = css_content
+        self.js_content = js_content
+        self.theme_id = theme_id  # None ise global komponent
+        self.component_type = component_type  # section, header, footer, sidebar, vs.
+        self.is_global = is_global  # True ise tüm temalar için kullanılabilir
+        self.thumbnail_url = thumbnail_url
+        self.category = category
+        self.created_at = created_at or datetime.now()
+        self.updated_at = updated_at or datetime.now()
+    
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'html_content': self.html_content,
+            'css_content': self.css_content,
+            'js_content': self.js_content,
+            'theme_id': self.theme_id,
+            'component_type': self.component_type,
+            'is_global': self.is_global,
+            'thumbnail_url': self.thumbnail_url,
+            'category': self.category,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+        }
+
+class Component(BaseModel):
+    """Bileşen modeli"""
+    def __init__(self, name: str, description: str = "", component_type: str = "custom",
+                 html_content: str = "", css_content: str = "", js_content: str = "",
+                 is_active: bool = True, order: int = 0, **kwargs):
+        super().__init__(**kwargs)
+        self.name = name
+        self.description = description
+        self.component_type = component_type  # header, footer, sidebar, custom, etc.
+        self.html_content = html_content
+        self.css_content = css_content
+        self.js_content = js_content
+        self.is_active = is_active
+        self.order = order
         self.slug = slugify(name)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -258,66 +443,108 @@ class Theme(BaseModel):
         data.update({
             'name': self.name,
             'description': self.description,
-            'primary_color': self.primary_color,
-            'secondary_color': self.secondary_color,
-            'font_family': self.font_family,
+            'component_type': self.component_type,
+            'html_content': self.html_content,
+            'css_content': self.css_content,
+            'js_content': self.js_content,
             'is_active': self.is_active,
-            'css_variables': self.css_variables,
+            'order': self.order,
             'slug': self.slug
         })
         return data
 
 class PageTemplate(BaseModel):
-    """Sayfa şablonu modeli - Özelleştirilebilir sayfa düzenleri için"""
-    def __init__(self, name: str, description: str, html_structure: str,
-                 template_type: str = "page", thumbnail_url: str = None,
-                 available_slots: Dict[str, str] = None, is_system: bool = False,
-                 **kwargs):
+    """Sayfa şablonu modeli"""
+    def __init__(self, name: str, description: str = "", template_type: str = "page",
+                 html_content: str = "", css_content: str = "", js_content: str = "",
+                 is_active: bool = True, **kwargs):
         super().__init__(**kwargs)
         self.name = name
         self.description = description
-        self.html_structure = html_structure
-        self.template_type = template_type  # "page", "blog", "product", vb.
-        self.thumbnail_url = thumbnail_url
-        self.available_slots = available_slots or {"content": "Ana İçerik Alanı"}
-        self.is_system = is_system  # Sistem şablonu mu (silinemeyen)
+        self.template_type = template_type  # page, layout, component
+        self.html_content = html_content
+        self.css_content = css_content
+        self.js_content = js_content
+        self.is_active = is_active
         self.slug = slugify(name)
 
     def to_dict(self) -> Dict[str, Any]:
-        data = super().to_dict()
-        data.update({
+        result = super().to_dict()
+        result.update({
             'name': self.name,
             'description': self.description,
-            'html_structure': self.html_structure,
             'template_type': self.template_type,
-            'thumbnail_url': self.thumbnail_url,
-            'available_slots': self.available_slots,
-            'is_system': self.is_system,
-            'slug': self.slug
+            'html_content': self.html_content,
+            'css_content': self.css_content,
+            'js_content': self.js_content,
+            'is_active': self.is_active,
         })
-        return data
+        return result
+        
+    @staticmethod
+    def from_dict(data, id=None):
+        """Sözlükten sayfa şablonu nesnesi oluştur"""
+        if not data:
+            return None
+            
+        # Eğer data içinde 'id' varsa ve id parametresi de belirtilmişse, veri kopyasını oluşturup 'id' alanını kaldır
+        if id is not None and 'id' in data:
+            data_copy = data.copy()
+            data_copy.pop('id', None)
+            data = data_copy
+            
+        return PageTemplate(
+            name=data.get('name', ''),
+            description=data.get('description', ''),
+            template_type=data.get('template_type', 'page'),
+            html_content=data.get('html_content', ''),
+            css_content=data.get('css_content', ''),
+            js_content=data.get('js_content', ''),
+            is_active=data.get('is_active', True),
+            created_at=data.get('created_at'),
+            updated_at=data.get('updated_at'),
+            created_by=data.get('created_by'),
+            updated_by=data.get('updated_by'),
+            id=id
+        )
 
 class PageElement(BaseModel):
-    """Sürükle-bırak düzenleyici için sayfa elemanları"""
-    def __init__(self, element_type: str, title: str, content: Dict[str, Any],
-                 position: Dict[str, int] = None, style: Dict[str, str] = None,
-                 page_id: str = None, **kwargs):
+    """Sayfa elemanı modeli"""
+    def __init__(self, page_id: str, element_type: str, content: Dict[str, Any] = None,
+                 position: Dict[str, int] = None, is_active: bool = True, **kwargs):
         super().__init__(**kwargs)
-        self.element_type = element_type  # "text", "image", "button", "video", etc.
-        self.title = title
-        self.content = content  # element_type'a göre değişen içerik
-        self.position = position or {'x': 0, 'y': 0, 'width': 12, 'height': 1}
-        self.style = style or {}
         self.page_id = page_id
+        self.element_type = element_type  # text, image, slider, form, etc.
+        self.content = content or {}
+        self.position = position or {'x': 0, 'y': 0, 'width': 12, 'height': 1}
+        self.is_active = is_active
 
     def to_dict(self) -> Dict[str, Any]:
         data = super().to_dict()
         data.update({
+            'page_id': self.page_id,
             'element_type': self.element_type,
-            'title': self.title,
             'content': self.content,
             'position': self.position,
-            'style': self.style,
-            'page_id': self.page_id
+            'is_active': self.is_active
         })
-        return data 
+        return data
+
+class PageStyle:
+    def __init__(self, global_styles=None, element_styles=None, page_id=None, last_updated=None, is_published=False, id=None):
+        self.global_styles = global_styles or {}
+        self.element_styles = element_styles or {}
+        self.page_id = page_id
+        self.last_updated = last_updated
+        self.is_published = is_published
+        self.id = id
+
+class ComponentCategory:
+    def __init__(self, name, description='', icon='fa-folder', 
+                 created_at=None, created_by=None, id=None):
+        self.name = name
+        self.description = description
+        self.icon = icon  # Font Awesome ikon
+        self.created_at = created_at
+        self.created_by = created_by
+        self.id = id 
